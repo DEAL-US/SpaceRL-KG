@@ -1,0 +1,21 @@
+                  COUNTRIES   KINSHIP      UMLS
+hits@1  TransE_l2    0.3484       NaN    0.1348
+        DistMult        NaN    0.0836       NaN
+        ComplEx         NaN     0.087       NaN
+        TransR        0.355       NaN       NaN
+hits@3  TransE_l2    0.7324       NaN    0.3582
+        DistMult        NaN    0.2356       NaN
+        ComplEx         NaN    0.2366       NaN
+        TransR       0.7366       NaN       NaN
+hits@5  TransE_l2    0.8838       NaN    0.5198
+        DistMult        NaN    0.3616       NaN
+        ComplEx         NaN    0.3624       NaN
+        TransR       0.8962       NaN       NaN
+hits@10 TransE_l2    0.9846       NaN    0.7682
+        DistMult        NaN    0.5974       NaN
+        ComplEx         NaN    0.5978       NaN
+        TransR        0.989       NaN       NaN
+MRR     TransE_l2  0.565095       NaN  0.298767
+        DistMult        NaN  0.206215       NaN
+        ComplEx         NaN  0.209416       NaN
+        TransR     0.571354       NaN       NaN
