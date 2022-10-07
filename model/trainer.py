@@ -151,10 +151,10 @@ Path: {self.agent.actions_mem}"
             # done changes to true when the number of steps is completed indicated by the path length.
             while not done:
                 # Ask the agent to decide which action to take from this list.
-                action, observation, reward, max_rew, prob = self.agent.select_action()
-                self.utils.verb_print(f"step output: action>{action}, reward>{reward}, max reward>{max_rew}, prob>{prob}\n\n ---o--- \n")
+                action, observation, reward, max_rew = self.agent.select_action()
+                self.utils.verb_print(f"step output: action>{action}, reward>{reward}, max reward>{max_rew}\n\n ---o--- \n")
                 _, done, _ = self.env.step(action)
-                self.agent.remember(action, observation, reward, max_rew, prob)
+                self.agent.remember(action, observation, reward, max_rew)
                 score += reward
             
             self.score_history.append(score)

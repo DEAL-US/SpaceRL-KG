@@ -35,7 +35,7 @@ config = {
     "alpha": 0.9, # previous step network learning rate (for PPO only.)
     "gamma": 0.99, # decay rate of past observations for backpropagation
 
-    "learning_rate": 1e-4, # neural network learning rate.
+    "learning_rate": 1e-3, # neural network learning rate.
     
     # NOTE: tensorflow makes it so tanh activation functions increase the efficiency of
     # LSTM layers so they calculate much faster consider using them when possible.
@@ -54,7 +54,7 @@ config = {
     # max_percent -> computes the maximum reward for the step and gives 0-1 according to how close we got to it.
     # one_hot_max -> gives 1 if we got the maximum reward for the episode 0 otherwise
     # straight -> gives the reward straight to the network as calculated from the step.
-    "reward_computation": "one_hot_max", #"max_percent", "one_hot_max", "perfection", "straight"
+    "reward_computation": "max_percent", #"max_percent", "one_hot_max", "perfection", "straight"
     
     # probability->calculates an action with the weights provided by the probabilities.
     # max -> chooses the maximum probability value outputed by the network.
@@ -107,7 +107,7 @@ class Test():
 
    
 EXPERIMENTS = [
-    Experiment("Countries-distancerewonly-500laps", "COUNTRIES", ["TransE_l2"], 500),
+    Experiment("Countries-distancerewonly-250laps-BASE", "COUNTRIES", ["TransE_l2"], 250),
     # Experiment("Countries 500 base", "COUNTRIES", ["TransE_l2"], 
     # 500, single_relation=False, relation="neighborOf")
 ]

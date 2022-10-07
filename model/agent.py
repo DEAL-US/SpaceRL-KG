@@ -333,7 +333,7 @@ class Agent(object):
                 if distance < latest:
                     dist_rew = 1
                 elif distance == latest:
-                    dist_rew = 0.5
+                    dist_rew = 1/3
                 else:
                     dist_rew = 0 
                 # self.utils.verb_print(f"prev dist to end node: {latest}, new dist to end node: {distance}")
@@ -440,7 +440,7 @@ class Agent(object):
         
         chosen_action = self.env.actions[chosen_action_index]
         
-        return chosen_action, chosen_action_index, probs[chosen_action_index]
+        return chosen_action, chosen_action_index #, probs[chosen_action_index]
 
     def select_action(self):
         '''
@@ -452,7 +452,7 @@ class Agent(object):
 
         inputs, rewards = self.get_inputs_and_rewards()
         outputs = self.get_network_outputs(len(self.env.actions), inputs)
-        chosen_action, chosen_action_index, probabilty_of_action = self.pick_action_from_outputs(outputs)
+        chosen_action, chosen_action_index = self.pick_action_from_outputs(outputs)
    
         self.utils.verb_print(f"predicted output from network:\n {outputs}\nrewards:\n {rewards} \nchosen action for step was: {chosen_action}")
         
@@ -465,7 +465,7 @@ class Agent(object):
                 self.utils.verb_print(f"calculated embedding metrics {self.step_embeddings}")
                 self.emb_metrics_mem.append(self.step_embeddings[chosen_action_index])
 
-        return chosen_action, inputs[chosen_action_index], rewards[chosen_action_index], max(rewards), probabilty_of_action
+        return chosen_action, inputs[chosen_action_index], rewards[chosen_action_index], max(rewards)
 
     def select_action_runtime(self):
         inputs = []
@@ -633,11 +633,11 @@ class Agent(object):
         self.distance_mem = []
         self.emb_metrics_mem = []
 
-    def remember(self, action, input, reward, max_rew, prob):
+    def remember(self, action, input, reward, max_rew):
         self.input_mem.append(input)
         self.actions_mem.append(action)
         self.rewards_mem.append(reward)
-        self.output_mem.append(prob)
+        # self.output_mem.append(prob)
         self.max_rew_mem.append(max_rew)
 
     def numpyfy_memories(self):

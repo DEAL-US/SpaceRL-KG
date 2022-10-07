@@ -92,7 +92,7 @@ class Tester(object):
         if(len(agent_models) == 1):
             self.agent.policy_network = agent_models[0]
         
-        elif(len(agent_models == 2)):
+        elif(len(agent_models) == 2):
             self.agent.policy_network = agent_models[0]
             self.agent.critic = agent_models[1]
 
@@ -178,7 +178,6 @@ def get_agents(test):
 emb_mapping = {"TransE_l2":0, "DistMult":1, "ComplEx":2, "TransR":3}
 for t in TESTS:
     agents = get_agents(t)
-    print(agents)
 
     for emb_i in t.embedding_inds:
         try:
