@@ -16,16 +16,21 @@ import os
 import shutil
 
 class DataManager(object):
-    def __init__(self, is_experiment=True, experiment_name = "default_experiment_name"):
+    def __init__(self, is_experiment=True, experiment_name = "default_experiment_name", respath=""):
         self.data_path = Path(__file__).parent.resolve()
         self.rel_data_path = "data"
         self.datasets_path = str(Path(self.data_path).parent.parent.absolute()) + "/datasets"
         self.caches_path = str(Path(self.data_path))+"/caches"
         self.agents_path = f"{str(Path(self.data_path))}/agents/{experiment_name}"
+        self.test_result_path = f"{respath}/{experiment_name}"
 
         if(not os.path.isdir(self.agents_path) and is_experiment):
             os.mkdir(self.agents_path)
             self.copy_config()
+
+        if(not os.path.isdir(self.test_result_path) and not is_experiment):
+            os.mkdir(self.test_result_path)
+        
 
     def get_dataset(self, dataset, embedding_name):
         '''

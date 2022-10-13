@@ -1,3 +1,6 @@
+from cgi import test
+
+
 config = {
     "available_cores": 10, #number of cpu cores to use when computing the reward
     "gpu_acceleration": True, # wether to use GPU(S) to perform fast training & embedding generation.
@@ -39,7 +42,8 @@ config = {
     
     # NOTE: tensorflow makes it so tanh activation functions increase the efficiency of
     # LSTM layers so they calculate much faster consider using them when possible.
-    "activation":'leaky_relu', # relu, prelu, leaky_relu, elu, tanh (activation function for intermediate layers.)
+    # activation function for intermediate layers.
+    "activation":'leaky_relu', # relu, prelu, leaky_relu, elu, tanh
     
     # applies L1 and L2 regularization.
     "regularizers":['kernel'], #"kernel", "bias", "activity"
@@ -54,7 +58,7 @@ config = {
     # max_percent -> computes the maximum reward for the step and gives 0-1 according to how close we got to it.
     # one_hot_max -> gives 1 if we got the maximum reward for the episode 0 otherwise
     # straight -> gives the reward straight to the network as calculated from the step.
-    "reward_computation": "max_percent", #"max_percent", "one_hot_max", "perfection", "straight"
+    "reward_computation": "one_hot_max", #"max_percent", "one_hot_max", "perfection", "straight"
     
     # probability->calculates an action with the weights provided by the probabilities.
     # max -> chooses the maximum probability value outputed by the network.
@@ -85,13 +89,14 @@ class Experiment():
             self.relation_to_train = None
 
 class Test():
-    def __init__(self, dataset_name : str, embeddings, episodes : int, single_relation : bool = False, relation : str = ""):
+    def __init__(self, test_name, dataset_name : str, embeddings, episodes : int, single_relation : bool = False, relation : str = ""):
 
         self.dataset = dataset_name
         self.single_relation = single_relation
         self.episodes = episodes
         self.embeddings = embeddings
         self.embedding_inds = []
+        self.test_name = test_name
 
         emb_mapping = {"TransE_l2":0, "DistMult":1, "ComplEx":2, "TransR":3}
 
@@ -107,13 +112,13 @@ class Test():
 
    
 EXPERIMENTS = [
-    Experiment("Countries-distancerewonly-250laps-BASE", "COUNTRIES", ["TransE_l2"], 250),
+    Experiment("Umls-distancerew-125laps-PPO", "UMLS", ["TransE_l2"], 10),
     # Experiment("Countries 500 base", "COUNTRIES", ["TransE_l2"], 
     # 500, single_relation=False, relation="neighborOf")
 ]
 
 TESTS = [
-    Test("COUNTRIES", ["TransE_l2"], 500),
+    Test("test-UMLS-embedding", "COUNTRIES", ["TransE_l2"], 150),
     # Test("COUNTRIES", ["TransE_l2"], 500, single_relation=True, relation="neighborOf")
 ]
 

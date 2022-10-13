@@ -25,8 +25,19 @@ def run_prep():
     config ["use_episodes"] = True
     embs = ["TransE_l2", "DistMult", "ComplEx", "TransR"]
 
-    p = Path(__file__).parent
-    respath = f"{str(p)}/data/results/{datetime.now().date().isoformat()}"
+    p = Path(__file__).parent.absolute()
+    respath = f"{str(p)}/data/results/test"
+    path_index = 1
+
+    while(os.path.isdir(respath)):
+        if(str(path_index) in respath):
+            respath = respath.replace(str(path_index), str(path_index+1))
+            path_index += 1
+        else:
+            respath = f"{respath}({path_index})"
+    
+    os.mkdir(respath)
+
     agents_path = f"{str(p)}/data/agents/testing"
     datasets_dir = os.listdir(f"{str(p.parent)}/datasets")
     num_datasets = len(datasets_dir)-1
@@ -50,21 +61,13 @@ def run_prep():
         index = df_index
     )
 
-    try:
-        os.mkdir(respath)
-    except:
-        print("folder exists already, replacing files.")
-
-    return df_index, metrics_df, config, embs, TESTS, respath, agents_path
-
-df_index, metrics_df, config, embs, TESTS, respath, agents_path = run_prep()
-
+    return df_index, metrics_df, config, embs, TESTS, agents_path, respath
 
 class Tester(object):
     '''
     Test the model and calculate MRR & Hits@N metrics.
     '''
-    def __init__(self, env_config, agent_models):
+    def __init__(self, test_name, respath, env_config, agent_models):
         for key, val in env_config.items(): setattr(self, key, val)
 
         embs = ["TransE_l2", "DistMult", "ComplEx", "TransR"]
@@ -77,7 +80,7 @@ class Tester(object):
 
         self.set_gpu_config(self.gpu_acceleration)
 
-        self.dm = DataManager(is_experiment=False)
+        self.dm = DataManager(is_experiment=False, experiment_name=test_name, respath=respath)
 
         self.env = KGEnv(self.dm, self.dataset, 
         [t.single_relation, t.relation_to_train],
@@ -89,6 +92,8 @@ class Tester(object):
         self.algorithm, True, 0.9, self.reward_type, True, 
         verbose = self.verbose, debug = self.debug)
 
+        print(agent_models)
+
         if(len(agent_models) == 1):
             self.agent.policy_network = agent_models[0]
         
@@ -99,7 +104,7 @@ class Tester(object):
     def run(self):
         MRR = []
         hits_at = {i: 0 for i in (1, 3, 5, 10)}
-
+        historical = dict()
         try:
             for x in tqdm(range(self.episodes)):
                 MRR.append(0)
@@ -118,13 +123,21 @@ class Tester(object):
                         
                         MRR[x] = i
                         break
-
-            return hits_at, MRR
             
+            self.generate_MRR_boxplot_and_source(MRR)
+            return hits_at, MRR
+    
         except Exception as e:
             print(traceback.format_exc())
             return False
     
+    def generate_MRR_boxplot_and_source(self, MRR):
+        source_filepath = f"{self.dm.test_result_path}/res.txt"
+        with open(source_filepath, "w") as f:
+            f.write(str(MRR))
+        
+
+
     def path_contains_entity(self):
         visited = set()
         path = self.env.path_history 
@@ -175,6 +188,7 @@ def get_agents(test):
     return agents
 
 ################## START ####################
+df_index, metrics_df, config, embs, TESTS, agents_path, respath = run_prep()
 emb_mapping = {"TransE_l2":0, "DistMult":1, "ComplEx":2, "TransR":3}
 for t in TESTS:
     agents = get_agents(t)
@@ -186,12 +200,11 @@ for t in TESTS:
             config["embedding_index"] = emb_i
             config["episodes"] = t.episodes
             sent = agents[emb_i]
-            m = Tester(config, sent)
+            m = Tester(t.test_name, respath, config, sent)
             res = m.run()
 
             if(res == False):
                 print("something went wrong")
-                m.run_debug()
                 quit()
             
             hits_raw, mrr_raw = res
@@ -207,7 +220,6 @@ for t in TESTS:
             print("error")
             traceback.print_exc()
             quit()
-            continue
 
 print(metrics_df)
 metrics_df.to_csv(f"{respath}/metrics.csv")

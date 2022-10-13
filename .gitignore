@@ -5,4 +5,5 @@ ejemplos
 *.log
 *.pkl
 .vscode
+plotters/examples
 __pycache__
