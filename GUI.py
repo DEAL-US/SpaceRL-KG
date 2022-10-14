@@ -6,32 +6,51 @@ def print_hierarchy(w, depth=0):
     for i in w.winfo_children():
         print_hierarchy(i, depth+1)
 
-def calculate():
+def placeholder():
     print('placeholder')
 
 root = Tk()
 root.title("Model Generator")
 
-# initial mainframe configuration.
-# we make a 3 by 3 grid 
-mainframe = ttk.Frame(root, padding="3 4 12 12")
+# Initial mainframe configuration.
+# 3 columns and 4 rows.
+mainframe = ttk.Frame(root, padding="4 4 12 12")
 mainframe.grid(column=0, row=0) #sticky=(N, W, E, S) <- makes the content stick to corner, we perfer it to be centered.
 root.columnconfigure(0, weight=1)
 root.rowconfigure(0, weight=1)
 
-# we create the input variable
+# STYLE FOR ELEMENTS.
+s = ttk.Style()
+s.configure('Danger.TFrame', background='red', borderwidth=5, relief='raised')
+# ttk.Frame(root, width=200, height=200, style='Danger.TFrame').grid()
+
+textstyle = ttk.Style()
+textstyle.configure('general purpose text.')
+
+# ENDSTYLE
+
 feet = StringVar()
-# and assign mainframe as its parent.
+# as we want to reference this variable later we cannot add grid directly as it returs nothing.
+# entry widget is a free text box.
 feet_entry = ttk.Entry(mainframe, width=7, textvariable=feet)
-# finally we assing its position in the grid (we start counting at 1 btw.)
 feet_entry.grid(column=2, row=1, sticky=(W, E))
 
-# same with the meters text.
+# the ouput of the program goes here.
 meters = StringVar()
 ttk.Label(mainframe, textvariable=meters).grid(column=2, row=2, sticky=(W, E))
 
-# the calculation button.
-ttk.Button(mainframe, text="Calculate", command=calculate).grid(column=3, row=3, sticky=W)
+# button that triggers the calculation.
+ttk.Button(mainframe, text="Calculate", command=placeholder).grid(column=3, row=3, sticky=W)
+
+# check button
+measureSystem = StringVar()
+check = ttk.Checkbutton(mainframe, text='Use Metric', command=placeholder, variable=measureSystem,onvalue='metric', offvalue='imperial')
+
+# radio buttons
+phone = StringVar()
+home = ttk.Radiobutton(mainframe, text='Home', variable=phone, value='home')
+office = ttk.Radiobutton(mainframe, text='Office', variable=phone, value='office')
+cell = ttk.Radiobutton(mainframe, text='Mobile', variable=phone, value='cell')
 
 # and some labels
 ttk.Label(mainframe, text="feet").grid(column=3, row=1, sticky=W)
@@ -46,7 +65,7 @@ for child in mainframe.winfo_children():
 #automatically focus on the feet entry.
 feet_entry.focus()
 # if <Return> key is pressed we run the calculate function.
-root.bind("<Return>", calculate)
+root.bind("<Return>", placeholder)
 
 # some more binding to keys.
 # l = ttk.Label(mainframe, text="Starting...")
