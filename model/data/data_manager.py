@@ -1,8 +1,9 @@
 from inspect import getsourcefile
 import os.path as path, sys
+# add the parent directory to path so you can import config into data manager. 
 current_dir = path.dirname(path.abspath(getsourcefile(lambda:0)))
 sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
-from config import get_config  # Replace "my_module" here with the module name.
+from config import get_config
 sys.path.pop(0)
 
 import pickle
