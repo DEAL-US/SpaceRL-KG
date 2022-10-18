@@ -14,48 +14,76 @@ root.title("Model Generator")
 
 # Initial mainframe configuration.
 # 3 columns and 4 rows.
-mainframe = ttk.Frame(root, padding="4 4 12 12")
-mainframe.grid(column=0, row=0) #sticky=(N, W, E, S) <- makes the content stick to corner, we perfer it to be centered.
+mainframe = ttk.Frame(root, padding="12 12 12 12")
+mainframe.grid(column=0, row=0)
 root.columnconfigure(0, weight=1)
 root.rowconfigure(0, weight=1)
 
-# STYLE FOR ELEMENTS.
+# region STYLES
 s = ttk.Style()
-s.configure('Danger.TFrame', background='red', borderwidth=5, relief='raised')
-# ttk.Frame(root, width=200, height=200, style='Danger.TFrame').grid()
+# s.configure('Danger.TFrame', background='red', borderwidth=5, relief='raised')
+t = ttk.Style()
+# endregion STYLES
 
-textstyle = ttk.Style()
-textstyle.configure('general purpose text.')
 
-# ENDSTYLE
+# region ELEMENTS
 
-feet = StringVar()
-# as we want to reference this variable later we cannot add grid directly as it returs nothing.
-# entry widget is a free text box.
-feet_entry = ttk.Entry(mainframe, width=7, textvariable=feet)
-feet_entry.grid(column=2, row=1, sticky=(W, E))
+# text entries
+namelbl = ttk.Label(mainframe, text="Name")
+name = StringVar()
+name_entry = ttk.Entry(mainframe, textvariable=name, text="name")
 
-# the ouput of the program goes here.
-meters = StringVar()
-ttk.Label(mainframe, textvariable=meters).grid(column=2, row=2, sticky=(W, E))
-
-# button that triggers the calculation.
-ttk.Button(mainframe, text="Calculate", command=placeholder).grid(column=3, row=3, sticky=W)
-
-# check button
-measureSystem = StringVar()
-check = ttk.Checkbutton(mainframe, text='Use Metric', command=placeholder, variable=measureSystem,onvalue='metric', offvalue='imperial')
+surnamelbl = ttk.Label(mainframe, text="Surname")
+surname = StringVar()
+surname_entry = ttk.Entry(mainframe, textvariable=surname, text="surname")
 
 # radio buttons
-phone = StringVar()
-home = ttk.Radiobutton(mainframe, text='Home', variable=phone, value='home')
-office = ttk.Radiobutton(mainframe, text='Office', variable=phone, value='office')
-cell = ttk.Radiobutton(mainframe, text='Mobile', variable=phone, value='cell')
+genderlbl = ttk.Label(mainframe, text='Gender')
+gender = StringVar()
+male = ttk.Radiobutton(mainframe, text='Woman', variable=gender, value='F') #Female
+female = ttk.Radiobutton(mainframe, text='Man', variable=gender, value='M') #Male
+other = ttk.Radiobutton(mainframe, text='Other', variable=gender, value='O') #Other
 
-# and some labels
-ttk.Label(mainframe, text="feet").grid(column=3, row=1, sticky=W)
-ttk.Label(mainframe, text="is equivalent to").grid(column=1, row=2, sticky=E)
-ttk.Label(mainframe, text="meters").grid(column=3, row=2, sticky=W)
+# check buttons
+newscheck = BooleanVar(value=False)
+check = ttk.Checkbutton(mainframe, text='get newsletter?', variable=newscheck)
+test1 = BooleanVar(value=False)
+check2 = ttk.Checkbutton(mainframe, text='test1', variable=test1)
+test2 = BooleanVar(value=False)
+check3 = ttk.Checkbutton(mainframe, text='test2', variable=test2)
+test3 = BooleanVar(value=False)
+check4 = ttk.Checkbutton(mainframe, text='test3', variable=test3)
+
+# Functional Buttons
+config_button = ttk.Button(mainframe, text="Configuration", command=placeholder)
+
+
+# endregion ELEMENTS
+
+# GRID MANAGEMENT
+# Sticky options can choose where in the cell the element is 
+
+#row0
+namelbl.grid(column=0, row=0, sticky=['E'])
+name_entry.grid(column=1, row=0, columnspan=2)
+surnamelbl.grid(column=3, row=0, sticky=['E'])
+surname_entry.grid(column=4, row=0, columnspan=2)
+
+#row1
+genderlbl.grid(row=1, column=0, sticky=['E'])
+male.grid(row=1, column=1)
+female.grid(row=1, column=2)
+other.grid(row=1, column=3)
+
+config_button.grid(row=1, column=4, columnspan=2, rowspan=2)
+
+#row2
+check.grid(row=2, column=0)
+check2.grid(row=2, column=1)
+check3.grid(row=2, column=2)
+check4.grid(row=2, column=3)
+
+# END GRID MANAGEMENT
 
 # adding pixel padding to all children of mainframe.
 for child in mainframe.winfo_children(): 
@@ -63,7 +91,7 @@ for child in mainframe.winfo_children():
 
 
 #automatically focus on the feet entry.
-feet_entry.focus()
+name_entry.focus()
 # if <Return> key is pressed we run the calculate function.
 root.bind("<Return>", placeholder)
 

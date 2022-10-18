@@ -1,9 +1,9 @@
 import os
 from GPUtil import GPUtil
 # select avaliable GPU
-gpu1, gpu2 = GPUtil.getGPUs()
-available_gpu = gpu1 if gpu1.memoryFree >= gpu2.memoryFree else gpu2
-os.environ["CUDA_VISIBLE_DEVICES"]=str(available_gpu.id)
+# gpu1, gpu2 = GPUtil.getGPUs()
+# available_gpu = gpu1 if gpu1.memoryFree >= gpu2.memoryFree else gpu2
+# os.environ["CUDA_VISIBLE_DEVICES"]=str(available_gpu.id)
 
 import tensorflow as tf
 import random

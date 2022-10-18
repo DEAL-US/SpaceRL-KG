@@ -1,0 +1,2 @@
+GPUtil == 1.4.0
+tensorflow == 2.8
