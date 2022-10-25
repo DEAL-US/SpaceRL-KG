@@ -1,7 +1,12 @@
 from tkinter import *
-from tkinter import ttk
+from tkinter import ttk, filedialog, messagebox
+from PIL import ImageTk, Image
+
 import random
 import os
+import pathlib
+
+current_dir = pathlib.Path(__file__).parent.resolve()
 
 import menus
 
@@ -15,16 +20,12 @@ def placeholder():
 
 def open_menu(menutype):
     if(menutype == "config"):
-        config = menus.configmenu(root)
-        config.instantiate()
-        config.add_elements()
-        config.grid_elements()
-    elif(menutype == "experiments"):
-        pass
-    elif(menutype == "testing"):
-        pass
-
-    # root.after(5000, lambda: config.close())
+        menu = menus.configmenu(root)
+    elif(menutype == "setup"):
+        menu = menus.experiment_test_menu(root)
+      
+    menu.add_elements()
+    menu.grid_elements()
 
 def get_listbox_info(listbox: Listbox):
     print(listbox.curselection())
@@ -39,8 +40,18 @@ def toggle_edit_menu(b):
     root.after(5000, lambda: toggle_edit_menu(not b))
 
 def close_after_prompt():
-    print("ask user to save their changes.")
+    # messagebox.showinfo(message='Have a good day')
+    # userwantstoclose = messagebox.askyesno(
+	#    message='experimentation is still running, close anyways?',
+	#    icon='warning', title='Running...')
+    # if(userwantstoclose):
+    #     root.destroy()
     root.destroy()
+
+def open_file():
+    filename = filedialog.askopenfilename()
+    print(filename)
+
 
 # Main window config
 root = Tk()
@@ -80,7 +91,7 @@ menubar = Menu(root)
 menu_file = Menu(menubar)
 menu_file.add_command(label='New', command=placeholder)
 menu_file.add_separator()
-menu_file.add_command(label='Open...', command=placeholder)
+menu_file.add_command(label='Open...', command=open_file)
 menu_file.add_command(label='Close', command=placeholder)
 menubar.add_cascade(menu=menu_file, label='File')
 
@@ -92,7 +103,7 @@ menu_recent = Menu(menu_file)
 menu_file.add_cascade(menu=menu_recent, label='Open Recent')
 recent_files = ["fakefile1.h5", "fakefile2.py", "another one.docx", "yet another.xls"]
 for f in recent_files:
-    menu_recent.add_command(label=os.path.basename(f), command=lambda f=f: openFile(f))
+    menu_recent.add_command(label=os.path.basename(f), command=placeholder)
 
 menu_file.add_separator()
 #check and radio button menus items
@@ -118,20 +129,28 @@ root.config(menu=menubar)
 
 # region STYLES
 s = ttk.Style()
-# s.configure('Danger.TFrame', background='red', borderwidth=5, relief='raised')
-t = ttk.Style()
+print(s.theme_names())
+# s.theme_use('clam') # tkinter alt theme.
+root.tk.call('lappend', 'auto_path', f"{current_dir}/awdark/")
+root.tk.call('package', 'require', 'awdark')
+s.theme_use('awdark') # imported theme
+
+
 # endregion STYLES
 
 # region ELEMENTS
 
-# text entries
-namelbl = ttk.Label(mainframe, text="Name")
-name = StringVar()
-name_entry = ttk.Entry(mainframe, textvariable=name, text="name")
+# labelframes 
+labeledframe = ttk.Labelframe(mainframe, text='Gouped', padding="6 6 6 12")
 
-surnamelbl = ttk.Label(mainframe, text="Surname")
+# text entries
+namelbl = ttk.Label(labeledframe, text="Name")
+name = StringVar()
+name_entry = ttk.Entry(labeledframe, textvariable=name, text="name")
+
+surnamelbl = ttk.Label(labeledframe, text="Surname")
 surname = StringVar()
-surname_entry = ttk.Entry(mainframe, textvariable=surname, text="surname")
+surname_entry = ttk.Entry(labeledframe, textvariable=surname, text="surname")
 
 # radio buttons
 genderlbl = ttk.Label(mainframe, text='Gender')
@@ -163,6 +182,7 @@ l_d.configure(yscrollcommand=scroll2.set)
 
 # text widget
 textbox = Text(mainframe, width=40, height=10)
+textbox.insert('1.0', 'default text message...')
 
 # check buttons
 newscheck = BooleanVar(value=False)
@@ -179,17 +199,28 @@ progbar = ttk.Progressbar(mainframe, orient=HORIZONTAL, mode='determinate', leng
 
 # buttons
 config_button = ttk.Button(mainframe, text="Configuration", command=lambda: open_menu("config"))
+setup_button = ttk.Button(mainframe, text="Setup", command=lambda: open_menu("setup"))
 demobutton = ttk.Button(mainframe, text="Demo", command=lambda: increase_progressbar_by(random.randint(1,5)))
+
+# images
+
+# img_path = os.path.join(current_dir, "pylogo.png") 
+# myimg = ImageTk.PhotoImage(Image.open(img_path))
 
 # endregion ELEMENTS
 
 # region GRID
 
 #row0
+labeledframe.grid(column=0, row=0, columnspan=4, sticky=['W'])
+
 namelbl.grid(column=0, row=0, sticky=['E'])
-name_entry.grid(column=1, row=0, columnspan=2)
-surnamelbl.grid(column=3, row=0, sticky=['E'])
-surname_entry.grid(column=4, row=0, columnspan=2)
+name_entry.grid(column=1, row=0)
+surnamelbl.grid(column=2, row=0, sticky=['E'])
+surname_entry.grid(column=3, row=0)
+
+config_button.grid(row=0, column=3)
+setup_button.grid(row=0, column=4)
 
 #row1
 genderlbl.grid(row=1, column=0, sticky=['E'])
@@ -197,7 +228,6 @@ male.grid(row=1, column=1)
 female.grid(row=1, column=2)
 other.grid(row=1, column=3)
 
-config_button.grid(row=1, column=4, columnspan=2, rowspan=2)
 
 #row2
 check.grid(row=2, column=0)
@@ -209,6 +239,7 @@ check4.grid(row=2, column=3)
 l_e.grid(row=3, column=0, sticky=['E'])
 scroll1.grid(row=3, column=1, sticky=['W'])
 textbox.grid(row=3, column=2, columnspan=2, rowspan=2)
+
 
 #row4
 l_d.grid(row=4, column=0, sticky=['E'])
