@@ -4,13 +4,14 @@ from tkinter import ttk
 class menuwindow(object):
     def _init_(self, root):
         self.root = Toplevel(root)
+        self.add_elements()
 
     def close(self):
         self.root.destroy()
 
     def add_elements(self):
         # add all elments to the window.
-        pass
+        self.grid_elements()
     
     def grid_elements(self):
         # set all elements in their grid positions.
@@ -31,6 +32,7 @@ class experiment_test_menu(menuwindow):
         super()._init_(root)
 
     def add_elements(self):
+        super(t, obj)
 
         self.n = ttk.Notebook(self.root)
         # pages, we grid elements inside them
