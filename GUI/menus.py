@@ -32,7 +32,7 @@ class experiment_test_menu(menuwindow):
         super()._init_(root)
 
     def add_elements(self):
-        super(t, obj)
+        
 
         self.n = ttk.Notebook(self.root)
         # pages, we grid elements inside them
