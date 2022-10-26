@@ -112,7 +112,10 @@ class Test():
 
    
 EXPERIMENTS = [
-    Experiment("Umls-distancerew-125laps-PPO", "UMLS", ["TransE_l2"], 10),
+    # Experiment("Umls-distancerew-125laps-PPO", "UMLS", ["TransE_l2"], 10),
+
+    Experiment("distance_testing", "UMLS", ["TransE_l2"], 10, True, relation = "concept:animalpreyson"),
+
     # Experiment("Countries 500 base", "COUNTRIES", ["TransE_l2"], 
     # 500, single_relation=False, relation="neighborOf")
 ]
