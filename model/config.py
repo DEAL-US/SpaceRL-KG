@@ -5,7 +5,7 @@ config = {
     "available_cores": 10, #number of cpu cores to use when computing the reward
     "gpu_acceleration": True, # wether to use GPU(S) to perform fast training & embedding generation.
 
-    "verbose": False, # prints detailed information every episode.
+    "verbose": True, # prints detailed information every episode.
     "log_results": False, # Logs the results in the logs folder of episode training.
 
     "debug": False,
@@ -114,7 +114,7 @@ class Test():
 EXPERIMENTS = [
     # Experiment("Umls-distancerew-125laps-PPO", "UMLS", ["TransE_l2"], 10),
 
-    Experiment("distance_testing", "UMLS", ["TransE_l2"], 10, True, relation = "concept:animalpreyson"),
+    Experiment("distance_testing", "NELL-995", ["TransE_l2"], 10, True, relation = "concept:animalpreyson"),
 
     # Experiment("Countries 500 base", "COUNTRIES", ["TransE_l2"], 
     # 500, single_relation=False, relation="neighborOf")
