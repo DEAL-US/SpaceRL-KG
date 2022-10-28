@@ -323,18 +323,29 @@ class Agent(object):
             if "distance" in self.guided_options:
                 if(len(self.distance_mem)==0):
                     baseline_dist = self.env.get_distance(origin_node, dest_node)
-                    self.distance_mem.append(baseline_dist)
+                    if(baseline_dist is None):
+                        # 99 is an arbitrary number which will always be bigger than a valid path.
+                        self.distance_mem.append(99)
+                    else:
+                        self.distance_mem.append(baseline_dist)
 
                 distance = self.env.get_distance(new_state_node, dest_node)
                 latest = self.distance_mem[-1]
                 self.step_distances.append(distance)
 
-                if distance < latest:
-                    dist_rew = 1
-                elif distance == latest:
-                    dist_rew = 1/3
+                print(baseline_dist)
+                print(dist)
+
+                if distance is None:
+                    dist_rew = 0.005
+
                 else:
-                    dist_rew = 0 
+                    if distance < latest:
+                        dist_rew = 1
+                    elif distance == latest:
+                        dist_rew = 1/3
+                    else:
+                        dist_rew = 0.005 
                 # self.utils.verb_print(f"prev dist to end node: {latest}, new dist to end node: {distance}")
 
             # if we are in the end node reward is max.
@@ -343,7 +354,7 @@ class Agent(object):
                 
             # Discourage the NO_OP unless it is to stay on the end node
             if action_taken[0]=="NO_OP" and (new_state_node != dest_node):
-                return 0.05
+                return 0.005
 
             if("embedding" in self.guided_options and "distance" in self.guided_options):
                 return dist_rew*ratio_dist + emb_rew*ratio_emb

@@ -28,6 +28,7 @@ normalize = False,  add_inverse_path = True, fast_mode = False):
     '''
     local_dir = pathlib.Path(__file__).parent.resolve()
     dataset_dir = str(pathlib.Path(local_dir).parent.parent.parent.absolute()) + "/datasets"
+    datafolder = f"{dataset_dir}/{dataset}"
 
     if(len(models) == 0):
         models =  ["TransE_l2","DistMult", "ComplEx", "RotatE", "TransR", "RESCAL"]
@@ -37,7 +38,7 @@ normalize = False,  add_inverse_path = True, fast_mode = False):
     for model in models:
         # reference: https://aws-dglke.readthedocs.io/en/latest/train.html 
         command = f"DGLBACKEND=pytorch dglke_train --model_name {model} \
---data_path \"{local_dir}/raw_data\" --save_path \"{dataset_dir}/{dataset}/embeddings/\" \
+--data_path \"{local_dir}/raw_data\" --save_path \"{datafolder}/embeddings/\" \
 --dataset {dataset} --data_files {dataset}-raw.txt \
 --format raw_udd_hrt --delimiter , --batch_size 1000 --neg_sample_size 200 --hidden_dim 200 \
 --log_interval 100 --batch_size_eval 16 -adv \
@@ -54,22 +55,21 @@ normalize = False,  add_inverse_path = True, fast_mode = False):
         else:
             command += " --num_thread 1 --num_proc 8"
 
-
         # Structural checks:
-        datafolder = f"{dataset_dir}/{dataset}"
+        
         if(not os.path.exists(datafolder)):
             raise FileNotFoundError(f"the selected dataset folder \"{datafolder}\" does not exist")
         
-        graphfile = f"{dataset_dir}/{dataset}/graph.txt"
+        graphfile = f"{datafolder}/graph.txt"
         if(not os.path.isfile(graphfile)):
             raise FileNotFoundError("we couldn't find the graph.txt for the specified dataset, check the file name.")
 
-        emb_folder = f"{dataset_dir}/{dataset}/embeddings"
+        emb_folder = f"{datafolder}/embeddings"
         if(not os.path.exists(emb_folder)):
             os.mkdir(emb_folder)
 
         # remove dir if regen or remove empty in no_regen.
-        dgl_ke_folder = f"{dataset_dir}/{dataset}/embeddings/{model}_{dataset}_0"
+        dgl_ke_folder = f"{datafolder}/embeddings/{model}_{dataset}_0"
         
         if(regenerate_existing):
             shutil.rmtree(dgl_ke_folder, ignore_errors=True)
@@ -91,7 +91,7 @@ normalize = False,  add_inverse_path = True, fast_mode = False):
             print(f"running command {command}")
             os.system(command)
             
-            base_folder = f"{dataset_dir}/{dataset}"
+            
             os.remove(f"{base_folder}/entities.tsv")
             os.remove(f"{base_folder}/relations.tsv")
             shutil.copyfile(f"{local_dir}/raw_data/entities.tsv", f"{base_folder}/entities.tsv")
@@ -162,11 +162,11 @@ def process_embeddings(entity_file, relation_file, dataset_dir, dataset, model, 
 
     print(str(len(relations_dict)) + " total relations")
 
-    f = open(f"{dataset_dir}/{dataset}/embeddings/{model}_entities.pkl","wb")
+    f = open(f"{base_folder}/embeddings/{model}_entities.pkl","wb")
     pickle.dump(entities_dict, f)
     f.close()
 
-    f = open(f"{dataset_dir}/{dataset}/embeddings/{model}_relations.pkl","wb")
+    f = open(f"{base_folder}/embeddings/{model}_relations.pkl","wb")
     pickle.dump(relations_dict, f)
     f.close()
 

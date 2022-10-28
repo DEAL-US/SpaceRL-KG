@@ -1,5 +1,5 @@
 guided_reward: True
-guided_to_compute: ['terminal', 'distance']
+guided_to_compute: ['terminal', 'embedding']
 use_LSTM: True
 use_episodes: False
 episodes: 0
@@ -16,5 +16,5 @@ action_picking_policy: probability
 laps: 10
 dataset: NELL-995
 single_relation_pair: [True, 'concept:animalpreyson']
-name: distance_testing
+name: embedding_testing
 embedding_index: 0

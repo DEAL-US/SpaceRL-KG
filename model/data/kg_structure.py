@@ -10,7 +10,7 @@ class KnowledgeGraph():
     """
     def __init__(self, triples, directed = False, inverse_triples = False, verbose = False):
         self.verbose = verbose
-        self._triples = triples
+        self.triples = triples
         #{
         # "node1":{"relation1":[node2, node4], "relation2": [node2]}, 
         # "node2":{"relation2":[node5, node7]}
@@ -27,7 +27,7 @@ class KnowledgeGraph():
     
     def add_triples(self, triples):
         """ Add triples (list of triples) to graph """
-        for e1, r , e2, *result in triples:
+        for e1, r , e2 in triples:
 
             self.add(e1, r, e2)
             if(self.verbose):
@@ -124,12 +124,12 @@ class KnowledgeGraph():
 
         the removal process will avoid completely removing an entity from the graph.
 
-        ATTENTION: THIS IS A VERY HEAVY OPERATION.
+        ATTENTION: THIS IS A VERY COSTLY OPERATION.
         '''
         top = self.top_entities_sorted_by_conectivity(connectivity)
         top_sum = sum(top.values())-len(top.values()) # we don't want to remove all the conectivity from nodes so we really have 1 less per triple.
 
-        n_percent_triples = len(self._triples) * (removal_percentage/100)
+        n_percent_triples = len(self.triples) * (removal_percentage/100)
 
         if (n_percent_triples < top_sum):
             print(f"surpassed threshold {int(n_percent_triples)} of graph, removing random subset from the top --> {top_sum} triples.")
@@ -139,7 +139,7 @@ class KnowledgeGraph():
                 parent_entity, relation, tail_entity = self.recursive_triple_removal(top)
                 removed_triples.append((parent_entity, relation, tail_entity))
 
-            # self._triples = [x for x in self._triples if x not in removed_triples]
+            # self.triples = [x for x in self.triples if x not in removed_triples]
             return removed_triples
 
         else:

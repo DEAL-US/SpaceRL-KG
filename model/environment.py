@@ -90,7 +90,7 @@ class KGEnv(gym.Env):
         normalize = normalize_embeddings, use_gpu = gpu_accel)
 
         # get the selected dataset triples
-        self.triples, self.relation_emb, self.entity_emb, self.embedding_len = data_manager.get_dataset(dataset, self.selected_embedding_name)
+        self.triples, self.relation_emb, self.entity_emb, self.embedding_len = self.dm.get_dataset(dataset, self.selected_embedding_name)
         self.min_ent_emb, self.min_rel_emb, self.max_ent_emb, self.max_rel_emb = self.calculate_embedding_min_max()
         self.cache_init(dataset)
 
@@ -98,6 +98,10 @@ class KGEnv(gym.Env):
         self.kg = KnowledgeGraph(self.triples, directed=True, inverse_triples=True)
         
         self.single_relation, self.relation_name = single_relation_pair
+    
+        if(self.single_relation):
+            self.triples = [t for t in self.triples if t[1] == self.relation_name]
+
         self.reset()
 
     def step(self, action): # required by openAI.gym
@@ -148,7 +152,6 @@ class KGEnv(gym.Env):
         '''
         Resets the environment, selecting a new triple for the agent to obtain.
         '''
-
         valid = False
         # updates the target_triple variable.
         while(not valid):
@@ -206,23 +209,7 @@ class KGEnv(gym.Env):
     
     def reset_queries(self):
         self.queries = copy.deepcopy(self.triples)
-        if(self.single_relation):
-            keep = []
-            for q in self.queries:
-                if(q[1] == self.relation_name):
-                    keep.append(q)
-            self.queries = keep
-
         random.shuffle(self.queries)
-
-    def render(self):
-        '''
-        A way to represent the environment so it can be seen 
-        by humans, uses pygame. 
-        
-        TODO (would be nice, low prio tho)
-        '''
-        pass
 
     def get_current_state(self):
         '''
@@ -347,11 +334,11 @@ class KGEnv(gym.Env):
                     d+=1
                     if(d >= self.path_length):
                         self.utils.verb_print("path, to end node is too large...")
-                        return 9999
+                        return None
 
                 if(len(to_evaluate)==0):
                     self.utils.verb_print("no paths connecting to the end node")
-                    return 9999
+                    return None
 
             return d
 

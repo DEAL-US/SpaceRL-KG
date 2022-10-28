@@ -67,7 +67,7 @@ class Tester(object):
     '''
     Test the model and calculate MRR & Hits@N metrics.
     '''
-    def __init__(self, test_name, respath, env_config, agent_models):
+    def __init__(self, respath, env_config, agent_models):
         for key, val in env_config.items(): setattr(self, key, val)
 
         embs = ["TransE_l2", "DistMult", "ComplEx", "TransR"]
@@ -80,7 +80,7 @@ class Tester(object):
 
         self.set_gpu_config(self.gpu_acceleration)
 
-        self.dm = DataManager(is_experiment=False, experiment_name=test_name, respath=respath)
+        self.dm = DataManager(is_experiment=False, experiment_name=self.name, respath=respath)
 
         self.env = KGEnv(self.dm, self.dataset, 
         [t.single_relation, t.relation_to_train],
@@ -104,7 +104,6 @@ class Tester(object):
     def run(self):
         MRR = []
         hits_at = {i: 0 for i in (1, 3, 5, 10)}
-        historical = dict()
         try:
             for x in tqdm(range(self.episodes)):
                 MRR.append(0)
@@ -199,8 +198,9 @@ for t in TESTS:
             config["dataset"] = d
             config["embedding_index"] = emb_i
             config["episodes"] = t.episodes
+            config["name"] = t.name
             sent = agents[emb_i]
-            m = Tester(t.test_name, respath, config, sent)
+            m = Tester(respath, config, sent)
             res = m.run()
 
             if(res == False):

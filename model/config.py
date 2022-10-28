@@ -5,7 +5,7 @@ config = {
     "available_cores": 10, #number of cpu cores to use when computing the reward
     "gpu_acceleration": True, # wether to use GPU(S) to perform fast training & embedding generation.
 
-    "verbose": True, # prints detailed information every episode.
+    "verbose": False, # prints detailed information every episode.
     "log_results": False, # Logs the results in the logs folder of episode training.
 
     "debug": False,
@@ -16,10 +16,10 @@ config = {
     # distance: computes the distance to the final node and gives a score based on it.
     # embedding: based on the similarity to the end node we reward the agent.
     # terminal: reward if we are on the final node, 0 otherwise.
-    "guided_to_compute":["terminal", "distance"], #"distance","terminal","embedding"
+    "guided_to_compute":["terminal", "embedding"], #"distance","terminal","embedding"
 
     "restore_agent": False, # continues the training from where it left off and loads the agent if possible.
-    "regenerate_embeddings":False, # if embedding is found and true re-calculates them.
+    "regenerate_embeddings":True, # if embedding is found and true re-calculates them.
     # if re-calculation is active, normalizes embedding values to be on the center of the N-dim embedding array
     # as well as normalizing its stdev based on the whole dataset embedding values.
     "normalize_embeddings":True,
@@ -33,7 +33,7 @@ config = {
     "use_episodes": False, 
     "episodes":0, # number of episodes, recommended -> 20k - 1mil, depending on dataset size.
 
-    "path_length":10, #range: 1-y, the length of the discovered paths y>10 is discouraged.
+    "path_length":5, #range: 1-y, the length of the discovered paths y>10 is discouraged.
 
     "alpha": 0.9, # previous step network learning rate (for PPO only.)
     "gamma": 0.99, # decay rate of past observations for backpropagation
@@ -71,7 +71,7 @@ class Experiment():
     def __init__(self, experiment_name : str, dataset_name : str, 
     embeddings, laps : int = 0, single_relation : bool = False, relation : str = ""):
 
-        self.experiment_name = experiment_name
+        self.name = experiment_name
         self.dataset = dataset_name
         self.single_relation = single_relation
 
@@ -91,12 +91,12 @@ class Experiment():
 class Test():
     def __init__(self, test_name, dataset_name : str, embeddings, episodes : int, single_relation : bool = False, relation : str = ""):
 
+        self.name = test_name
         self.dataset = dataset_name
         self.single_relation = single_relation
         self.episodes = episodes
         self.embeddings = embeddings
         self.embedding_inds = []
-        self.test_name = test_name
 
         emb_mapping = {"TransE_l2":0, "DistMult":1, "ComplEx":2, "TransR":3}
 
@@ -114,7 +114,8 @@ class Test():
 EXPERIMENTS = [
     # Experiment("Umls-distancerew-125laps-PPO", "UMLS", ["TransE_l2"], 10),
 
-    Experiment("distance_testing", "NELL-995", ["TransE_l2"], 10, True, relation = "concept:animalpreyson"),
+    Experiment("embedding_testing", "NELL-995", ["TransE_l2"], 10, True, relation = "concept:animalpreyson"),
+    # Experiment("distance_testing", "COUNTRIES", ["TransE_l2"], 10, True, relation = "concept:animalpreyson"),
 
     # Experiment("Countries 500 base", "COUNTRIES", ["TransE_l2"], 
     # 500, single_relation=False, relation="neighborOf")
