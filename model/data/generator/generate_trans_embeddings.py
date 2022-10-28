@@ -91,11 +91,10 @@ normalize = False,  add_inverse_path = True, fast_mode = False):
             print(f"running command {command}")
             os.system(command)
             
-            
-            os.remove(f"{base_folder}/entities.tsv")
-            os.remove(f"{base_folder}/relations.tsv")
-            shutil.copyfile(f"{local_dir}/raw_data/entities.tsv", f"{base_folder}/entities.tsv")
-            shutil.copyfile(f"{local_dir}/raw_data/relations.tsv", f"{base_folder}/relations.tsv")
+            os.remove(f"{datafolder}/entities.tsv")
+            os.remove(f"{datafolder}/relations.tsv")
+            shutil.copyfile(f"{local_dir}/raw_data/entities.tsv", f"{datafolder}/entities.tsv")
+            shutil.copyfile(f"{local_dir}/raw_data/relations.tsv", f"{datafolder}/relations.tsv")
         else:
             print(f"Selected embedding {model} is already generated for {dataset} dataset, if you want to regenerate use the regenerate boolean option")
 
