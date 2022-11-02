@@ -25,14 +25,14 @@ class Trainer(object):
     '''
     Trainer method is the entry point to the training agent.
     '''
-    def __init__(self, env_config, experiment_name):
+    def __init__(self, env_config):
         for key, val in env_config.items(): setattr(self, key, val)
         if (self.random_seed):
             seed = random.randint(0, (2**32)-1)
         else:
             seed = self.seed
         self.set_gpu_config(self.gpu_acceleration)
-        self.dm = DataManager(is_experiment = True, experiment_name=experiment_name)
+        self.dm = DataManager(is_experiment = True, experiment_name=self.name)
 
         self.utils = Utils(self.verbose, self.log_results, self.dm)
 
@@ -61,6 +61,7 @@ class Trainer(object):
         self.score_history = []
     
     def run_prep(self):
+        
         if(self.use_episodes):
             iterations = self.episodes
         else:
@@ -180,11 +181,12 @@ def main():
     for e in EXPERIMENTS:
         config["laps"] = e.laps 
         config["dataset"] = e.dataset
+        config["single_relation_pair"] = [e.single_relation, e.relation_to_train]
+        config["name"] = e.name
 
         for emb_i in e.embeddings:
             config["embedding_index"] = emb_i
-            config["single_relation_pair"] = [e.single_relation, e.relation_to_train]
-            m = Trainer(config, e.experiment_name)
+            m = Trainer(config)
             hasFinished = m.run()
             if(not hasFinished and config["debug"]):
                 m.run_debug()
