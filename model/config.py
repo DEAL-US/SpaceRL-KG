@@ -2,7 +2,7 @@ from cgi import test
 
 
 config = {
-    "available_cores": 10, #number of cpu cores to use when computing the reward
+    "available_cores": 6, #number of cpu cores to use when computing the reward
     "gpu_acceleration": True, # wether to use GPU(S) to perform fast training & embedding generation.
 
     "verbose": False, # prints detailed information every episode.
@@ -16,10 +16,10 @@ config = {
     # distance: computes the distance to the final node and gives a score based on it.
     # embedding: based on the similarity to the end node we reward the agent.
     # terminal: reward if we are on the final node, 0 otherwise.
-    "guided_to_compute":["terminal", "embedding"], #"distance","terminal","embedding"
+    "guided_to_compute":["terminal", "distance"], #"distance","terminal","embedding"
 
     "restore_agent": False, # continues the training from where it left off and loads the agent if possible.
-    "regenerate_embeddings":True, # if embedding is found and true re-calculates them.
+    "regenerate_embeddings":False, # if embedding is found and true re-calculates them.
     # if re-calculation is active, normalizes embedding values to be on the center of the N-dim embedding array
     # as well as normalizing its stdev based on the whole dataset embedding values.
     "normalize_embeddings":True,
@@ -114,7 +114,7 @@ class Test():
 EXPERIMENTS = [
     # Experiment("Umls-distancerew-125laps-PPO", "UMLS", ["TransE_l2"], 10),
 
-    Experiment("film_genre_FB_Base_simple_embedding_500", "FB15K-237", ["TransE_l2"], 500, True, relation = "/film/film/genre"),
+    Experiment("film_genre_FB_Base_simple_distance_100", "FB15K-237", ["TransE_l2"], 100, True, relation = "/film/film/genre"),
 
     # Experiment("embedding_testing", "NELL-995", ["TransE_l2"], 10, True, relation = "concept:animalpreyson"),
     # Experiment("distance_testing", "COUNTRIES", ["TransE_l2"], 10, True, relation = "concept:animalpreyson"),

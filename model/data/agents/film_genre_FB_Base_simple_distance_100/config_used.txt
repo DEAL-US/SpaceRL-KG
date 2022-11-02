@@ -1,5 +1,5 @@
 guided_reward: True
-guided_to_compute: ['terminal', 'embedding']
+guided_to_compute: ['terminal', 'distance']
 use_LSTM: True
 use_episodes: False
 episodes: 0
@@ -13,8 +13,8 @@ algorithm: BASE
 reward_type: simple
 reward_computation: one_hot_max
 action_picking_policy: probability
-laps: 500
+laps: 100
 dataset: FB15K-237
 single_relation_pair: [True, '/film/film/genre']
-name: film_genre_FB_Base_simple_embedding_500
+name: film_genre_FB_Base_simple_distance_100
 embedding_index: 0

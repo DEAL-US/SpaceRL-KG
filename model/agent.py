@@ -329,17 +329,15 @@ class Agent(object):
                     else:
                         self.distance_mem.append(baseline_dist)
 
+
                 distance = self.env.get_distance(new_state_node, dest_node)
                 latest = self.distance_mem[-1]
-                self.step_distances.append(distance)
-
-                print(baseline_dist)
-                print(dist)
 
                 if distance is None:
+                    self.step_distances.append(99)
                     dist_rew = 0.005
-
                 else:
+                    self.step_distances.append(distance)
                     if distance < latest:
                         dist_rew = 1
                     elif distance == latest:
