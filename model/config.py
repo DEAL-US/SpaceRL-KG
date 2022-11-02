@@ -1,6 +1,3 @@
-from cgi import test
-
-
 config = {
     "available_cores": 10, #number of cpu cores to use when computing the reward
     "gpu_acceleration": True, # wether to use GPU(S) to perform fast training & embedding generation.
