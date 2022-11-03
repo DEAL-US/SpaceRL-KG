@@ -1,7 +1,6 @@
 from tkinter import ttk, filedialog, messagebox
 from tkinter import *
-from PIL import ImageTk, Image
-from utils import CreateToolTip
+from utils import CreateToolTip, GetConfig
 
 import random, os, sys, pathlib, subprocess, config_menu, test_train_menu
 
@@ -10,12 +9,7 @@ maindir = pathlib.Path(current_dir).parent.resolve()
 datasets_folder = f"{maindir}\\datasets"
 agents_folder = f"{maindir}\\model\\data\\agents"
 
-# add the parent directory to path so you can import config into the gui. 
-sys.path.insert(0, f"{maindir}\\model")
-from config import get_config
-sys.path.pop(0)
-config = get_config(True)
-print(config)
+config = GetConfig(True)
 
 class mainmenu(object):
     def __init__(self):
@@ -148,7 +142,7 @@ class mainmenu(object):
             subprocess.run(['open', os.path.realpath(folder_to_open)])
 
         else:
-            change_error_text("This operation is not supported for this Operatig System.")
+            self.change_error_text("This operation is not supported for this Operatig System.")
         
 
     def intercept_close(self):
