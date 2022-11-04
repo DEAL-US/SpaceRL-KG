@@ -80,9 +80,9 @@ class mainmenu(object):
 
     def grid_elements(self):
         #row0
-        self.config_lf.grid(column=0, row=0)
-        self.config_button.grid(column=0, row=0)
-        self.setup_button.grid(column=0, row=1)
+        self.config_lf.grid(row=0, column=0)
+        self.config_button.grid(row=0, column=0)
+        self.setup_button.grid(row=1, column=0)
         
         for child in self.config_lf.winfo_children():
             child.grid_configure(padx=15, pady=5)

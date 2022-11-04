@@ -81,5 +81,23 @@ def GetDatasets():
 
     return dict(zip(names, paths))
     
+def GetExperimentInstance():
+    sys.path.insert(0, f"{maindir}\\model")
+    from config import Experiment
+    sys.path.pop(0)
+
+    e = Experiment("name", "DATASET", ["embedding1"], 100, True, relation = "default_relation")
+
+    return e
+
+def GetTestInstance():
+    sys.path.insert(0, f"{maindir}\\model")
+    from config import Test
+    sys.path.pop(0)
+
+    t = Test("name", "DATASET", ["embedding1"], 100, True, relation = "default_relation")
+
+    return t
+
 # asd = GetDatasets()
 # print(asd)
