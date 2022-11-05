@@ -62,9 +62,17 @@ class menu():
         namevar = StringVar()
         self.name_entry = ttk.Entry(self.trainframe, textvariable=namevar, text="name")
 
-        lapsvar = IntVar()
-        self.laps_entry = ttk.Entry(self.trainframe, textvariable=lapsvar, text="laps")
+        vcmd = (self.root.register(self.ValidateRange), '%P')
+        ivcmd = (self.root.register(self.InvalidInput),)
 
+        lapsvar = IntVar()
+        self.laps_entry = ttk.Entry(self.trainframe, textvariable=lapsvar, text="laps",
+        validate='key', validatecommand= vcmd, invalidcommand=ivcmd)
+
+
+
+
+        
         embeddings = ["TransE_l2", "DistMult", "ComplEx", "TransR"]
         choices_emb = StringVar(value=embeddings)
         self.embedlistbox = Listbox(self.trainframe, listvariable=choices_emb, height=4, selectmode='multiple')
@@ -123,8 +131,8 @@ class menu():
         self.single_entry.grid(row=5, column=1)
 
         #row6
-        self.add_to_list_train.grid(row=6, column=0)
-        self.remove_last_train.grid(row=6, column=1)
+        self.add_to_list_train.grid(row=6, column=0, padx=(75,0), pady=5)
+        self.remove_last_train.grid(row=6, column=1, padx=(0,75), pady=5)
 
     
     def add_test_elements(self):
@@ -170,4 +178,17 @@ class menu():
         size = (frame.winfo_reqwidth(), frame.winfo_reqheight())
         canvas.config(scrollregion='0 0 %s %s' % size)
 
-        
+    
+    #spinbox only numbers
+    def ValidateRange(self, value):
+        print(value)
+        return False
+
+        # disallow anything but numbers
+        valid = s.isdigit()
+        if not valid:
+            self.root.bell()
+        return valid
+    
+    def InvalidInput(self):
+        print('wrong')
