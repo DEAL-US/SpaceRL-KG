@@ -13,6 +13,9 @@ config = GetConfig(True)
 
 class mainmenu(object):
     def __init__(self):
+        # functionality
+        self.experiments = []
+
         # parameters:
         self.is_running = False
         
@@ -125,6 +128,13 @@ class mainmenu(object):
             
         elif(menutype == "setup"):
             setup = test_train_menu.menu(self.root)
+            setup.root.wm_protocol("WM_DELETE_WINDOW", lambda: self.extract_info_on_close(setup))
+
+    def extract_info_on_close(self, setup_window):
+        #TODO: store this somewhere.
+        print(setup_window.experiments, setup_window.experiment_banners)
+        setup_window.root.destroy()
+
 
 
     def open_folder(self, folder:str):

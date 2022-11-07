@@ -39,17 +39,24 @@ class ToolTip(object):
             tw.destroy()
 
 class ExperimentBanner(object):
-    def __init__(self, frame, bannertext, experiment_name :str, 
-    laps : int, dataset : str, embeddings : list[str] ):
+    def __init__(self, frame, bannertext, experiment_name :str, laps : int,
+     dataset : str, embeddings : list[str], single_rel_check:bool, single_rel_name: str):
         parent = ttk.Labelframe(frame, text=bannertext)
         namelabel = ttk.Label(parent, text=f'name: {experiment_name}')
         datalabel = ttk.Label(parent, text=f'dataset: {dataset}')
         laplabel = ttk.Label(parent, text=f'laps: {laps}')
         embeddingslabel = ttk.Label(parent, text=f'embeddings:\n {embeddings}')
+
         namelabel.grid(row=0, column=0)
         datalabel.grid(row=1, column=0)
         laplabel.grid(row=2, column=0)
         embeddingslabel.grid(row=3, column=0)
+
+        if(single_rel_check):
+            relationlabel = ttk.Label(parent, text=f"relation: {single_rel_name}")
+            relationlabel.grid(row=4, column=0)
+
+
         self.parent = parent
 
     def getbanner(self):
@@ -81,23 +88,45 @@ def GetDatasets():
 
     return dict(zip(names, paths))
     
-def GetExperimentInstance():
+def GetExperimentInstance(name, dataset, embeddings, laps, single_rel, single_rel_name):
     sys.path.insert(0, f"{maindir}\\model")
     from config import Experiment
     sys.path.pop(0)
 
-    e = Experiment("name", "DATASET", ["embedding1"], 100, True, relation = "default_relation")
+    return Experiment(name, dataset, embeddings, laps, single_rel, relation = single_rel_name)
 
-    return e
-
-def GetTestInstance():
+def GetTestInstance(name, dataset, embeddings, episodes, single_rel, single_rel_name):
     sys.path.insert(0, f"{maindir}\\model")
     from config import Test
     sys.path.pop(0)
+    
+    return Test(name, dataset, embeddings, episodes, single_rel, relation = single_rel_name)
 
-    t = Test("name", "DATASET", ["embedding1"], 100, True, relation = "default_relation")
 
-    return t
+def CheckForRelationInDataset(dataset_name, relation_name):
+    relation_in_graph = False
+    filepath = pathlib.Path(f"{datasets_folder}\\{dataset_name}\\graph.txt").resolve()
+    with open(filepath) as d:
+        for l in d.readlines():
+            if(l.split("\t")[1] == relation_name):
+                relation_in_graph = True
+                break
+    
+    return relation_in_graph
+
+def CheckAgentNameColision(name):
+    subfolders = [ f.name for f in os.scandir(agents_folder) if f.is_dir()]
+    subfolders.remove("TRAINED")
+    subfolders.remove("testing")
+    return name in subfolders
+
+
+# a = CheckAgentNameColision("film_genre_FB_Base_simple_distance_100")
+# b = CheckAgentNameColision("fakename")
+# c = CheckForRelationInDataset("COUNTRIES", "fakename")
+# d = CheckForRelationInDataset("COUNTRIES", "locatedIn")
+
+# print(a,b,c,d)
 
 # asd = GetDatasets()
 # print(asd)

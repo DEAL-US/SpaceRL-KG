@@ -86,7 +86,8 @@ class Experiment():
             self.relation_to_train = None
 
 class Test():
-    def __init__(self, test_name, dataset_name : str, embeddings, episodes : int, single_relation : bool = False, relation : str = ""):
+    def __init__(self, test_name, dataset_name : str, embeddings,
+    episodes : int, single_relation : bool = False, relation : str = ""):
 
         self.name = test_name
         self.dataset = dataset_name

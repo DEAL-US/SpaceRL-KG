@@ -1,7 +1,8 @@
 from tkinter import *
 from tkinter import ttk
 
-from utils import ExperimentBanner, GetDatasets, GetConfig
+from utils import ExperimentBanner, GetDatasets, CheckForRelationInDataset
+from utils import CheckAgentNameColision, GetExperimentInstance, GetTestInstance
 
 class menu():
     def __init__(self, root):
@@ -10,8 +11,10 @@ class menu():
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
 
+        self.train_index, self.test_index = 0, 0
         self.experiments, self.experiment_banners = [], []
         self.tests, self.test_banners = [], []
+
 
         self.add_elements()
 
@@ -27,11 +30,12 @@ class menu():
 
         self.n.grid()
         self.add_train_elements()
+        self.add_test_elements()
 
     def add_train_elements(self):
         # Create a canvas object and a vertical scrollbar for scrolling it.
         self.experiments_frame_scrollbar = ttk.Scrollbar(self.trainframe)
-        self.experiment_canvas = Canvas(self.trainframe, bd=2, width=180, 
+        self.experiment_canvas = Canvas(self.trainframe, bd=2, 
         height=200, bg='#33393b', highlightthickness=0)
         self.experiments_frame_scrollbar.config(command = self.experiment_canvas.yview)
 
@@ -68,34 +72,32 @@ class menu():
         lapsvar = IntVar()
         self.laps_entry = ttk.Entry(self.trainframe, textvariable=lapsvar, text="laps",
         validate='key', validatecommand= vcmd, invalidcommand=ivcmd)
+        self.laps_entry.insert(0, 10)
 
-
-
-
-        
         embeddings = ["TransE_l2", "DistMult", "ComplEx", "TransR"]
         choices_emb = StringVar(value=embeddings)
-        self.embedlistbox = Listbox(self.trainframe, listvariable=choices_emb, height=4, selectmode='multiple')
+        self.embedlistbox = Listbox(self.trainframe, listvariable=choices_emb, height=4, selectmode='multiple', exportselection=False)
 
         datasets = GetDatasets()
-        choices_datasets = StringVar(value=list(datasets.keys()))
-        self.datasetlistbox = Listbox(self.trainframe, listvariable=choices_datasets, height=4)
+        choices_datasets = StringVar(value=["--------", *list(datasets.keys())])
+        self.datasetlistbox = Listbox(self.trainframe, listvariable=choices_datasets, height=4, exportselection=False)
         self.datasets_scrollbar = ttk.Scrollbar(self.trainframe)
         self.datasetlistbox.config(yscrollcommand=self.datasets_scrollbar.set)
         self.datasets_scrollbar.config(command=self.datasetlistbox.yview)
-
 
         singlecheckvar = BooleanVar(value=False)
         self.single_check = ttk.Checkbutton(self.trainframe, text='is single\nrelation', variable=singlecheckvar)
 
         singletextvar = StringVar()
-        self.single_entry = ttk.Entry(self.trainframe, textvariable=singletextvar, text="name")
+        self.single_entry = ttk.Entry(self.trainframe, textvariable=singletextvar, text="single")
         
         self.add_to_list_train = ttk.Button(self.trainframe, text="add", 
         command=lambda: self.add_to_list("train"))
 
         self.remove_last_train = ttk.Button(self.trainframe, text="remove last", 
         command=lambda: self.remove_from_list("train"))
+
+        self.error_text_train = Label(self.trainframe, text="", fg='red', bg="#33393b")
 
         self.grid_trainframe()
 
@@ -134,9 +136,15 @@ class menu():
         self.add_to_list_train.grid(row=6, column=0, padx=(75,0), pady=5)
         self.remove_last_train.grid(row=6, column=1, padx=(0,75), pady=5)
 
+        #row7
+        self.error_text_train.grid(row=7, column=0, columnspan=2)
+
     
+
     def add_test_elements(self):
-        pass
+        
+
+        self.grid_testframe()
     
     def grid_testframe(self):
         pass
@@ -145,23 +153,85 @@ class menu():
     # MISC button functions
     def add_to_list(self, from_frame:str):
         if(from_frame == "train"):
-            a = self.name_entry.get()
-            b = int(self.laps_entry.get())
-            c = self.datasetlistbox.get(ACTIVE)
-            d = [self.embedlistbox.get(idx) for idx in self.embedlistbox.curselection()]
-            e = self.single_check.state()[0]
-            f = self.single_entry.get()
-            print(a,b,c,d,e,f)
+            error_text = ""
 
+            name = self.name_entry.get()
+            laps = int(self.laps_entry.get())
+            dataset = self.datasetlistbox.get(ACTIVE)
+            embeddings = [self.embedlistbox.get(idx) for idx in self.embedlistbox.curselection()]
+            try:
+                e = self.single_check.state()[0]
+                if(e=="alternate"):
+                    e = False
+                elif(e=="selected"):
+                    e=True
+            except:
+                e = False
+            
+            rel_name = self.single_entry.get()
+
+            # Validation:
+            if(name == ""):
+                error_text += "name must not be empty\n"
+
+            if(CheckAgentNameColision(name)):
+                error_text += "name collides with existing experiment.\n"
+
+            
+            if(laps<10 or laps >999):
+                error_text += "laps range is 10-999\n"
+
+            if(dataset == "--------"):
+                error_text += "no dataset selected\n"
+
+            for ex in self.experiments:
+                if(ex.name == name):
+                    error_text += "choose a name which not in the experiment list.\n"
+
+            if(len(embeddings) == 0):
+                error_text += "no embeddings selected\n"
+
+            if(e):
+                if(not CheckForRelationInDataset(dataset, rel_name)):
+                    error_text += f"the specified relation {rel_name}\
+                    \n does not exist in dataset {dataset}\n"
+
+            if(error_text != ""):
+                self.error_text_train["text"] = error_text
+            
+            else:
+                e_banner = ExperimentBanner(self.experiments_frame, 
+                f"experiment {self.train_index}", name, laps, dataset, embeddings, e, rel_name)
+
+                banner = e_banner.getbanner()
+                banner.grid(row=self.train_index,column=0)
+                self.experiment_banners.append(banner)
+
+                exp = GetExperimentInstance(name, dataset, embeddings, laps, e, rel_name)
+                self.experiments.append(exp)
+
+                self.train_index +=1
+
+                print(self.experiment_banners)
+                print(self.experiments)
+                
             # testing only:
-            for i in range(5):
-                testbanner = ExperimentBanner(self.experiments_frame, "experiment1", 
-                "experiment_name", 150, "dataset", ["embeddings"])
-                testbanner.getbanner().grid(row=i,column=0)
+            # for i in range(5):
+            #     testbanner = ExperimentBanner(self.experiments_frame, "experiment1", 
+            #     "experiment_name", 150, "dataset", ["embeddings"])
+            #     testbanner.getbanner().grid(row=i,column=0)
 
         if(from_frame == "test"):
             pass
 
+    def remove_from_list(self, from_frame:str):
+        if(from_frame == "train"):
+            latest_b = self.experiment_banners.pop()
+            self.experiments.pop()
+            latest_b.destroy()
+            self.train_index -= 1
+        else:
+            pass
     
     # MISC SCROLLABLES
     def _bound_to_mousewheel(self, event, canvas):
@@ -181,14 +251,12 @@ class menu():
     
     #spinbox only numbers
     def ValidateRange(self, value):
-        print(value)
-        return False
-
         # disallow anything but numbers
-        valid = s.isdigit()
+        valid = value.isdigit() or value == ''
         if not valid:
             self.root.bell()
+
         return valid
     
     def InvalidInput(self):
-        print('wrong')
+        self.error_text_train["text"] = 'laps must be a number.'
