@@ -109,12 +109,11 @@ class Test():
 
    
 EXPERIMENTS = [
+    Experiment("countries-test", "COUNTRIES", ["TransE_l2", "DistMult", "ComplEx","TransR"], 1) 
+
     # Experiment("Umls-distancerew-125laps-PPO", "UMLS", ["TransE_l2"], 10),
-
-    Experiment("film_genre_FB_Base_simple_distance_100", "FB15K-237", ["TransE_l2"], 100, True, relation = "/film/film/genre"),
-
+    # Experiment("film_genre_FB_Base_simple_distance_100", "FB15K-237", ["TransE_l2"], 100, True, relation = "/film/film/genre"),
     # Experiment("embedding_testing", "NELL-995", ["TransE_l2"], 10, True, relation = "concept:animalpreyson"),
-    # Experiment("distance_testing", "COUNTRIES", ["TransE_l2"], 10, True, relation = "concept:animalpreyson"),
 
     # Experiment("Countries 500 base", "COUNTRIES", ["TransE_l2"], 
     # 500, single_relation=False, relation="neighborOf")
