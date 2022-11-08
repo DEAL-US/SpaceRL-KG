@@ -1,7 +1,6 @@
 from tkinter import ttk, filedialog, messagebox
 from tkinter import *
-from PIL import ImageTk, Image
-from utils import CreateToolTip
+from utils import CreateToolTip, GetConfig
 
 import random, os, sys, pathlib, subprocess, config_menu, test_train_menu
 
@@ -10,15 +9,14 @@ maindir = pathlib.Path(current_dir).parent.resolve()
 datasets_folder = f"{maindir}\\datasets"
 agents_folder = f"{maindir}\\model\\data\\agents"
 
-# add the parent directory to path so you can import config into the gui. 
-sys.path.insert(0, f"{maindir}\\model")
-from config import get_config
-sys.path.pop(0)
-config = get_config(True)
-print(config)
+config = GetConfig(True)
 
 class mainmenu(object):
     def __init__(self):
+        # functionality
+        self.experiments, self.experiment_banners = [], []
+        self.tests, self.test_banners = [], []
+
         # parameters:
         self.is_running = False
         
@@ -44,6 +42,9 @@ class mainmenu(object):
         self.root.mainloop()
 
     def add_elements(self):
+        # infotext
+        self.infotext = ttk.Label(self.mainframe, text="0 Experiment(s) Loaded, 0 Test(s) Loaded")
+
         # config block
         self.config_lf = ttk.Labelframe(self.mainframe, text='Configuration')
         self.config_button = ttk.Button(self.config_lf, text="Config", 
@@ -86,14 +87,17 @@ class mainmenu(object):
 
     def grid_elements(self):
         #row0
-        self.config_lf.grid(column=0, row=0)
-        self.config_button.grid(column=0, row=0)
-        self.setup_button.grid(column=0, row=1)
+        self.infotext.grid(row=0, column=0, columnspan=2)
+
+        #row1
+        self.config_lf.grid(row=1, column=0)
+        self.config_button.grid(row=0, column=0)
+        self.setup_button.grid(row=1, column=0)
         
         for child in self.config_lf.winfo_children():
             child.grid_configure(padx=15, pady=5)
 
-        self.run_lf.grid(row=0, column=1)
+        self.run_lf.grid(row=1, column=1)
         self.train_button.grid(row=0, column=0)
         self.test_button.grid(row=1, column=0)
         self.visualize_check.grid(row=1, column=1)
@@ -101,20 +105,19 @@ class mainmenu(object):
         for child in self.run_lf.winfo_children():
             child.grid_configure(padx=(15,0), pady=3)
 
-        #row1
-        self.progress_text.grid(row=1, column=0, columnspan=2, pady=3)
-        
         #row2
-        self.progress_bar.grid(row=2, column=0, columnspan=2)
-
+        self.progress_text.grid(row=2, column=0, columnspan=2, pady=3)
+        
         #row3
-        self.folder_lf.grid(row=3, column=0, columnspan=2)
+        self.progress_bar.grid(row=3, column=0, columnspan=2)
+
+        #row4
+        self.folder_lf.grid(row=4, column=0, columnspan=2)
         self.datasets_button.grid(row=0, column=0, padx=(75,0), pady=(0,5))
         self.agents_button.grid(row=0, column=1, padx=(0,75), pady=(0,5))
 
-
-        #row4
-        self.error_text.grid(row=4, column=0, columnspan=2, pady=3)
+        #row5
+        self.error_text.grid(row=5, column=0, columnspan=2, pady=3)
 
     def add_styles(self):
         s = ttk.Style()
@@ -130,7 +133,18 @@ class mainmenu(object):
             config = config_menu.menu(self.root)
             
         elif(menutype == "setup"):
-            setup = test_train_menu.menu(self.root)
+            setup = test_train_menu.menu(self.root, self.experiments, self.tests)
+            setup.root.wm_protocol("WM_DELETE_WINDOW", lambda: self.extract_info_on_close(setup))
+
+    def extract_info_on_close(self, setup_window):
+        print(setup_window.experiments)
+        print(setup_window.tests)
+
+        self.experiments, self.tests = setup_window.experiments, setup_window.tests
+        
+        self.infotext["text"] = f"{len(self.experiments)} Experiment(s) Loaded, {len(self.tests)} Test(s) Loaded"
+
+        setup_window.root.destroy()
 
 
     def open_folder(self, folder:str):
@@ -148,7 +162,7 @@ class mainmenu(object):
             subprocess.run(['open', os.path.realpath(folder_to_open)])
 
         else:
-            change_error_text("This operation is not supported for this Operatig System.")
+            self.change_error_text("This operation is not supported for this Operatig System.")
         
 
     def intercept_close(self):
