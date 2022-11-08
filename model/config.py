@@ -71,6 +71,7 @@ class Experiment():
         self.name = experiment_name
         self.dataset = dataset_name
         self.single_relation = single_relation
+        self.embedding_texts = embeddings
 
         self.embeddings = []
         emb_mapping = {"TransE_l2":0, "DistMult":1, "ComplEx":2, "TransR":3}

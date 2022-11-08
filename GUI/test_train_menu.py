@@ -5,16 +5,15 @@ from utils import ExperimentBanner, GetDatasets, CheckForRelationInDataset
 from utils import CheckAgentNameColision, GetExperimentInstance, GetTestInstance
 
 class menu():
-    def __init__(self, root):
+    def __init__(self, root, experiments, tests):
         self.root = Toplevel(root)
         self.root.resizable(FALSE, FALSE)
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
 
-        self.train_index, self.test_index = 0, 0
-        self.experiments, self.experiment_banners = [], []
-        self.tests, self.test_banners = [], []
-
+        self.train_index, self.test_index = len(experiments), len(tests)
+        self.experiments, self.tests = experiments, tests
+        self.experiment_banners, self.test_banners = [], []
 
         self.add_elements()
 
@@ -139,6 +138,12 @@ class menu():
         #row7
         self.error_text_train.grid(row=7, column=0, columnspan=2)
 
+        for i, e in enumerate(self.experiments):
+            e_banner = ExperimentBanner(self.experiments_frame, 
+            f"experiment {i}", e.name, e.laps, e.dataset, e.embedding_texts,
+            e.single_relation, e.relation_to_train)
+            banner = e_banner.getbanner()
+            banner.grid(row=i, column=0)
     
 
     def add_test_elements(self):
@@ -205,21 +210,13 @@ class menu():
 
                 banner = e_banner.getbanner()
                 banner.grid(row=self.train_index,column=0)
+
                 self.experiment_banners.append(banner)
 
                 exp = GetExperimentInstance(name, dataset, embeddings, laps, e, rel_name)
                 self.experiments.append(exp)
 
                 self.train_index +=1
-
-                print(self.experiment_banners)
-                print(self.experiments)
-                
-            # testing only:
-            # for i in range(5):
-            #     testbanner = ExperimentBanner(self.experiments_frame, "experiment1", 
-            #     "experiment_name", 150, "dataset", ["embeddings"])
-            #     testbanner.getbanner().grid(row=i,column=0)
 
         if(from_frame == "test"):
             pass
