@@ -62,6 +62,16 @@ class ExperimentBanner(object):
     def getbanner(self):
         return self.parent
 
+class AgentInfo:
+    def __init__(self, name, embeddings, dataset, is_single_rel, single_rel_name):
+        self.name = name
+        self.embeddings = embeddings
+        self.dataset = dataset
+        self.is_single = is_single_rel
+        self.single_name = single_rel_name
+
+    def get(self):
+        return self.name, self.embeddings, self.dataset, self.is_single, self.single_name
 
 def CreateToolTip(widget, text):
     toolTip = ToolTip(widget)
@@ -79,14 +89,52 @@ def GetConfig(is_experiments):
     return get_config(is_experiments)
 
 def GetDatasets():
-    names, paths = [],[]
+    res = []
     for name in os.listdir(datasets_folder):
         dirpath = pathlib.Path(f"{datasets_folder}/{name}").resolve()
         if os.path.isdir(dirpath):
-            names.append(name)
-            paths.append(pathlib.Path(f"{datasets_folder}/{name}/graph.txt").resolve())
+            res.append(name)
 
-    return dict(zip(names, paths))
+    return res
+
+
+def GetAgents():
+    res = []
+    agent_list = os.listdir(agents_folder)
+    agent_list.remove('testing')
+    agent_list.remove('.gitkeep')
+    agent_list.remove('TRAINED')
+
+    for a in agent_list:
+        embeddings = []
+        name = a
+        dataset = ""
+        single_rel_pair = []
+
+        p = f"{agents_folder}\\{a}"
+
+        with open(f"{p}\\config_used.txt") as c:
+            for ln in c:
+                if ln.startswith("dataset: "):
+                    dataset = ln.removeprefix('dataset: ').strip()
+
+                if ln.startswith("single_relation_pair: "):
+                    aux = ln.removeprefix('single_relation_pair: ')
+                    aux = aux.replace("[", "").replace("]","").replace(" ", "").replace("\'", "").strip().split(",")
+                    single_rel_pair = [aux[0]=="True", None if aux[1] == "None" else aux[1]]
+
+        for b in os.listdir(p):
+            if(b != "config_used.txt"):
+                aux = b.removeprefix(f"{dataset}-")
+                aux = aux.removesuffix(".h5")
+                embeddings.append(aux)
+        
+        # print("\n",embeddings, name, dataset, single_rel_pair, "\n")
+
+        res.append(AgentInfo(name, embeddings, dataset, single_rel_pair[0], single_rel_pair[1]))
+    
+    return res
+
     
 def GetExperimentInstance(name, dataset, embeddings, laps, single_rel, single_rel_name):
     sys.path.insert(0, f"{maindir}\\model")
@@ -120,6 +168,9 @@ def CheckAgentNameColision(name):
     subfolders.remove("testing")
     return name in subfolders
 
+# asd = GetAgents()
+# for a in asd:
+#     print(a.get())
 
 # a = CheckAgentNameColision("film_genre_FB_Base_simple_distance_100")
 # b = CheckAgentNameColision("fakename")

@@ -1,7 +1,8 @@
 from tkinter import *
 from tkinter import ttk
 
-from utils import ExperimentBanner, GetDatasets, CheckForRelationInDataset
+from utils import AgentInfo, ExperimentBanner
+from utils import GetDatasets, GetAgents, CheckForRelationInDataset
 from utils import CheckAgentNameColision, GetExperimentInstance, GetTestInstance
 
 class menu():
@@ -14,6 +15,11 @@ class menu():
         self.train_index, self.test_index = len(experiments), len(tests)
         self.experiments, self.tests = experiments, tests
         self.experiment_banners, self.test_banners = [], []
+
+        self.vcmd = (self.root.register(self.ValidateRange), '%P')
+        self.ivcmd = (self.root.register(self.InvalidInput),)
+
+        self.agents = GetAgents()
 
         self.add_elements()
 
@@ -65,12 +71,10 @@ class menu():
         namevar = StringVar()
         self.name_entry = ttk.Entry(self.trainframe, textvariable=namevar, text="name")
 
-        vcmd = (self.root.register(self.ValidateRange), '%P')
-        ivcmd = (self.root.register(self.InvalidInput),)
-
         lapsvar = IntVar()
         self.laps_entry = ttk.Entry(self.trainframe, textvariable=lapsvar, text="laps",
-        validate='key', validatecommand= vcmd, invalidcommand=ivcmd)
+        validate='key', validatecommand= self.vcmd, invalidcommand=self.ivcmd)
+        self.laps_entry.delete(0, 'end')
         self.laps_entry.insert(0, 10)
 
         embeddings = ["TransE_l2", "DistMult", "ComplEx", "TransR"]
@@ -78,7 +82,7 @@ class menu():
         self.embedlistbox = Listbox(self.trainframe, listvariable=choices_emb, height=4, selectmode='multiple', exportselection=False)
 
         datasets = GetDatasets()
-        choices_datasets = StringVar(value=["--------", *list(datasets.keys())])
+        choices_datasets = StringVar(value=["--------", *datasets])
         self.datasetlistbox = Listbox(self.trainframe, listvariable=choices_datasets, height=4, exportselection=False)
         self.datasets_scrollbar = ttk.Scrollbar(self.trainframe)
         self.datasetlistbox.config(yscrollcommand=self.datasets_scrollbar.set)
@@ -100,7 +104,6 @@ class menu():
 
         self.grid_trainframe()
 
-    
     def grid_trainframe(self):
         #row0
         self.namelabel.grid(row=0, column=0)
@@ -145,14 +148,83 @@ class menu():
             banner = e_banner.getbanner()
             banner.grid(row=i, column=0)
     
-
     def add_test_elements(self):
+        # Create a canvas object and a vertical scrollbar for scrolling it.
+        self.test_frame_scrollbar = ttk.Scrollbar(self.testframe)
+        self.test_canvas = Canvas(self.testframe, bd=2, 
+        height=200, bg='#33393b', highlightthickness=0)
+        self.test_frame_scrollbar.config(command = self.test_canvas.yview)
+
+        # Reset the view
+        self.test_canvas.xview_moveto(0)
+        self.test_canvas.yview_moveto(0)
         
+        # create frame and add to canvas
+        self.test_frame = ttk.Frame(self.testframe, padding= "12 0 0 0")
+        self.test_canvas.create_window(0, 0, window=self.test_frame, anchor='nw')
+        self.test_canvas.config(yscrollcommand = self.test_frame_scrollbar.set,
+        scrollregion = (0, 0, 150, 150))
+
+        # scrolling
+        self.test_frame_scrollbar.lift(self.test_frame)
+        self.test_frame.bind('<Configure>', lambda event: self._configure_window(event, self.test_canvas, self.test_frame))
+        self.test_frame.bind('<Enter>', lambda event: self._bound_to_mousewheel(event, self.test_canvas))
+        self.test_frame.bind('<Leave>', lambda event: self._unbound_to_mousewheel(event, self.test_canvas))
+
+        self.test_sep = ttk.Separator(self.testframe, orient='vertical')
+
+        # labels
+        self.t_namelabel = ttk.Label(self.testframe, text=f'name:')
+        self.t_lapslabel = ttk.Label(self.testframe, text=f'episodes:') 
+        self.t_agentslabel = ttk.Label(self.testframe, text=f'Agents')
+        self.t_embeddingslabel = ttk.Label(self.testframe, text=f'Embeddings')       
+
+        namevar = StringVar()
+        self.t_name_entry = ttk.Entry(self.testframe, textvariable=namevar, text="name")
+
+        runsvar = IntVar()
+        self.t_runs_entry = ttk.Entry(self.testframe, textvariable=runsvar, text="runs",
+        validate='key', validatecommand= self.vcmd, invalidcommand=self.ivcmd)
+        self.t_runs_entry.delete(0, 'end')
+        self.t_runs_entry.insert(0, 10)
+
+        #listboxes
+        self.t_embeddings = []
+        self.t_choices_emb = StringVar(value=self.t_embeddings)
+        self.t_embedlistbox = Listbox(self.testframe, listvariable=self.t_choices_emb, height=4, selectmode='multiple', exportselection=False)
+
+        a_names = [a.get()[0] for a in self.agents]
+        choices_agents = StringVar(value=a_names)
+        self.agentlistbox = Listbox(self.testframe, listvariable=choices_agents, height=4, exportselection=False)
+        self.agents_scrollbar = ttk.Scrollbar(self.testframe)
+        self.agentlistbox.config(yscrollcommand=self.agents_scrollbar.set)
+        self.agents_scrollbar.config(command=self.agentlistbox.yview)
+        self.agentlistbox.bind("<<ListboxSelect>>", self.populate_embedding_listbox_test())
 
         self.grid_testframe()
     
     def grid_testframe(self):
-        pass
+        #row0
+        self.test_sep.grid(row=0, column=2, rowspan=30, sticky="ns")
+        self.test_canvas.grid(row=0, column=3, rowspan=30, sticky='ne')
+        self.test_frame_scrollbar.grid(row=0, column=4, rowspan=30, sticky="ns")
+
+        self.t_namelabel.grid(row=0, column=0)
+        self.t_name_entry.grid(row=0, column=1)
+
+        #row1
+        self.t_lapslabel.grid(row=1, column=0)
+        self.t_runs_entry.grid(row=1, column=1)
+
+        #row2
+        self.t_agentslabel.grid(row=2, column=0)
+        self.t_embeddingslabel.grid(row=2, column=1)
+
+        #row3
+        self.agentlistbox.grid(row=3, column=0, padx=(0,20))
+        self.agents_scrollbar.place(x = 125, y = 70, height=66)
+
+        self.t_embedlistbox.grid(row=3, column=1)
     
 
     # MISC button functions
@@ -230,6 +302,26 @@ class menu():
         else:
             pass
     
+
+    def populate_embedding_listbox_test(self):
+        self.agentlistbox.get(ACTIVE)
+        
+
+        # self.t_choices_emb =
+        try:
+            self.t_embedlistbox.delete(0)
+            self.t_embedlistbox.delete(1)
+            self.t_embedlistbox.delete(2)
+            self.t_embedlistbox.delete(3)
+        except:
+            pass
+
+        self.t_embedlistbox.insert(0, "porongas")
+        self.t_embedlistbox.insert(1, "pitos")
+        self.t_embedlistbox.insert(2, "vergas")
+
+        print("I run")
+
     # MISC SCROLLABLES
     def _bound_to_mousewheel(self, event, canvas):
         canvas.bind_all("<MouseWheel>", lambda event: self._on_mousewheel(event, canvas))   
