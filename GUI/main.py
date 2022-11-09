@@ -141,7 +141,7 @@ class mainmenu(object):
         print(setup_window.tests)
 
         self.experiments, self.tests = setup_window.experiments, setup_window.tests
-        
+
         self.infotext["text"] = f"{len(self.experiments)} Experiment(s) Loaded, {len(self.tests)} Test(s) Loaded"
 
         setup_window.root.destroy()
