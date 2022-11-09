@@ -1,7 +1,6 @@
 env
 0_testing
 ejemplos
-*.h5
 *.log
 *.pkl
 .vscode
