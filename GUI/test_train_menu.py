@@ -1,9 +1,8 @@
 from tkinter import *
 from tkinter import ttk
 
-from utils import AgentInfo, ExperimentBanner
-from utils import GetDatasets, GetAgents, CheckForRelationInDataset
-from utils import CheckAgentNameColision, GetExperimentInstance, GetTestInstance
+from utils import AgentInfo, ExperimentBanner, GetDatasets, GetAgents, CheckForRelationInDataset
+from utils import CheckAgentNameColision, CheckTestCollision, GetExperimentInstance, GetTestInstance
 
 class menu():
     def __init__(self, root, experiments, tests):
@@ -19,7 +18,9 @@ class menu():
         self.vcmd = (self.root.register(self.ValidateRange), '%P')
         self.ivcmd = (self.root.register(self.InvalidInput),)
 
-        self.agents = GetAgents()
+        self.agents = dict()
+        for a in GetAgents():
+            self.agents[a.name] = a
 
         self.add_elements()
 
@@ -193,13 +194,21 @@ class menu():
         self.t_choices_emb = StringVar(value=self.t_embeddings)
         self.t_embedlistbox = Listbox(self.testframe, listvariable=self.t_choices_emb, height=4, selectmode='multiple', exportselection=False)
 
-        a_names = [a.get()[0] for a in self.agents]
-        choices_agents = StringVar(value=a_names)
+        # print(list(self.agents.keys()))
+        choices_agents = StringVar(value=list(self.agents.keys()))
         self.agentlistbox = Listbox(self.testframe, listvariable=choices_agents, height=4, exportselection=False)
         self.agents_scrollbar = ttk.Scrollbar(self.testframe)
         self.agentlistbox.config(yscrollcommand=self.agents_scrollbar.set)
         self.agents_scrollbar.config(command=self.agentlistbox.yview)
-        self.agentlistbox.bind("<<ListboxSelect>>", self.populate_embedding_listbox_test())
+        self.agentlistbox.bind("<<ListboxSelect>>", lambda event: self.populate_embedding_listbox_test(event))
+
+        self.add_to_list_test = ttk.Button(self.testframe, text="add", 
+        command=lambda: self.add_to_list("test"))
+
+        self.remove_last_test = ttk.Button(self.testframe, text="remove last", 
+        command=lambda: self.remove_from_list("test"))
+
+        self.error_text_test = Label(self.testframe, text="", fg='red', bg="#33393b")
 
         self.grid_testframe()
     
@@ -225,6 +234,13 @@ class menu():
         self.agents_scrollbar.place(x = 125, y = 70, height=66)
 
         self.t_embedlistbox.grid(row=3, column=1)
+
+        #row4
+        self.add_to_list_test.grid(row=4, column=0, padx=(75,0), pady=5)
+        self.remove_last_test.grid(row=4, column=1, padx=(0,75), pady=5)
+
+        #row5
+        self.error_text_test.grid(row=5, column=0, columnspan=2)
     
 
     # MISC button functions
@@ -291,7 +307,54 @@ class menu():
                 self.train_index +=1
 
         if(from_frame == "test"):
-            pass
+            error_text = ""
+
+            name = self.t_name_entry.get()
+            runs = int(self.t_runs_entry.get())
+
+            i = self.agentlistbox.curselection()[0]
+            active = self.agentlistbox.get(i)
+            agent = self.agents[active].get()
+
+            dataset = agent[2]
+            embeddings = [self.t_embedlistbox.get(idx) for idx in self.t_embedlistbox.curselection()]
+            e = agent[3]   
+            rel_name = agent[4]
+
+            # Validation:
+            if(name == ""):
+                error_text += "name must not be empty\n"
+
+            if(CheckTestCollision(name)):
+                error_text += "name collides with existing test.\n"
+
+            if(laps<100 or laps >9999):
+                error_text += "laps range is 100-9999\n"
+
+            for ex in self.tests:
+                if(ex.name == name):
+                    error_text += "choose a name which not in the test list.\n"
+
+            if(len(embeddings) == 0):
+                error_text += "no embeddings selected\n"
+
+
+            if(error_text != ""):
+                self.error_text_test["text"] = error_text
+            else:
+                e_banner = ExperimentBanner(self.test_frame, 
+                f"experiment {self.test_index}", name, runs, dataset,
+                embeddings, e, rel_name, lapstext="runs")
+
+                banner = e_banner.getbanner()
+                banner.grid(row=self.test_index,column=0)
+
+                self.experiment_banners.append(banner)
+
+                test = GetTestInstance(name, dataset, embeddings, runs, e, rel_name)
+                self.tests.append(test)
+
+                self.test_index +=1
 
     def remove_from_list(self, from_frame:str):
         if(from_frame == "train"):
@@ -303,24 +366,13 @@ class menu():
             pass
     
 
-    def populate_embedding_listbox_test(self):
-        self.agentlistbox.get(ACTIVE)
-        
-
-        # self.t_choices_emb =
-        try:
-            self.t_embedlistbox.delete(0)
-            self.t_embedlistbox.delete(1)
-            self.t_embedlistbox.delete(2)
-            self.t_embedlistbox.delete(3)
-        except:
-            pass
-
-        self.t_embedlistbox.insert(0, "porongas")
-        self.t_embedlistbox.insert(1, "pitos")
-        self.t_embedlistbox.insert(2, "vergas")
-
-        print("I run")
+    def populate_embedding_listbox_test(self, event):
+        i = self.agentlistbox.curselection()[0]
+        active = self.agentlistbox.get(i)
+        embeddings = self.agents[active].get()[1]
+        self.t_embedlistbox.delete(0,END)
+        for i, e in enumerate(embeddings):
+            self.t_embedlistbox.insert(i, e)
 
     # MISC SCROLLABLES
     def _bound_to_mousewheel(self, event, canvas):

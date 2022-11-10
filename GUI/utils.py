@@ -39,12 +39,12 @@ class ToolTip(object):
             tw.destroy()
 
 class ExperimentBanner(object):
-    def __init__(self, frame, bannertext, experiment_name :str, laps : int,
-     dataset : str, embeddings : list[str], single_rel_check:bool, single_rel_name: str):
+    def __init__(self, frame, bannertext, experiment_name :str, laps : int, 
+     dataset : str, embeddings : list[str], single_rel_check:bool, single_rel_name: str, lapstext = "laps"):
         parent = ttk.Labelframe(frame, text=bannertext)
         namelabel = ttk.Label(parent, text=f'name: {experiment_name}')
         datalabel = ttk.Label(parent, text=f'dataset: {dataset}')
-        laplabel = ttk.Label(parent, text=f'laps: {laps}')
+        laplabel = ttk.Label(parent, text=f'{lapstext}: {laps}')
         embeddingslabel = ttk.Label(parent, text=f'embeddings:\n {embeddings}')
 
         namelabel.grid(row=0, column=0)
@@ -96,7 +96,6 @@ def GetDatasets():
             res.append(name)
 
     return res
-
 
 def GetAgents():
     res = []
@@ -167,6 +166,10 @@ def CheckAgentNameColision(name):
     subfolders.remove("TRAINED")
     subfolders.remove("testing")
     return name in subfolders
+
+def CheckTestCollision(name):
+    
+
 
 # asd = GetAgents()
 # for a in asd:
