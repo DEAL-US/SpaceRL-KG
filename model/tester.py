@@ -1,7 +1,5 @@
 from pathlib import Path
 import os
-from datetime import datetime
-from regex import P
 import traceback
 
 import tensorflow as tf
@@ -11,7 +9,6 @@ import random
 import traceback
 
 from tqdm import tqdm
-from keras.models import Model
 from data.data_manager import DataManager
 from environment import KGEnv
 from agent import Agent
@@ -26,20 +23,20 @@ def run_prep():
     embs = ["TransE_l2", "DistMult", "ComplEx", "TransR"]
 
     p = Path(__file__).parent.absolute()
-    respath = f"{str(p)}/data/results/test"
-    path_index = 1
+    parent = p.parent.resolve()
+    p = p.resolve()
 
-    while(os.path.isdir(respath)):
-        if(str(path_index) in respath):
-            respath = respath.replace(str(path_index), str(path_index+1))
-            path_index += 1
-        else:
-            respath = f"{respath}({path_index})"
-    
-    os.mkdir(respath)
+    agents_paths , respaths = [], []
 
-    agents_path = f"{str(p)}/data/agents/testing"
-    datasets_dir = os.listdir(f"{str(p.parent)}/datasets")
+    for t in TESTS:
+        respath = Path(f"{p}\\data\\results\\{t.name}").resolve()
+        os.mkdir(respath)
+        respaths.append(respath)
+
+        a_path = Path(f"{p}/data/agents/{t.agent_name}")
+        agents_paths.append(a_path)
+
+    datasets_dir = os.listdir(f"{parent}/datasets")
     num_datasets = len(datasets_dir)-1
 
     if num_datasets < len(TESTS):
@@ -57,11 +54,11 @@ def run_prep():
     ]
 
     metrics_df = pd.DataFrame(
-        columns = [t.dataset for t in TESTS],
+        columns = config["dataset"],
         index = df_index
     )
 
-    return df_index, metrics_df, config, embs, TESTS, agents_path, respath
+    return df_index, metrics_df, config, embs, TESTS, agents_paths, respaths
 
 class Tester(object):
     '''
@@ -91,8 +88,6 @@ class Tester(object):
         "leaky_relu", [], "max_percent", [], self.action_picking_policy,
         self.algorithm, True, 0.9, self.reward_type, True, 
         verbose = self.verbose, debug = self.debug)
-
-        print(agent_models)
 
         if(len(agent_models) == 1):
             self.agent.policy_network = agent_models[0]
@@ -162,10 +157,10 @@ def compute_metrics(mrr, hits):
     mrr = sum(mrr)/len(mrr)
     return hits, mrr
 
-def get_agents(test):
-    constant_path = f"{agents_path}/{test.dataset}-"
+def get_agents(agent_path, dataset, embeddings):
+    constant_path = f"{agent_path}/{dataset}-"
     agents = {0:None, 1:None, 2:None, 3:None}
-    for e in t.embeddings:
+    for e in embeddings:
         ppo = constant_path + e
         base = ppo + ".h5"
 
@@ -173,7 +168,7 @@ def get_agents(test):
         base_exist = os.path.isfile(base)
 
         if(ppo_exist and base_exist):
-            print(f"2 agents found for embedding {e} and dataset {test.dataset}, remove one.")
+            print(f"2 agents found for embedding {e} and dataset {dataset}, remove one.")
         else:
             if(ppo_exist):
                 actor = load_model(f"{ppo}/actor.h5")
@@ -187,10 +182,13 @@ def get_agents(test):
     return agents
 
 ################## START ####################
-df_index, metrics_df, config, embs, TESTS, agents_path, respath = run_prep()
+df_index, metrics_df, config, embs, TESTS, agents_paths, respaths = run_prep()
 emb_mapping = {"TransE_l2":0, "DistMult":1, "ComplEx":2, "TransR":3}
-for t in TESTS:
-    agents = get_agents(t)
+
+for i, t in enumerate(TESTS):
+    agents = get_agents(agents_paths[i], t.dataset, t.embeddings)
+    print(agents)
+    quit()
 
     for emb_i in t.embedding_inds:
         try:
@@ -200,7 +198,7 @@ for t in TESTS:
             config["episodes"] = t.episodes
             config["name"] = t.name
             sent = agents[emb_i]
-            m = Tester(respath, config, sent)
+            m = Tester(respaths[i], config, sent)
             res = m.run()
 
             if(res == False):
@@ -221,5 +219,5 @@ for t in TESTS:
             traceback.print_exc()
             quit()
 
-print(metrics_df)
-metrics_df.to_csv(f"{respath}/metrics.csv")
+    print(metrics_df)
+    metrics_df.to_csv(f"{respaths[i]}/metrics.csv")

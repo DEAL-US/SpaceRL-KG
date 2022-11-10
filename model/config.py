@@ -2,7 +2,7 @@ config = {
     "available_cores": 6, #number of cpu cores to use when computing the reward
     "gpu_acceleration": True, # wether to use GPU(S) to perform fast training & embedding generation.
 
-    "verbose": False, # prints detailed information every episode.
+    "verbose": True, # prints detailed information every episode.
     "log_results": False, # Logs the results in the logs folder of episode training.
 
     "debug": False,
@@ -86,13 +86,16 @@ class Experiment():
         else:
             self.relation_to_train = None
 
-class Test():
-    def __init__(self, test_name, dataset_name : str, embeddings,
-    episodes : int, single_relation : bool = False, relation : str = ""):
+import pathlib, sys, os
 
+current_dir = pathlib.Path(__file__).parent.resolve()
+agents_folder = pathlib.Path(f"{current_dir}/data/agents").resolve()
+
+
+class Test():
+    def __init__(self, test_name:str, agent_name:str, embeddings, episodes : int):
         self.name = test_name
-        self.dataset = dataset_name
-        self.single_relation = single_relation
+        self.agent_name = agent_name
         self.episodes = episodes
         self.embeddings = embeddings
         self.embedding_inds = []
@@ -103,13 +106,25 @@ class Test():
             a = emb_mapping[e]
             if (type(a) == int):
                 self.embedding_inds.append(a)
-        
-        if(self.single_relation):
-            self.relation_to_train = relation
-        else:
-            self.relation_to_train = None
-
    
+        agent_path = pathlib.Path(f"{agents_folder}/{self.agent_name}").resolve()
+        config_used = open(f"{agent_path}/config_used.txt")
+        for ln in config_used.readlines():
+            if ln.startswith("dataset: "):
+                try:
+                    self.dataset = ln.removeprefix('dataset: ').strip()
+                except:
+                    ln.lstrip("dataset: ").strip()
+
+            if ln.startswith("single_relation_pair: "):
+                try:
+                    aux = ln.removeprefix('single_relation_pair: ')
+                except:
+                    aux = ln.lstrip("single_relation_pair: ").strip()
+
+                aux = aux.replace("[", "").replace("]","").replace(" ", "").replace("\'", "").strip().split(",")
+                self.single_relation, self.relation_to_train = [aux[0]=="True", None if aux[1] == "None" else aux[1]]
+
 EXPERIMENTS = [
     Experiment("countries-test", "COUNTRIES", ["TransE_l2", "DistMult", "ComplEx","TransR"], 1) 
 
@@ -122,7 +137,7 @@ EXPERIMENTS = [
 ]
 
 TESTS = [
-    Test("test-UMLS-embedding", "COUNTRIES", ["TransE_l2"], 150),
+    Test("testname", "countries-test", ["TransE_l2", "DistMult"], 100),
     # Test("COUNTRIES", ["TransE_l2"], 500, single_relation=True, relation="neighborOf")
 ]
 
