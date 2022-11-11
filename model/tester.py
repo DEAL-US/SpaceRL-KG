@@ -14,61 +14,56 @@ from environment import KGEnv
 from agent import Agent
 from keras.models import load_model
 import numpy as np
+import shutil
 
 from config import get_config
 
 def run_prep():
     config, TESTS = get_config(train=False)
     config ["use_episodes"] = True
-    embs = ["TransE_l2", "DistMult", "ComplEx", "TransR"]
 
-    p = Path(__file__).parent.absolute()
-    parent = p.parent.resolve()
-    p = p.resolve()
+    modelpath = Path(__file__).parent.absolute()
+    modelpath = modelpath.resolve()
 
-    agents_paths , respaths = [], []
+    agents_paths, respaths, dataframes,  = [], [], []
 
     for t in TESTS:
-        respath = Path(f"{p}\\data\\results\\{t.name}").resolve()
-        os.mkdir(respath)
+        respath = Path(f"{modelpath}/data/results/{t.name}").resolve()
+        try:
+            shutil.rmtree(respath)
+            os.mkdir(respath)
+        except:
+            os.mkdir(respath)
+        
         respaths.append(respath)
 
-        a_path = Path(f"{p}/data/agents/{t.agent_name}")
+        a_path = Path(f"{modelpath}/data/agents/{t.agent_name}")
         agents_paths.append(a_path)
 
-    datasets_dir = os.listdir(f"{parent}/datasets")
-    num_datasets = len(datasets_dir)-1
+        n = len(t.embeddings)
 
-    if num_datasets < len(TESTS):
-        print("you have more tests than datasets, try combining some test for the dataset.")
-        quit()
+        df_index = [
+            np.array([
+            *["hits@1"]*n,*["hits@3"]*n,*["hits@5"]*n,*["hits@10"]*n,*["MRR"]*n,
+            ]),
+            np.array([*t.embeddings]*5)
+        ]
 
-    df_index = [
-        np.array([
-        "hits@1","hits@1","hits@1","hits@1",
-        "hits@3","hits@3","hits@3","hits@3",
-        "hits@5","hits@5","hits@5","hits@5",
-        "hits@10","hits@10","hits@10","hits@10",
-        "MRR","MRR","MRR","MRR"]),
-        np.array([*embs,*embs,*embs,*embs, *embs])
-    ]
+        metrics_df = pd.DataFrame(
+            columns = [t.dataset],
+            index = df_index
+        )
 
-    metrics_df = pd.DataFrame(
-        columns = config["dataset"],
-        index = df_index
-    )
+        dataframes.append(metrics_df)
 
-    return df_index, metrics_df, config, embs, TESTS, agents_paths, respaths
+    return config, TESTS, dataframes, agents_paths, respaths
 
 class Tester(object):
     '''
     Test the model and calculate MRR & Hits@N metrics.
     '''
-    def __init__(self, respath, env_config, agent_models):
+    def __init__(self, respath, env_config, agent_models, emb, app, alg, rwt, srp):
         for key, val in env_config.items(): setattr(self, key, val)
-
-        embs = ["TransE_l2", "DistMult", "ComplEx", "TransR"]
-        self.selected_embedding_name = embs[self.embedding_index]
 
         if (self.random_seed):
             seed = random.randint(0, (2**32)-1)
@@ -79,15 +74,11 @@ class Tester(object):
 
         self.dm = DataManager(is_experiment=False, experiment_name=self.name, respath=respath)
 
-        self.env = KGEnv(self.dm, self.dataset, 
-        [t.single_relation, t.relation_to_train],
-        self.embedding_index, seed, 8, self.path_length, 
-        False, False, self.gpu_acceleration, True, 0, False)
+        self.env = KGEnv(self.dm, self.dataset, srp, emb, seed, 8, self.path_length,
+         False, False, self.gpu_acceleration, True, 0, False)
 
-        self.agent = Agent(self.dm, self.env, 0.99, 1e-4, True,
-        "leaky_relu", [], "max_percent", [], self.action_picking_policy,
-        self.algorithm, True, 0.9, self.reward_type, True, 
-        verbose = self.verbose, debug = self.debug)
+        self.agent = Agent(self.dm, self.env, 0.99, 1e-4, True, "leaky_relu", [],"max_percent",
+        [], app, alg, True, 0.9, rwt, True, verbose = self.verbose, debug = self.debug)
 
         if(len(agent_models) == 1):
             self.agent.policy_network = agent_models[0]
@@ -99,9 +90,11 @@ class Tester(object):
     def run(self):
         MRR = []
         hits_at = {i: 0 for i in (1, 3, 5, 10)}
+        found_paths = []
         try:
             for x in tqdm(range(self.episodes)):
                 MRR.append(0)
+                found_tail = False
                 for i in range(1, 11):
                     #reset and build path
                     self.env.reset()
@@ -111,14 +104,20 @@ class Tester(object):
 
                     # if tail entity in paths compute hits at.
                     if(self.path_contains_entity()):
+                        found_tail = True
                         for n, val in hits_at.items():
                             if i <= n:
                                 hits_at[n] = val + 1
                         
                         MRR[x] = i
                         break
+
+                if(found_tail):
+                    found_paths.append(self.env.path_history)
             
             self.generate_MRR_boxplot_and_source(MRR)
+            self.generate_found_paths_files(found_paths)
+
             return hits_at, MRR
     
         except Exception as e:
@@ -130,7 +129,11 @@ class Tester(object):
         with open(source_filepath, "w") as f:
             f.write(str(MRR))
         
-
+    def generate_found_paths_files(self, found_paths):
+        source_filepath = f"{self.dm.test_result_path}/paths.txt"
+        with open(f"{source_filepath}", "w") as f:
+            for p in found_paths:
+                f.write(f"{p}\n")
 
     def path_contains_entity(self):
         visited = set()
@@ -159,7 +162,8 @@ def compute_metrics(mrr, hits):
 
 def get_agents(agent_path, dataset, embeddings):
     constant_path = f"{agent_path}/{dataset}-"
-    agents = {0:None, 1:None, 2:None, 3:None}
+    agents = dict()
+
     for e in embeddings:
         ppo = constant_path + e
         base = ppo + ".h5"
@@ -173,32 +177,50 @@ def get_agents(agent_path, dataset, embeddings):
             if(ppo_exist):
                 actor = load_model(f"{ppo}/actor.h5")
                 critic = load_model(f"{ppo}/critic.h5")
-                agents[emb_mapping[e]] = [actor, critic]
+                agents[e] = [actor, critic]
 
             if(base_exist):
                 policy_network = load_model(base)
-                agents[emb_mapping[e]] = [policy_network]
+                agents[e] = [policy_network]
 
     return agents
 
+def extract_config_info(agent_path):
+    with open(f"{agent_path}/config_used.txt") as f:
+        for ln in f.readlines():
+            if(ln.startswith("action_picking_policy: ")):
+                app = ln.lstrip("action_picking_policy: ").rstrip("\n")
+
+            if(ln.startswith("algorithm: ")):
+                alg = ln.lstrip("algorithm: ").rstrip("\n")
+
+            if(ln.startswith("reward_type: ")):
+                rwt = ln.lstrip("reward_type: ").rstrip("\n")
+            
+            if(ln.startswith("single_relation_pair: ")):
+                aux = ln.lstrip("single_relation_pair: ").rstrip("\n").replace("[","").replace("]","").split(",")
+                srp = [aux[0]=="True", None if aux[1].strip()=="None" else aux[1].strip()]
+
+    return app, alg, rwt, srp
+
+
 ################## START ####################
-df_index, metrics_df, config, embs, TESTS, agents_paths, respaths = run_prep()
-emb_mapping = {"TransE_l2":0, "DistMult":1, "ComplEx":2, "TransR":3}
+def main(from_file):
+    config, TESTS, dataframes, agents_paths, respaths = run_prep()
 
-for i, t in enumerate(TESTS):
-    agents = get_agents(agents_paths[i], t.dataset, t.embeddings)
-    print(agents)
-    quit()
+    for i, t in enumerate(TESTS):
+        agents = get_agents(agents_paths[i], t.dataset, t.embeddings)
+        print(f"\nTESTING FOR {t}\n WITH AGENTS: \n{agents}\n")
+        app, alg, rwt, srp = extract_config_info(agents_paths[i])
 
-    for emb_i in t.embedding_inds:
-        try:
-            d = t.dataset
-            config["dataset"] = d
-            config["embedding_index"] = emb_i
+        for emb in t.embeddings:
+            print(f"RUNNING FOR EMBEDDING {emb}\n")
+            config["dataset"] = t.dataset
             config["episodes"] = t.episodes
             config["name"] = t.name
-            sent = agents[emb_i]
-            m = Tester(respaths[i], config, sent)
+            
+            sent = agents[emb]
+            m = Tester(respaths[i], config, sent, emb, app, alg, rwt, srp)
             res = m.run()
 
             if(res == False):
@@ -208,16 +230,13 @@ for i, t in enumerate(TESTS):
             hits_raw, mrr_raw = res
             hits, mrr = compute_metrics(mrr_raw, hits_raw)
 
-            metrics_df.at[("hits@1",embs[emb_i]), d] = hits[0]
-            metrics_df.at[("hits@3",embs[emb_i]), d] = hits[1]
-            metrics_df.at[("hits@5",embs[emb_i]), d] = hits[2]
-            metrics_df.at[("hits@10",embs[emb_i]), d] = hits[3]
-            metrics_df.at[("MRR",embs[emb_i]), d] = mrr
-            
-        except:
-            print("error")
-            traceback.print_exc()
-            quit()
+            dataframes[i].at[("hits@1",emb), t.dataset] = hits[0]
+            dataframes[i].at[("hits@3",emb), t.dataset] = hits[1]
+            dataframes[i].at[("hits@5",emb), t.dataset] = hits[2]
+            dataframes[i].at[("hits@10",emb), t.dataset] = hits[3]
+            dataframes[i].at[("MRR",emb), t.dataset] = mrr
 
-    print(metrics_df)
-    metrics_df.to_csv(f"{respaths[i]}/metrics.csv")
+            print(dataframes[i])
+            dataframes[i].to_csv(f"{respaths[i]}/metrics.csv")
+
+main(True)

@@ -1,12 +1,27 @@
 config = {
+    # general parameters do not affect the results of the training
+    # they can be used to get more insight into what's happening behind the curtains
+    # or to allocate more resources to the agents.
+
+    # training specific parameters must be payed atention to when training a new agent
+    # as they can vastly affect the outcome of said training.
+
+    ######################
+    # GENERAL PARAMETERS #
+    ###################### 
     "available_cores": 6, #number of cpu cores to use when computing the reward
     "gpu_acceleration": True, # wether to use GPU(S) to perform fast training & embedding generation.
 
     "verbose": True, # prints detailed information every episode.
     "log_results": False, # Logs the results in the logs folder of episode training.
 
-    "debug": False,
+    "debug": False, # offers information about crashes, runs post-mortem
     "print_layers": False, # if debug is active wether to print the layer wheights on crash info.
+    
+    #####################
+    # TRAINING SPECIFIC #
+    ##################### 
+    "restore_agent": False, # continues the training from where it left off and loads the agent if possible.
     
     "guided_reward": True, # wether to follow a step-based reward or just a reward at the end of the episode.
     # if guided rewards are active, which one(s) to use:
@@ -15,41 +30,45 @@ config = {
     # terminal: reward if we are on the final node, 0 otherwise.
     "guided_to_compute":["terminal", "distance"], #"distance","terminal","embedding"
 
-    "restore_agent": False, # continues the training from where it left off and loads the agent if possible.
     "regenerate_embeddings":False, # if embedding is found and true re-calculates them.
     # if re-calculation is active, normalizes embedding values to be on the center of the N-dim embedding array
     # as well as normalizing its stdev based on the whole dataset embedding values.
     "normalize_embeddings":True,
-    "use_LSTM": True, # wether to add LSTM layers to the model.
 
-    "random_seed":True, # to repeat the same results if false.
-    "seed":78534245, # sets the seed to this number.
+    # LSTM layers allow the traine agents to leverage on the previous steps
+    # its recommended to always leave this on unless to perform an ablation study.
+    "use_LSTM": True, # wether to add LSTM layers to the model
 
-    # if True will use N episodes to train and random triples in the dataset
-    # otherwise it will loop randomly over the dataset the specified ammount
+    # if True will train for N episodes otherwise it will loop over the dataset
+    # for an ammount defined in the laps attribute of the training.
     "use_episodes": False, 
-    "episodes":0, # number of episodes, recommended -> 20k - 1mil, depending on dataset size.
+    "episodes":0, # number of episodes to run.
 
-    "path_length":5, #range: 1-y, the length of the discovered paths y>10 is discouraged.
-
-    "alpha": 0.9, # previous step network learning rate (for PPO only.)
-    "gamma": 0.99, # decay rate of past observations for backpropagation
-
-    "learning_rate": 1e-3, # neural network learning rate.
+    "alpha": 0.9, # [0.8-0.99] previous step network learning rate (for PPO only.) 
+    "gamma": 0.99, # [0.90-0.99] decay rate of past observations for backpropagation
+    "learning_rate": 1e-3, #[1e-3, 1e-5] neural network learning rate.
     
+    # activation function for intermediate layers.
     # NOTE: tensorflow makes it so tanh activation functions increase the efficiency of
     # LSTM layers so they calculate much faster consider using them when possible.
-    # activation function for intermediate layers.
     "activation":'leaky_relu', # relu, prelu, leaky_relu, elu, tanh
     
-    # applies L1 and L2 regularization.
+    # applies L1 and L2 regularization at different stages of training.
     "regularizers":['kernel'], #"kernel", "bias", "activity"
 
-    # PPO uses actor critic networks and BASE is a simple single network training
+    # PPO uses actor critic networks and BASE is a simple feed-forward network.
     # you can then choose retropropagation of rewards to compute as a REINFORCE model or simple to keep the rewards 
     # based on the results of the episode without adding any aditional computation to the reward.
-    "algorithm": "BASE", #BASE, PPO
+    "algorithm": "PPO", #BASE, PPO
+
+    # retroprogation causes the rewards closer to the end of the episode have more 
+    # influence over the neural network, whereas simple offers a homogenous distibution.
     "reward_type": "simple", # retropropagation, simple
+    
+    # probability-> action calculation biased by the probability of the network output.
+    # max -> pick the highest value offered by the network.
+    # probability makes training stochasting while max makes it deterministic.
+    "action_picking_policy":"probability",# "probability", "max"
 
     # modifies how the y_true value is calculated.
     # max_percent -> computes the maximum reward for the step and gives 0-1 according to how close we got to it.
@@ -57,11 +76,18 @@ config = {
     # straight -> gives the reward straight to the network as calculated from the step.
     "reward_computation": "one_hot_max", #"max_percent", "one_hot_max", "perfection", "straight"
     
-    # probability->calculates an action with the weights provided by the probabilities.
-    # max -> chooses the maximum probability value outputed by the network.
-    # probability makes training stochasting while max makes it deterministic.
-    "action_picking_policy":"probability",# "probability", "max"
+    #################
+    # SHARED PARAMS #
+    #################
+    # these parameters are shared by the trainer and tester suites.
+
+    "path_length":5, #the length of path exploration.
+
+    "random_seed":True, # to repeat the same results if false.
+    "seed":78534245, # sets the seed to this number.
 }
+
+import pathlib
 
 class Experiment():
     'defines the experiment to run.'
@@ -71,14 +97,7 @@ class Experiment():
         self.name = experiment_name
         self.dataset = dataset_name
         self.single_relation = single_relation
-        self.embedding_texts = embeddings
-
-        self.embeddings = []
-        emb_mapping = {"TransE_l2":0, "DistMult":1, "ComplEx":2, "TransR":3}
-        for e in embeddings:
-            a = emb_mapping[e]
-            if (type(a) == int):
-                self.embeddings.append(a)
+        self.embeddings = embeddings
 
         self.laps = laps
         if(self.single_relation):
@@ -86,7 +105,6 @@ class Experiment():
         else:
             self.relation_to_train = None
 
-import pathlib, sys, os
 
 current_dir = pathlib.Path(__file__).parent.resolve()
 agents_folder = pathlib.Path(f"{current_dir}/data/agents").resolve()
@@ -98,30 +116,15 @@ class Test():
         self.agent_name = agent_name
         self.episodes = episodes
         self.embeddings = embeddings
-        self.embedding_inds = []
 
-        emb_mapping = {"TransE_l2":0, "DistMult":1, "ComplEx":2, "TransR":3}
-
-        for e in self.embeddings:
-            a = emb_mapping[e]
-            if (type(a) == int):
-                self.embedding_inds.append(a)
-   
         agent_path = pathlib.Path(f"{agents_folder}/{self.agent_name}").resolve()
         config_used = open(f"{agent_path}/config_used.txt")
         for ln in config_used.readlines():
             if ln.startswith("dataset: "):
-                try:
-                    self.dataset = ln.removeprefix('dataset: ').strip()
-                except:
-                    ln.lstrip("dataset: ").strip()
+                self.dataset = ln.lstrip("dataset: ").strip()
 
             if ln.startswith("single_relation_pair: "):
-                try:
-                    aux = ln.removeprefix('single_relation_pair: ')
-                except:
-                    aux = ln.lstrip("single_relation_pair: ").strip()
-
+                aux = ln.lstrip("single_relation_pair: ").strip()
                 aux = aux.replace("[", "").replace("]","").replace(" ", "").replace("\'", "").strip().split(",")
                 self.single_relation, self.relation_to_train = [aux[0]=="True", None if aux[1] == "None" else aux[1]]
 
@@ -137,17 +140,11 @@ EXPERIMENTS = [
 ]
 
 TESTS = [
-    Test("testname", "countries-test", ["TransE_l2", "DistMult"], 100),
+    Test("countries-test", "countries-test", ["TransE_l2", "DistMult"], 10),
+    Test("another-test", "Countries-distancerewonly-250laps-PPO", ["TransE_l2"], 10),
+
     # Test("COUNTRIES", ["TransE_l2"], 500, single_relation=True, relation="neighborOf")
 ]
-
-# "COUNTRIES":([0],500)
-# "COUNTRIES":([0,3],100), #521.550 iters
-# "UMLS":([0],40), #172.128 iters
-# "KINSHIP":([1,2],40), #213.600 iters 
-# "WN18RR":([0,1,2,3],12), #1.042.020 iters
-# "FB15K-237":([0,1,2,3],4), #1.088.460 iters
-# "NELL-995":([0,1,2,3],7), #1.045.877 iters
 
 def get_config(train):
     if train:

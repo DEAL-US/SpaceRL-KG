@@ -23,7 +23,7 @@ class DataManager(object):
         self.datasets_path = str(Path(self.data_path).parent.parent.absolute()) + "/datasets"
         self.caches_path = str(Path(self.data_path))+"/caches"
         self.agents_path = f"{str(Path(self.data_path))}/agents/{experiment_name}"
-        self.test_result_path = f"{respath}/{experiment_name}"
+        self.test_result_path = f"{respath}"
         self.is_experiment = is_experiment
         self.name = experiment_name
 

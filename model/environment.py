@@ -55,7 +55,7 @@ class KGEnv(gym.Env):
     
 
     '''
-    def __init__(self, data_manager: DataManager, dataset, single_relation_pair, embedding_index, seed, threads,
+    def __init__(self, data_manager: DataManager, dataset, single_relation_pair, embedding, seed, threads,
     path_length, regenerate_embeddings, normalize_embeddings, gpu_accel, use_episodes, laps, verbose):
         '''
         Initialize the environment with the desired batch size, the length of the path and the location of the dataset. \n
@@ -68,8 +68,7 @@ class KGEnv(gym.Env):
         self.dataset_name = dataset 
         
         # generation of new dataset embedding
-        embedding_names = ["TransE_l2", "DistMult", "ComplEx", "TransR"]
-        self.selected_embedding_name = embedding_names[embedding_index]
+        self.selected_embedding_name = embedding
         self.path_length = path_length
 
         self.utils = Utils(verbose, False)

@@ -37,7 +37,7 @@ class Trainer(object):
         self.utils = Utils(self.verbose, self.log_results, self.dm)
 
         self.env = KGEnv(self.dm, self.dataset, self.single_relation_pair,  
-        self.embedding_index, seed, self.available_cores, self.path_length, 
+        self.embedding, seed, self.available_cores, self.path_length, 
         self.regenerate_embeddings, self.normalize_embeddings, self.gpu_acceleration,
         self.use_episodes, self.laps, verbose = self.verbose)
 
@@ -175,7 +175,7 @@ Path: {self.agent.actions_mem}"
 
         return True 
 
-def main():
+def main(from_file):
     config, EXPERIMENTS = get_config(train=True)
 
     for e in EXPERIMENTS:
@@ -184,11 +184,11 @@ def main():
         config["single_relation_pair"] = [e.single_relation, e.relation_to_train]
         config["name"] = e.name
 
-        for emb_i in e.embeddings:
-            config["embedding_index"] = emb_i
+        for emb in e.embeddings:
+            config["embedding"] = emb
             m = Trainer(config)
             hasFinished = m.run()
             if(not hasFinished and config["debug"]):
                 m.run_debug()
 
-main()
+main(True)
