@@ -31,13 +31,15 @@ class Trainer(object):
             seed = random.randint(0, (2**32)-1)
         else:
             seed = self.seed
+
+        is_distance = "distance" in self.guided_to_compute
         self.set_gpu_config(self.gpu_acceleration)
         self.dm = DataManager(is_experiment = True, experiment_name=self.name)
 
         self.utils = Utils(self.verbose, self.log_results, self.dm)
 
         self.env = KGEnv(self.dm, self.dataset, self.single_relation_pair,  
-        self.embedding, seed, self.available_cores, self.path_length, 
+        self.embedding, is_distance, seed, self.available_cores, self.path_length, 
         self.regenerate_embeddings, self.normalize_embeddings, self.gpu_acceleration,
         self.use_episodes, self.laps, verbose = self.verbose)
 

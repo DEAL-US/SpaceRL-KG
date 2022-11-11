@@ -153,8 +153,7 @@ class Tester(object):
             except:
                 pass
 
-def compute_metrics(mrr, hits):
-    ep = config["episodes"]
+def compute_metrics(mrr, hits, ep):
     hits = [i[1]/ep for i in hits.items()]
     mrr = [1/i if(i != 0) else 0 for i in mrr]
     mrr = sum(mrr)/len(mrr)
@@ -228,7 +227,7 @@ def main(from_file):
                 quit()
             
             hits_raw, mrr_raw = res
-            hits, mrr = compute_metrics(mrr_raw, hits_raw)
+            hits, mrr = compute_metrics(mrr_raw, hits_raw, config["episodes"])
 
             dataframes[i].at[("hits@1",emb), t.dataset] = hits[0]
             dataframes[i].at[("hits@3",emb), t.dataset] = hits[1]

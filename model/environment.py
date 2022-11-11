@@ -55,7 +55,7 @@ class KGEnv(gym.Env):
     
 
     '''
-    def __init__(self, data_manager: DataManager, dataset, single_relation_pair, embedding, seed, threads,
+    def __init__(self, data_manager: DataManager, dataset, single_relation_pair, embedding, is_distance, seed, threads,
     path_length, regenerate_embeddings, normalize_embeddings, gpu_accel, use_episodes, laps, verbose):
         '''
         Initialize the environment with the desired batch size, the length of the path and the location of the dataset. \n
@@ -91,7 +91,7 @@ class KGEnv(gym.Env):
         # get the selected dataset triples
         self.triples, self.relation_emb, self.entity_emb, self.embedding_len = self.dm.get_dataset(dataset, self.selected_embedding_name)
         self.min_ent_emb, self.min_rel_emb, self.max_ent_emb, self.max_rel_emb = self.calculate_embedding_min_max()
-        self.cache_init(dataset)
+        self.cache_init(dataset, is_distance)
 
         # instantiate the corresponding KG() from input_dir
         self.kg = KnowledgeGraph(self.triples, directed=True, inverse_triples=True)
@@ -196,12 +196,15 @@ class KGEnv(gym.Env):
 
         return True
         
-    def cache_init(self, dataset):
-        try:
-            self.utils.verb_print("Loading cached distance for dataset, this may take a while...")
-            self.distance_cache = self.dm.get_cache_for_dataset(dataset)
-        except FileNotFoundError:
-            self.distance_cache = pairdict()
+    def cache_init(self, dataset, is_distance):
+        if(not is_distance):
+            self.distance_cache = None
+        else:
+            try:
+                self.utils.verb_print("Loading cached distance for dataset, this may take a while...")
+                self.distance_cache = self.dm.get_cache_for_dataset(dataset)
+            except FileNotFoundError:
+                self.distance_cache = pairdict()
 
     def save_current_cache(self, dataset):
         self.dm.save_cache_for_dataset(dataset, self.distance_cache)

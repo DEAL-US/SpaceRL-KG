@@ -12,7 +12,7 @@ config = {
     "available_cores": 6, #number of cpu cores to use when computing the reward
     "gpu_acceleration": True, # wether to use GPU(S) to perform fast training & embedding generation.
 
-    "verbose": True, # prints detailed information every episode.
+    "verbose": False, # prints detailed information every episode.
     "log_results": False, # Logs the results in the logs folder of episode training.
 
     "debug": False, # offers information about crashes, runs post-mortem
@@ -28,7 +28,7 @@ config = {
     # distance: computes the distance to the final node and gives a score based on it.
     # embedding: based on the similarity to the end node we reward the agent.
     # terminal: reward if we are on the final node, 0 otherwise.
-    "guided_to_compute":["terminal", "distance"], #"distance","terminal","embedding"
+    "guided_to_compute":["terminal", "embedding"], #"distance","terminal","embedding"
 
     "regenerate_embeddings":False, # if embedding is found and true re-calculates them.
     # if re-calculation is active, normalizes embedding values to be on the center of the N-dim embedding array
@@ -129,14 +129,11 @@ class Test():
                 self.single_relation, self.relation_to_train = [aux[0]=="True", None if aux[1] == "None" else aux[1]]
 
 EXPERIMENTS = [
-    Experiment("countries-test", "COUNTRIES", ["TransE_l2", "DistMult", "ComplEx","TransR"], 1) 
-
+    Experiment("film_genre_FB_Base_simple_embedding_22", "FB15K-237", ["TransE_l2"], 22, True, relation = "/film/film/genre"),
+    # Experiment("countries-test", "COUNTRIES", ["TransE_l2", "DistMult", "ComplEx","TransR"], 1) 
     # Experiment("Umls-distancerew-125laps-PPO", "UMLS", ["TransE_l2"], 10),
-    # Experiment("film_genre_FB_Base_simple_distance_100", "FB15K-237", ["TransE_l2"], 100, True, relation = "/film/film/genre"),
     # Experiment("embedding_testing", "NELL-995", ["TransE_l2"], 10, True, relation = "concept:animalpreyson"),
-
-    # Experiment("Countries 500 base", "COUNTRIES", ["TransE_l2"], 
-    # 500, single_relation=False, relation="neighborOf")
+    # Experiment("Countries 500 base", "COUNTRIES", ["TransE_l2"], 500, single_relation=False, relation="neighborOf")
 ]
 
 TESTS = [
