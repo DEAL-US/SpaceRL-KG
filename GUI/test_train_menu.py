@@ -142,9 +142,9 @@ class menu():
         #row7
         self.error_text_train.grid(row=7, column=0, columnspan=2)
 
-        for i, e in enumerate(self.experiments):
+        for i, e in enumerate(self.experiments):            
             e_banner = ExperimentBanner(self.experiments_frame, 
-            f"experiment {i}", e.name, e.laps, e.dataset, e.embedding_texts,
+            f"experiment {i}", e.name, e.laps, e.dataset, e.embeddings,
             e.single_relation, e.relation_to_train)
             banner = e_banner.getbanner()
             banner.grid(row=i, column=0)
@@ -187,7 +187,7 @@ class menu():
         self.t_runs_entry = ttk.Entry(self.testframe, textvariable=runsvar, text="runs",
         validate='key', validatecommand= self.vcmd, invalidcommand=self.ivcmd)
         self.t_runs_entry.delete(0, 'end')
-        self.t_runs_entry.insert(0, 10)
+        self.t_runs_entry.insert(0, 100)
 
         #listboxes
         self.t_embeddings = []
@@ -241,8 +241,14 @@ class menu():
 
         #row5
         self.error_text_test.grid(row=5, column=0, columnspan=2)
-    
 
+        for i, e in enumerate(self.tests):            
+            e_banner = ExperimentBanner(self.test_frame, 
+            f"test {i}", e.name, e.episodes, e.dataset, e.embeddings,
+            e.single_relation, e.relation_to_train, lapstext = "runs")
+            banner = e_banner.getbanner()
+            banner.grid(row=i, column=0)
+    
     # MISC button functions
     def add_to_list(self, from_frame:str):
         if(from_frame == "train"):
@@ -328,8 +334,8 @@ class menu():
             if(CheckTestCollision(name)):
                 error_text += "name collides with existing test.\n"
 
-            if(laps<100 or laps >9999):
-                error_text += "laps range is 100-9999\n"
+            if(runs<100 or runs >9999):
+                error_text += "runs range is 100-9999\n"
 
             for ex in self.tests:
                 if(ex.name == name):
@@ -351,7 +357,7 @@ class menu():
 
                 self.experiment_banners.append(banner)
 
-                test = GetTestInstance(name, dataset, embeddings, runs, e, rel_name)
+                test = GetTestInstance(agent[0], name, embeddings, runs)
                 self.tests.append(test)
 
                 self.test_index +=1

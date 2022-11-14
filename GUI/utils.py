@@ -100,9 +100,9 @@ def GetDatasets():
 def GetAgents():
     res = []
     agent_list = os.listdir(agents_folder)
-    agent_list.remove('testing')
     agent_list.remove('.gitkeep')
     agent_list.remove('TRAINED')
+    
 
     for a in agent_list:
         embeddings = []
@@ -142,12 +142,12 @@ def GetExperimentInstance(name, dataset, embeddings, laps, single_rel, single_re
 
     return Experiment(name, dataset, embeddings, laps, single_rel, relation = single_rel_name)
 
-def GetTestInstance(name, dataset, embeddings, episodes, single_rel, single_rel_name):
+def GetTestInstance(agentname, testname, embeddings, episodes):
     sys.path.insert(0, f"{maindir}\\model")
     from config import Test
     sys.path.pop(0)
     
-    return Test(name, dataset, embeddings, episodes, single_rel, relation = single_rel_name)
+    return Test(testname, agentname, embeddings, episodes)
 
 
 def CheckForRelationInDataset(dataset_name, relation_name):
@@ -164,11 +164,10 @@ def CheckForRelationInDataset(dataset_name, relation_name):
 def CheckAgentNameColision(name):
     subfolders = [ f.name for f in os.scandir(agents_folder) if f.is_dir()]
     subfolders.remove("TRAINED")
-    subfolders.remove("testing")
     return name in subfolders
 
 def CheckTestCollision(name):
-    
+    pass
 
 
 # asd = GetAgents()

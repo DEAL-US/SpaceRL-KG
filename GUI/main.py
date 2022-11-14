@@ -9,7 +9,7 @@ maindir = pathlib.Path(current_dir).parent.resolve()
 datasets_folder = f"{maindir}\\datasets"
 agents_folder = f"{maindir}\\model\\data\\agents"
 
-config = GetConfig(True)
+config, _ = GetConfig(True)
 
 class mainmenu(object):
     def __init__(self):
@@ -125,25 +125,26 @@ class mainmenu(object):
         self.root.tk.call('package', 'require', 'awdark')
         s.theme_use('awdark')
 
-
     # MISC OPERATIONS
-
     def open_menu(self, menutype):
         if(menutype == "config"):
-            config = config_menu.menu(self.root)
-            
+            c_menu = config_menu.menu(self.root, config)
+            c_menu.root.wm_protocol("WM_DELETE_WINDOW", lambda: self.extract_config_on_close(c_menu))
+
         elif(menutype == "setup"):
             setup = test_train_menu.menu(self.root, self.experiments, self.tests)
             setup.root.wm_protocol("WM_DELETE_WINDOW", lambda: self.extract_info_on_close(setup))
+    
+    def extract_config_on_close(self, config_menu):
+        config = config_menu.config
+        print(config)
 
     def extract_info_on_close(self, setup_window):
         print(setup_window.experiments)
         print(setup_window.tests)
 
         self.experiments, self.tests = setup_window.experiments, setup_window.tests
-
         self.infotext["text"] = f"{len(self.experiments)} Experiment(s) Loaded, {len(self.tests)} Test(s) Loaded"
-
         setup_window.root.destroy()
 
 
