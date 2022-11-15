@@ -7,6 +7,7 @@ from utils import CheckAgentNameColision, CheckTestCollision, GetExperimentInsta
 class menu():
     def __init__(self, root, experiments, tests):
         self.root = Toplevel(root)
+        self.root.title('Setup')
         self.root.resizable(FALSE, FALSE)
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
