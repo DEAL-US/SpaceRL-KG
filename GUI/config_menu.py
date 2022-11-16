@@ -3,10 +3,13 @@ from tkinter import ttk
 
 from utils import CreateToolTip
 from copy import deepcopy
+import multiprocessing
+import sys
 
 class menu():
     def __init__(self, root, config):
         self.config = deepcopy(config)
+        self.modfications_saved = True
 
         self.root = Toplevel(root)
         self.root.title('Configuration')
@@ -16,9 +19,6 @@ class menu():
 
         self.mainframe = ttk.Frame(self.root, padding="12 12 12 12")
         self.mainframe.grid(column=0, row=0)
-
-        self.vcmd = (self.root.register(self.validation), '%P')
-        self.ivcmd = (self.root.register(self.invalid),)
         
         self.add_elements()
 
@@ -32,11 +32,13 @@ class menu():
 
         # GENERAL
         self.coreslabel = ttk.Label(self.general_lf, text='CPU cores:')
-
+        vcmd = (self.root.register(lambda value: self.validation(value, "cpu")), '%P')
+        ivcmd = (self.root.register(lambda: self.invalid("cpu")),)
         coresvar = IntVar()
         self.cores_entry = ttk.Entry(self.general_lf, textvariable=coresvar, text="cores",
-        validate='focusout', validatecommand=self.vcmd, invalidcommand=self.ivcmd)
+        validate='focusout', validatecommand=vcmd, invalidcommand=ivcmd)
         CreateToolTip(self.cores_entry, text="number of cores to use.")
+        self.cores_entry.insert(0, self.config["available_cores"])
 
         use_gpu = BooleanVar(value=self.config["gpu_acceleration"])
         self.gpu_check = ttk.Checkbutton(self.general_lf, text='use gpu?', variable=use_gpu)
@@ -90,7 +92,6 @@ class menu():
         self.rad_max_p = ttk.Radiobutton(self.radio3frame, text='Max %', variable=self.rew_comp_var, value='max_percent') 
         self.rad_ohm = ttk.Radiobutton(self.radio3frame, text='One Hot Max', variable=self.rew_comp_var, value='one_hot_max') 
         self.rad_str = ttk.Radiobutton(self.radio3frame, text='Straight', variable=self.rew_comp_var, value='straight') 
-        
 
         self.sep1 = ttk.Separator(self.training_tf, orient='horizontal')
 
@@ -128,39 +129,89 @@ class menu():
             Embedding-> \n\
             Terminal-> \n")
 
-
         self.sep2 = ttk.Separator(self.training_tf, orient='horizontal')
 
         # CHECKBOXES
         self.checkboxes_frame = ttk.Frame(self.training_tf)
 
-        guided_rew_var = BooleanVar(value=False)
+        guided_rew_var = BooleanVar(value=self.config["guided_reward"])
         self.guided_rew_check = ttk.Checkbutton(self.checkboxes_frame, text='guided \nrewards', variable=guided_rew_var)
         CreateToolTip(self.guided_rew_check, text="")
 
-        regen_embs_var = BooleanVar(value=False)
+        regen_embs_var = BooleanVar(value=self.config["regenerate_embeddings"])
         self.regen_embs_check = ttk.Checkbutton(self.checkboxes_frame, text='regenerate \nembeddings', variable=regen_embs_var)
         CreateToolTip(self.regen_embs_check, text="")
 
-        normal_embs_var = BooleanVar(value=False)
+        normal_embs_var = BooleanVar(value=self.config["normalize_embeddings"])
         self.normal_embs_check = ttk.Checkbutton(self.checkboxes_frame, text='normalize \nembeddings', variable=normal_embs_var)
         CreateToolTip(self.normal_embs_check, text="")
 
-        use_LSTM_var = BooleanVar(value=False)
+        use_LSTM_var = BooleanVar(value=self.config["use_LSTM"])
         self.use_LSTM_check = ttk.Checkbutton(self.checkboxes_frame, text='use LSMT \nlayers', variable=use_LSTM_var)
         CreateToolTip(self.use_LSTM_check, text="")
+
+        self.sep3 = ttk.Separator(self.training_tf, orient='horizontal')
 
         #ENTRIES
         self.entries_frame = ttk.Frame(self.training_tf)
 
-        self.alpha_label = ttk.Label(self.entries_frame, text='')
+        self.alpha_label = ttk.Label(self.entries_frame, text='Alpha')
         vcmd1 = (self.root.register(lambda value: self.validation(value, "alpha")), '%P')
-
+        ivcmd1 = (self.root.register(lambda: self.invalid("alpha")),)
         alpha_var = IntVar()
-        self.alpha_entry = ttk.Entry(self.entries_frame, textvariable=coresvar, text="", validate='focusout', 
-        validatecommand = vcmd1, invalidcommand = self.ivcmd)
-        CreateToolTip(self.cores_entry, text="")
-        
+        self.alpha_entry = ttk.Entry(self.entries_frame, textvariable=alpha_var, text="alpha", validate='focusout', 
+        validatecommand = vcmd1, invalidcommand = ivcmd1)
+        CreateToolTip(self.alpha_entry, text="(0.8-0.99) previous step network learnin rate (PPO only).")
+        self.alpha_entry.insert(0, self.config["alpha"])
+
+        self.gamma_label = ttk.Label(self.entries_frame, text='Gamma')
+        vcmd2 = (self.root.register(lambda value: self.validation(value, "gamma")), '%P')
+        ivcmd2 = (self.root.register(lambda: self.invalid("gamma")),)
+        gamma_var = IntVar()
+        self.gamma_entry = ttk.Entry(self.entries_frame, textvariable=gamma_var, text="gamma", validate='focusout', 
+        validatecommand = vcmd2, invalidcommand = ivcmd2)
+        CreateToolTip(self.gamma_entry, text="(0.9-0.99) decay rate of past observations in backprop reward.")
+        self.gamma_entry.insert(0, self.config["gamma"])
+
+        self.lr_label = ttk.Label(self.entries_frame, text='Learning Rate')
+        vcmd3 = (self.root.register(lambda value: self.validation(value, "lr")), '%P')
+        ivcmd3 = (self.root.register(lambda: self.invalid("lr")),)
+        lr_var = IntVar()
+        self.lr_entry = ttk.Entry(self.entries_frame, textvariable=lr_var, text="lr", validate='focusout', 
+        validatecommand = vcmd3, invalidcommand = ivcmd3)
+        CreateToolTip(self.lr_entry, text="(1e-3 - 1e-5) neural network learning rate.")
+        self.lr_entry.insert(0, self.config["learning_rate"])
+
+
+        #SHARED
+
+        self.path_length = ttk.Label(self.shared_tf, text='Path Length')
+        vcmd4 = (self.root.register(lambda value: self.validation(value, "path")), '%P')
+        ivcmd4 = (self.root.register(lambda: self.invalid("path")),)
+        path_var = IntVar()
+        self.path_entry = ttk.Entry(self.shared_tf, textvariable=path_var, text="path", validate='focusout', 
+        validatecommand = vcmd4, invalidcommand = ivcmd4)
+        CreateToolTip(self.path_entry, text="(3-10) discovered path length.")
+        self.path_entry.insert(0, self.config["path_length"])
+
+        random_seed_var = BooleanVar(value=self.config["random_seed"])
+        self.random_seed_check = ttk.Checkbutton(self.shared_tf, text='random seed?', variable=random_seed_var)
+        CreateToolTip(self.random_seed_check, text="if set, uses a random seed")
+
+
+        self.seed_label = ttk.Label(self.shared_tf, text='Set Seed')
+        vcmd5 = (self.root.register(lambda value: self.validation(value, "seed")), '%P')
+        ivcmd5 = (self.root.register(lambda: self.invalid("seed")),)
+        set_seed_var = IntVar()
+        self.seed_entry = ttk.Entry(self.shared_tf, textvariable=set_seed_var, text="seed", validate='focusout', 
+        validatecommand = vcmd5, invalidcommand = ivcmd5)
+        CreateToolTip(self.seed_entry, text="(int) if random seed is not set, uses the specified value.")
+        self.seed_entry.insert(0, self.config["seed"])
+
+        self.save_button = ttk.Button(self.mainframe, text="Save", 
+        command = lambda: self.save_config(False))
+
+        self.watch_variables()
         self.grid_elements()
 
     def grid_elements(self):
@@ -240,10 +291,42 @@ class menu():
         self.rewards_listbox.grid(row=1, column=2)
 
         # subrow5
+        self.sep3.grid(row=5, column=0, sticky="we")
 
         # subrow6
 
-        self.alpha_entry.grid(row=4, column=0)
+        self.entries_frame.grid(row=6, column=0)
+
+        #col0
+        self.alpha_label.grid(row=0, column=0)
+        self.alpha_entry.grid(row=1, column=0)
+
+        #col1
+        self.gamma_label.grid(row=0, column=1)
+        self.gamma_entry.grid(row=1, column=1)
+
+        #col1
+        self.lr_label.grid(row=0, column=2)
+        self.lr_entry.grid(row=1, column=2)
+
+        ########
+        # row3 #
+        ########
+        self.shared_tf.grid(row=3, column=0)
+
+        #col0
+        self.path_length.grid(row=0, column=0)
+        self.path_entry.grid(row=1, column=0)
+
+        #col1
+        self.random_seed_check.grid(row=0, column=1, rowspan=2)
+
+        #col2
+        self.seed_label.grid(row=0, column=2)
+        self.seed_entry.grid(row=1, column=2)
+
+        # row4
+        self.save_button.grid(row=4, column=0, sticky="ns")
 
 
         for child in self.training_tf.winfo_children():
@@ -258,10 +341,73 @@ class menu():
         for child in self.checkboxes_frame.winfo_children():
             child.grid_configure(padx=5, pady=2)
 
+        for child in self.entries_frame.winfo_children():
+            child.grid_configure(padx=3, pady=2)
 
-    def validation(self, value, origin):
-        print(value, origin)
-        return False
+        for child in self.shared_tf.winfo_children():
+            child.grid_configure(padx=9, pady=0)
 
-    def invalid(self):
-        print("bad")
+
+    def validation(self, value: str, origin):
+        int_origins, float_origins = ["path", "cpu", "seed"], ["alpha", "gamma", "lr"]
+        all_origins = [*int_origins,*float_origins]
+        ranges = [(3,10),(1,multiprocessing.cpu_count()),(1,sys.maxsize), (0.9,0.99),(0.8,0.99),(1e-3, 1e-5)]
+
+        if(value.isnumeric()):
+            if(origin in int_origins):
+                v = int(value)
+            elif(origin in float_origins):
+                v = float(value)
+            else:
+                print(f"bad origin {origin}")
+                return False
+        else:
+            self.errors["text"] = f"{origin} must be a number"
+            return False
+            
+        o_index = all_origins.index(origin)
+        a, b = ranges[o_index][0], ranges[o_index][1]
+
+        if(v < a or v > b):
+            self.errors["text"] = f"{origin} must in range {a}-{b}"
+            return True
+        else:
+                return False
+           
+
+    def invalid(self, origin):
+        print(origin)
+        if(origin == "seed"):            
+            self.seed_entry.insert(0, str(self.config["seed"]))
+
+        elif(origin == "path"):
+            self.path_entry.insert(0, str(self.config["path_length"]))
+        
+        elif(origin == "alpha"):
+            self.alpha_entry.insert(0, str(self.config["alpha"]))
+
+        elif(origin == "gamma"):
+            self.gamma_entry.insert(0, str(self.config["gamma"]))
+        
+        elif(origin == "lr"):
+            self.lr_entry.insert(0, str(self.config["learning_rate"]))
+
+        elif(origin == "cpu"):
+            self.cores_entry.insert(0, str(self.config["available_cores"]))
+
+        else:
+            self.errors["text"] = "an unexpected error ocurred"
+        
+
+    def save_config(self, close):
+        print("saved")
+        self.modfications_saved = True
+
+    def watch_variables(self, *vars):
+        print(vars)
+        for var in vars:
+            var.trace_add("write", self.modification_happened)
+
+    def modification_happened(self, *vars):
+        print("prompter for change save")
+        self.modfications_saved = False
