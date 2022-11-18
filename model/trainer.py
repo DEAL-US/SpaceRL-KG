@@ -12,7 +12,6 @@ from tqdm import tqdm
 from agent import Agent
 from environment import KGEnv
 from data.data_manager import DataManager
-from __init__ import version as v_num
 from keras import backend as K
 from config import get_config
 import time
@@ -193,4 +192,4 @@ def main(from_file):
             if(not hasFinished and config["debug"]):
                 m.run_debug()
 
-main(True)
+# main(True) # uncomment to run from file directly.

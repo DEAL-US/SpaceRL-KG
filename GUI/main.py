@@ -1,6 +1,6 @@
 from tkinter import ttk, filedialog, messagebox
 from tkinter import *
-from utils import CreateToolTip, GetConfig, GetGUIConnectors
+from guiutils import CreateToolTip, GetConfig
 
 import random, os, sys, pathlib, subprocess, config_menu, test_train_menu
 
@@ -43,9 +43,9 @@ class mainmenu(object):
         self.add_styles()
         self.add_elements()
 
-        self.root.mainloop()
-
         self.launch_connectors()
+
+        self.root.mainloop()
 
     def launch_connectors(self):
         tr_conn = trainer.TrainerGUIconnector(None)

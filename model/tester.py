@@ -238,4 +238,4 @@ def main(from_file):
             print(dataframes[i])
             dataframes[i].to_csv(f"{respaths[i]}/metrics.csv")
 
-main(True)
+# main(True) # Uncomment to run from file directly.
