@@ -16,8 +16,6 @@ from environment import KGEnv
 from data.data_manager import DataManager
 from keras import backend as K
 from config import get_config
-
-
 from utils import Utils
 
 
@@ -180,7 +178,12 @@ Path: {self.agent.actions_mem}"
 class TrainerGUIconnector(object):
     def __init__(self, t:Trainer):
         self.active_trainer = t
-        self.train_thread = threading.Thread(name="trainthread", target=self.threaded_update)
+
+        self.total_iterations, self.current_iteration = 0, 0
+        self.total_iter_steps, self.current_iter_steps = 0, 0
+        self.current_progress_text = ""
+
+        self.train_thread = threading.Thread(name="trainThread", target=self.threaded_update)
 
     def start_connection(self):
         self.train_thread.start()
@@ -188,10 +191,13 @@ class TrainerGUIconnector(object):
     def update_current_trainer(self, t:Trainer):
         self.active_trainer = t
 
+    def update_info_variables(self):
+        # TODO: read from the trainer and update the variables
+        pass
+
     def threaded_update(self):
         while(True):
-            
-
+            self.update_info_variables()
             time.sleep(1)
 
 def main(from_file, gui_connector = None):
