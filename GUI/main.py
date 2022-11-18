@@ -19,6 +19,7 @@ class mainmenu(object):
         # functionality
         self.experiments, self.experiment_banners = [], []
         self.tests, self.test_banners = [], []
+        self.config_is_open, self.setup_is_open = False, False
 
         # parameters:
         self.is_running = False
@@ -138,17 +139,21 @@ class mainmenu(object):
 
     # MISC OPERATIONS
     def open_menu(self, menutype):
-        if(menutype == "config"):
+        if(menutype == "config" and not self.config_is_open):
+            self.config_is_open = True
             c_menu = config_menu.menu(self.root, config)
             c_menu.root.wm_protocol("WM_DELETE_WINDOW", lambda: self.extract_config_on_close(c_menu))
 
-        elif(menutype == "setup"):
+        elif(menutype == "setup" and not self.setup_is_open):
+            self.setup_is_open = True
             setup = test_train_menu.menu(self.root, self.experiments, self.tests)
             setup.root.wm_protocol("WM_DELETE_WINDOW", lambda: self.extract_info_on_close(setup))
     
     def extract_config_on_close(self, config_menu):
         config = config_menu.config
         print(config)
+        config_menu.root.destroy()
+        self.config_is_open = False
 
     def extract_info_on_close(self, setup_window):
         print(setup_window.experiments)
@@ -157,7 +162,7 @@ class mainmenu(object):
         self.experiments, self.tests = setup_window.experiments, setup_window.tests
         self.infotext["text"] = f"{len(self.experiments)} Experiment(s) Loaded, {len(self.tests)} Test(s) Loaded"
         setup_window.root.destroy()
-
+        self.setup_is_open = False
 
     def open_folder(self, folder:str):
         folder_to_open = datasets_folder if folder == "datasets" else agents_folder
