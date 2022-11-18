@@ -1,4 +1,5 @@
-import os
+import os, time, threading
+
 from GPUtil import GPUtil
 # select avaliable GPU
 # gpu1, gpu2 = GPUtil.getGPUs()
@@ -6,6 +7,7 @@ from GPUtil import GPUtil
 # os.environ["CUDA_VISIBLE_DEVICES"]=str(available_gpu.id)
 
 import tensorflow as tf
+import numpy as np
 import random
 
 from tqdm import tqdm
@@ -14,11 +16,10 @@ from environment import KGEnv
 from data.data_manager import DataManager
 from keras import backend as K
 from config import get_config
-import time
+
 
 from utils import Utils
 
-import numpy as np
 
 class Trainer(object):
     '''
@@ -176,7 +177,24 @@ Path: {self.agent.actions_mem}"
 
         return True 
 
-def main(from_file):
+class TrainerGUIconnector(object):
+    def __init__(self, t:Trainer):
+        self.active_trainer = t
+        self.train_thread = threading.Thread(name="trainthread", target=self.threaded_update)
+
+    def start_connection(self):
+        self.train_thread.start()
+
+    def update_current_trainer(self, t:Trainer):
+        self.active_trainer = t
+
+    def threaded_update(self):
+        while(True):
+            
+
+            time.sleep(1)
+
+def main(from_file, gui_connector = None):
     config, EXPERIMENTS = get_config(train=True)
 
     for e in EXPERIMENTS:

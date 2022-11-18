@@ -54,7 +54,7 @@ config = {
     "activation":'leaky_relu', # relu, prelu, leaky_relu, elu, tanh
     
     # applies L1 and L2 regularization at different stages of training.
-    "regularizers":['kernel'], #"kernel", "bias", "activity"
+    "regularizers":['kernel'], #"kernel", "bias", "activity" 
 
     # PPO uses actor critic networks and BASE is a simple feed-forward network.
     # you can then choose retropropagation of rewards to compute as a REINFORCE model or simple to keep the rewards 
@@ -74,7 +74,7 @@ config = {
     # max_percent -> computes the maximum reward for the step and gives 0-1 according to how close we got to it.
     # one_hot_max -> gives 1 if we got the maximum reward for the episode 0 otherwise
     # straight -> gives the reward straight to the network as calculated from the step.
-    "reward_computation": "one_hot_max", #"max_percent", "one_hot_max", "perfection", "straight"
+    "reward_computation": "one_hot_max", #"max_percent", "one_hot_max", "straight"
     
     #################
     # SHARED PARAMS #
@@ -129,7 +129,7 @@ class Test():
                 self.single_relation, self.relation_to_train = [aux[0]=="True", None if aux[1] == "None" else aux[1]]
 
 EXPERIMENTS = [
-    Experiment("film_genre_FB_Base_simple_embedding_22", "FB15K-237", ["TransE_l2"], 22, True, relation = "/film/film/genre"),
+    Experiment("film_genre_FB_Base_PPO_embedding_22", "FB15K-237", ["TransE_l2"], 22, True, relation = "/film/film/genre"),
     # Experiment("countries-test", "COUNTRIES", ["TransE_l2", "DistMult", "ComplEx","TransR"], 1) 
     # Experiment("Umls-distancerew-125laps-PPO", "UMLS", ["TransE_l2"], 10),
     # Experiment("embedding_testing", "NELL-995", ["TransE_l2"], 10, True, relation = "concept:animalpreyson"),
