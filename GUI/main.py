@@ -1,6 +1,6 @@
 from tkinter import ttk, filedialog, messagebox
 from tkinter import *
-from utils import CreateToolTip, GetConfig
+from utils import CreateToolTip, GetConfig, GetGUIConnectors
 
 import random, os, sys, pathlib, subprocess, config_menu, test_train_menu
 
@@ -10,6 +10,9 @@ datasets_folder = f"{maindir}\\datasets"
 agents_folder = f"{maindir}\\model\\data\\agents"
 
 config, _ = GetConfig(True)
+sys.path.insert(0, f"{maindir}\\model")
+import trainer, tester
+sys.path.pop(0)
 
 class mainmenu(object):
     def __init__(self):
@@ -40,6 +43,14 @@ class mainmenu(object):
         self.add_elements()
 
         self.root.mainloop()
+
+        self.launch_connectors()
+
+    def launch_connectors(self):
+        tr_conn = trainer.TrainerGUIconnector(None)
+        print(tr_conn)
+        # tst_conn = tester.TesterGUIconnector(None)
+
 
     def add_elements(self):
         # infotext

@@ -149,7 +149,6 @@ def GetTestInstance(agentname, testname, embeddings, episodes):
     
     return Test(testname, agentname, embeddings, episodes)
 
-
 def CheckForRelationInDataset(dataset_name, relation_name):
     relation_in_graph = False
     filepath = pathlib.Path(f"{datasets_folder}\\{dataset_name}\\graph.txt").resolve()
