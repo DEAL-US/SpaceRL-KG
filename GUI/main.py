@@ -11,8 +11,8 @@ agents_folder = f"{maindir}\\model\\data\\agents"
 
 config, _ = GetConfig(True)
 sys.path.insert(0, f"{maindir}\\model")
-from trainer import Trainer, TrainerGUIconnector, main as tr_main
-from tester import Tester, TesterGUIconnector, main as tst_main
+from trainer import Trainer, TrainerGUIconnector, main as tr_main, get_gui_values as tr_get_gui
+from tester import Tester, TesterGUIconnector, main as tst_main, get_gui_values as tst_get_gui
 sys.path.pop(0)
 
 class mainmenu(object):
@@ -243,20 +243,19 @@ class mainmenu(object):
 
     def update_progress(self):
         while(True):
-            print("running")
             if(self.running_exp):
-                connector = self.tr_conn
+                tot_it, curr_it, tot_it_step, curr_it_step, curr_prog = tr_get_gui()
             elif(self.running_tests):
-                connector = self.tst_conn
+                tot_it, curr_it, tot_it_step, curr_it_step, curr_prog = tst_get_gui()
 
             if(self.is_running):
-                t = f"({connector.current_iteration}/{connector.total_iterations})-{connector.current_progress_text}"
+                t = f"({curr_it}/{tot_it})-{curr_prog}"
                 self.change_progtext(t)
 
-                if(self.progress_bar['maximum'] != connector.total_iter_steps):
-                    self.change_progbar_max(connector.total_iter_steps)
+                if(self.progress_bar['maximum'] != tot_it_step):
+                    self.change_progbar_max(tot_it_step)
                 
-                self.set_progbar_value(connector.current_iter_steps)
+                self.set_progbar_value(curr_it_step)
             
             time.sleep(1)
 

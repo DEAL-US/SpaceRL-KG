@@ -18,6 +18,10 @@ from keras import backend as K
 from config import get_config
 from utils import Utils
 
+# Global GUI values
+tr_total_iterations, tr_current_iteration = 0, 0
+tr_total_iter_steps, tr_current_iter_steps = 0, 0
+rt_current_progress_text = ""
 
 class Trainer(object):
     '''
@@ -29,10 +33,6 @@ class Trainer(object):
             seed = random.randint(0, (2**32)-1)
         else:
             seed = self.seed
-        
-        # GUI Elements to update.
-        self.total_iter_steps, self.current_iter_steps = 0, 0
-        self.current_progress_text = ""
 
         is_distance = "distance" in self.guided_to_compute
         self.set_gpu_config(self.gpu_acceleration)
@@ -184,9 +184,13 @@ class TrainerGUIconnector(object):
         self.active_trainer = None
         self.config, self.experiments = config, experiments
 
-        self.total_iterations, self.current_iteration = 0, 0
-        self.total_iter_steps, self.current_iter_steps = 0, 0
-        self.current_progress_text = ""
+        global tr_current_iteration
+        global tr_current_iter_steps
+        global tr_current_progress_text
+
+        tr_current_iteration = 1234
+        tr_current_iter_steps = 345
+        tr_current_progress_text = "" 
 
         self.train_thread = threading.Thread(name="trainThread", target=self.threaded_update)
 
@@ -197,9 +201,13 @@ class TrainerGUIconnector(object):
         self.active_trainer = t
 
     def update_info_variables(self):
-        self.total_iter_steps = self.active_trainer.total_iter_steps 
-        self.current_iter_steps = self.active_trainer.current_iter_steps
-        self.current_progress_text = self.active_trainer.current_progress_text
+        global tr_total_iter_steps
+        global tr_current_iter_steps
+        global tr_current_progress_text
+
+        tr_total_iter_steps = self.active_trainer.total_iter_steps
+        tr_current_iter_steps = self.active_trainer.current_iter_steps
+        tr_current_progress_text = self.active_trainer.current_progress_text
 
     def threaded_update(self):
         while(True):
@@ -212,10 +220,13 @@ def main(from_file, gui_connector : TrainerGUIconnector = None):
     else:
         config, EXPERIMENTS = gui_connector.config, gui_connector.experiments
 
-    gui_connector.total_iterations = len(EXPERIMENTS)
+    global tr_total_iterations
+    global tr_current_iteration
+
+    tr_total_iterations = len(EXPERIMENTS)
     
     for i, e in enumerate(EXPERIMENTS):
-        gui_connector.current_iteration = i
+        tr_current_iteration = i
 
         config["laps"] = e.laps 
         config["dataset"] = e.dataset
@@ -232,5 +243,9 @@ def main(from_file, gui_connector : TrainerGUIconnector = None):
             hasFinished = m.run()
             if(not hasFinished and config["debug"]):
                 m.run_debug()
+
+def get_gui_values():
+    return tr_total_iterations, tr_current_iteration, tr_total_iter_steps, tr_current_iter_steps, tr_current_progress_text
+
 
 # main(True) # uncomment to run from file directly.
