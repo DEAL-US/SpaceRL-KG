@@ -9,7 +9,6 @@ import sys
 class menu():
     def __init__(self, root, config):
         self.config = deepcopy(config)
-        self.modfications_saved = True
 
         self.root = Toplevel(root)
         self.root.title('Configuration')
@@ -209,9 +208,8 @@ class menu():
         self.seed_entry.insert(0, self.config["seed"])
 
         self.save_button = ttk.Button(self.mainframe, text="Save", 
-        command = lambda: self.save_config(False))
+        command = self.save_config)
 
-        self.watch_variables()
         self.grid_elements()
 
     def grid_elements(self):
@@ -232,9 +230,6 @@ class menu():
         self.verb_check.grid(row=1, column=0)
         self.logs_check.grid(row=1, column=1)
         self.debug_check.grid(row=1, column=2)
-
-        for child in self.general_lf.winfo_children():
-            child.grid_configure(padx=3, pady=3)
 
         ########
         # row2 #
@@ -326,8 +321,12 @@ class menu():
         self.seed_entry.grid(row=1, column=2)
 
         # row4
-        self.save_button.grid(row=4, column=0, sticky="ns")
+        self.save_button.grid(row=4, column=0, sticky="ns", pady=15)
 
+        #Extra padding
+
+        for child in self.general_lf.winfo_children():
+            child.grid_configure(padx=3, pady=3)
 
         for child in self.training_tf.winfo_children():
             child.grid_configure(padx=5, pady=2)
@@ -347,13 +346,12 @@ class menu():
         for child in self.shared_tf.winfo_children():
             child.grid_configure(padx=9, pady=0)
 
-
     def validation(self, value: str, origin):
         int_origins, float_origins = ["path", "cpu", "seed"], ["alpha", "gamma", "lr"]
         all_origins = [*int_origins,*float_origins]
-        ranges = [(3,10),(1,multiprocessing.cpu_count()),(1,sys.maxsize), (0.9,0.99),(0.8,0.99),(1e-3, 1e-5)]
+        ranges = [(3,10),(1,multiprocessing.cpu_count()),(1,sys.maxsize), (0.9,0.99),(0.8,0.99),(1e-5, 1e-3)]
 
-        if(value.isnumeric()):
+        if(value.replace('.','',1).isdigit()): #check for any non-negative number
             if(origin in int_origins):
                 v = int(value)
             elif(origin in float_origins):
@@ -369,45 +367,73 @@ class menu():
         a, b = ranges[o_index][0], ranges[o_index][1]
 
         if(v < a or v > b):
-            self.errors["text"] = f"{origin} must in range {a}-{b}"
-            return True
+            self.errors["text"] = f"{origin} must in range [{a}-{b}]"
+            return False
         else:
-                return False
-           
+            return True
 
     def invalid(self, origin):
-        print(origin)
-        if(origin == "seed"):            
+        print(f"the origin of the validation error is: {origin}")
+        if(origin == "seed"):  
+            self.seed_entry.delete(0,END)          
             self.seed_entry.insert(0, str(self.config["seed"]))
 
         elif(origin == "path"):
+            self.path_entry.delete(0,END)          
             self.path_entry.insert(0, str(self.config["path_length"]))
         
         elif(origin == "alpha"):
+            self.alpha_entry.delete(0,END)          
             self.alpha_entry.insert(0, str(self.config["alpha"]))
 
         elif(origin == "gamma"):
+            self.gamma_entry.delete(0,END)          
             self.gamma_entry.insert(0, str(self.config["gamma"]))
         
         elif(origin == "lr"):
+            self.lr_entry.delete(0,END)          
             self.lr_entry.insert(0, str(self.config["learning_rate"]))
 
         elif(origin == "cpu"):
+            self.cores_entry.delete(0,END)          
             self.cores_entry.insert(0, str(self.config["available_cores"]))
 
-        else:
+        else:         
             self.errors["text"] = "an unexpected error ocurred"
         
+    def save_config(self):
+        print("saving config")
+        self.config["available_cores"] = self.cores_entry.get()
+        self.config["gpu_acceleration"] = self.gpu_check.state()[0] == 'selected'
+        self.config["verbose"] = self.verb_check.state()[0] == 'selected'
+        self.config["log_results"] = self.logs_check.state()[0] == 'selected'
+        self.config["debug"] = self.debug_check.state()[0] == 'selected'
+        self.config["print_layers"] = False
 
-    def save_config(self, close):
-        print("saved")
-        self.modfications_saved = True
+        self.config["restore_agent"] = False
+        self.config["guided_reward"] = self.guided_rew_check.state()[0] == 'selected'
+        self.config["guided_to_compute"] = [self.rewards_listbox.get(idx) for idx in self.rewards_listbox.curselection()]
+        self.config["regenerate_embeddings"] = self.regen_embs_check.state()[0] == 'selected'
+        self.config["normalize_embeddings"] = self.normal_embs_check.state()[0] == 'selected'
+        self.config["use_LSTM"] = self.use_LSTM_check.state()[0] == 'selected'
 
-    def watch_variables(self, *vars):
-        print(vars)
-        for var in vars:
-            var.trace_add("write", self.modification_happened)
+        self.config["use_episodes"] = False
+        self.config["episodes"] = 0
 
-    def modification_happened(self, *vars):
-        print("prompter for change save")
-        self.modfications_saved = False
+        self.config["alpha"] = self.alpha_entry.get()
+        self.config["gamma"] = self.gamma_entry.get()
+        self.config["learning_rate"] = self.lr_entry.get()
+
+        self.config["activation"] = self.activation_listbox.get(ACTIVE)
+        self.config["regularizers"] = [self.regularizer_listbox.get(idx) for idx in self.regularizer_listbox.curselection()]
+
+        self.config["algorithm"] = self.algo_var.get()
+        self.config["reward_type"] = self.rew_type_var.get()
+        self.config["action_picking_policy"] = "probability"
+        self.config["reward_computation"] = self.rew_comp_var.get()
+
+        self.config["path_length"] = self.path_entry.get()
+        self.config["random_seed"] = self.random_seed_check.state()[0] == 'selected'
+        self.config["seed"] = self.seed_entry.get()
+
+        self.errors["text"] = "data saved succesfully!"
