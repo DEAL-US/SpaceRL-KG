@@ -1,20 +1,15 @@
-from pathlib import Path
-import os
-import traceback
+import os, traceback, random, threading, shutil
 
 import tensorflow as tf
 import pandas as pd
+import numpy as np
 
-import random
-import traceback
-
+from pathlib import Path
 from tqdm import tqdm
 from data.data_manager import DataManager
 from environment import KGEnv
 from agent import Agent
 from keras.models import load_model
-import numpy as np
-import shutil
 
 from config import get_config
 
@@ -202,6 +197,22 @@ def extract_config_info(agent_path):
 
     return app, alg, rwt, srp
 
+class TesterGUIconnector(object):
+    def __init__(self, t:Tester):
+        self.active_tester = t
+        self.train_thread = threading.Thread(name="testThread", target=self.threaded_update)
+
+    def start_connection(self):
+        self.train_thread.start()
+
+    def update_current_tester(self, t:Tester):
+        self.active_tester = t
+
+    def threaded_update(self):
+        while(True):
+            
+
+            time.sleep(1)
 
 ################## START ####################
 def main(from_file):
@@ -238,4 +249,4 @@ def main(from_file):
             print(dataframes[i])
             dataframes[i].to_csv(f"{respaths[i]}/metrics.csv")
 
-main(True)
+# main(True) # Uncomment to run from file directly.

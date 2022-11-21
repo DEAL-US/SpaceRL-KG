@@ -1,8 +1,8 @@
 from tkinter import *
 from tkinter import ttk
 
-from utils import AgentInfo, ExperimentBanner, GetDatasets, GetAgents, CheckForRelationInDataset
-from utils import CheckAgentNameColision, CheckTestCollision, GetExperimentInstance, GetTestInstance
+from guiutils import AgentInfo, ExperimentBanner, GetDatasets, GetAgents, CheckForRelationInDataset
+from guiutils import CheckAgentNameColision, CheckTestCollision, GetExperimentInstance, GetTestInstance
 
 class menu():
     def __init__(self, root, experiments, tests):

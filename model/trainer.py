@@ -1,4 +1,5 @@
-import os
+import os, time, threading
+
 from GPUtil import GPUtil
 # select avaliable GPU
 # gpu1, gpu2 = GPUtil.getGPUs()
@@ -6,20 +7,17 @@ from GPUtil import GPUtil
 # os.environ["CUDA_VISIBLE_DEVICES"]=str(available_gpu.id)
 
 import tensorflow as tf
+import numpy as np
 import random
 
 from tqdm import tqdm
 from agent import Agent
 from environment import KGEnv
 from data.data_manager import DataManager
-from __init__ import version as v_num
 from keras import backend as K
 from config import get_config
-import time
-
 from utils import Utils
 
-import numpy as np
 
 class Trainer(object):
     '''
@@ -177,7 +175,32 @@ Path: {self.agent.actions_mem}"
 
         return True 
 
-def main(from_file):
+class TrainerGUIconnector(object):
+    def __init__(self, t:Trainer):
+        self.active_trainer = t
+
+        self.total_iterations, self.current_iteration = 0, 0
+        self.total_iter_steps, self.current_iter_steps = 0, 0
+        self.current_progress_text = ""
+
+        self.train_thread = threading.Thread(name="trainThread", target=self.threaded_update)
+
+    def start_connection(self):
+        self.train_thread.start()
+
+    def update_current_trainer(self, t:Trainer):
+        self.active_trainer = t
+
+    def update_info_variables(self):
+        # TODO: read from the trainer and update the variables
+        pass
+
+    def threaded_update(self):
+        while(True):
+            self.update_info_variables()
+            time.sleep(1)
+
+def main(from_file, gui_connector = None):
     config, EXPERIMENTS = get_config(train=True)
 
     for e in EXPERIMENTS:
@@ -193,4 +216,4 @@ def main(from_file):
             if(not hasFinished and config["debug"]):
                 m.run_debug()
 
-main(True)
+# main(True) # uncomment to run from file directly.

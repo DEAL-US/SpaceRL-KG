@@ -1,5 +1,3 @@
-from statistics import variance
-from cv2 import mean
 import numpy as np
 import pathlib
 import os

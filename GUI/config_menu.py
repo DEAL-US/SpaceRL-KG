@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 
-from utils import CreateToolTip
+from guiutils import CreateToolTip
 from copy import deepcopy
 import multiprocessing
 import sys
