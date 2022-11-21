@@ -1,8 +1,8 @@
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk, messagebox
 from tkinter import *
-from guiutils import CreateToolTip, GetConfig
+from guiutils import GetConfig
 
-import random, os, sys, pathlib, subprocess, config_menu, test_train_menu, view_paths_menu
+import time, os, sys, pathlib, subprocess, config_menu, test_train_menu, view_paths_menu, threading
 
 current_dir = pathlib.Path(__file__).parent.resolve()
 maindir = pathlib.Path(current_dir).parent.resolve()
@@ -11,7 +11,8 @@ agents_folder = f"{maindir}\\model\\data\\agents"
 
 config, _ = GetConfig(True)
 sys.path.insert(0, f"{maindir}\\model")
-import trainer, tester
+from trainer import Trainer, TrainerGUIconnector, main as tr_main
+from tester import Tester, TesterGUIconnector, main as tst_main
 sys.path.pop(0)
 
 class mainmenu(object):
@@ -19,13 +20,14 @@ class mainmenu(object):
         # functionality
         self.config, _ = GetConfig(True)
 
-
         self.experiments, self.experiment_banners = [], []
         self.tests, self.test_banners = [], []
         self.config_is_open, self.setup_is_open, self.paths_is_open = False, False, False
 
-        # parameters:
+        # flags:
         self.is_running = False
+        self.running_exp = False
+        self.running_tests = False
         
         self.root = Tk()
         self.root.title("Model Generator")
@@ -46,13 +48,14 @@ class mainmenu(object):
         self.add_styles()
         self.add_elements()
 
-        self.launch_connectors()
+        self.update_connectors()
+        self.launch_updater()
 
         self.root.mainloop()
 
-    def launch_connectors(self):
-        self.tr_conn = trainer.TrainerGUIconnector(None)
-        self.tst_conn = tester.TesterGUIconnector(None)
+    def update_connectors(self):
+        self.tr_conn = TrainerGUIconnector(self.config, self.experiments)
+        self.tst_conn = TesterGUIconnector(self.config, self.tests)
 
         print(self.tr_conn, self.tst_conn)
 
@@ -134,7 +137,10 @@ class mainmenu(object):
         self.agents_button.grid(row=0, column=1, padx=(0,75), pady=(0,5))
 
         #row5
-        self.error_text.grid(row=5, column=0, columnspan=2, pady=3)
+        self.view_paths_button.grid(row=5, column=0, columnspan=2, pady=3)
+
+        #row6
+        self.error_text.grid(row=6, column=0, columnspan=2, pady=3)
 
     def add_styles(self):
         s = ttk.Style()
@@ -157,7 +163,7 @@ class mainmenu(object):
         elif(menutype == "paths" and not self.paths_is_open):
             self.paths_is_open = True
             paths_menu = view_paths_menu.menu(self.root, self.tests)
-            setup.root.wm_protocol("WM_DELETE_WINDOW", lambda: self.extract_info_on_close(setup))
+            setup.root.wm_protocol("WM_DELETE_WINDOW", lambda: self.extract_info_on_close(paths_menu))
 
     def extract_config_on_close(self, config_menu):
         savebefore = messagebox.askyesnocancel(
@@ -169,19 +175,19 @@ class mainmenu(object):
                 config_menu.save_config()
 
             self.config = config_menu.config
-            print(self.config)
 
             config_menu.root.destroy()
             self.config_is_open = False
 
-    def extract_info_on_close(self, setup_window):
-        print(setup_window.experiments)
-        print(setup_window.tests)
+            self.update_connectors()
 
+    def extract_info_on_close(self, setup_window):
         self.experiments, self.tests = setup_window.experiments, setup_window.tests
         self.infotext["text"] = f"{len(self.experiments)} Experiment(s) Loaded, {len(self.tests)} Test(s) Loaded"
         setup_window.root.destroy()
         self.setup_is_open = False
+
+        self.update_connectors()
 
     def pathmenu_teardown(self, pathmenu):
         self.paths_is_open = False
@@ -219,36 +225,55 @@ class mainmenu(object):
 
     def run_experimentation(self):
         if(not self.is_running):
-            self.is_running = True
-            self.trainer.main(False, self.tr_conn)
+            self.is_running, self.running_exp = True, True
+            tr_main(False, self.tr_conn)
         else:
             self.showbusyerror()
 
-    def run_tests(self, show_visuals):
+    def run_tests(self):
         if(not self.is_running):
-            self.is_running = True
+            self.is_running, self.running_tests = True, True
             self.testing.main(False, self.tst_conn)
         else:
             self.showbusyerror()
 
+    def launch_updater(self):
+        self.updater_thread = threading.Thread(name="updaterThread", target=self.update_progress)
+        self.updater_thread.start()
 
+    def update_progress(self):
+        while(True):
+            print("running")
+            if(self.running_exp):
+                connector = self.tr_conn
+            elif(self.running_tests):
+                connector = self.tst_conn
+
+            if(self.is_running):
+                t = f"({connector.current_iteration}/{connector.total_iterations})-{connector.current_progress_text}"
+                self.change_progtext(t)
+
+                if(self.progress_bar['maximum'] != connector.total_iter_steps):
+                    self.change_progbar_max(connector.total_iter_steps)
+                
+                self.set_progbar_value(connector.current_iter_steps)
+            
+            time.sleep(1)
+
+    # errors
     def showbusyerror(self):
         messagebox.showerror(title="Busy Error", message="Something is already running!\n\
 Wait for it to finish or abort the execution.")
 
-    # texts
-    def change_progtext(self, newtext:str):
-        self.progress_text['text'] = newtext
-    
     def change_error_text(self, newtext:str):
         self.error_text['text'] = newtext
 
     # progress bar
+    def change_progtext(self, newtext:str):
+        self.progress_text['text'] = newtext
+    
     def set_progbar_value(self, v:int):
         self.progress_bar['value'] = v
-
-    def increase_progbar(self, qtty:int):
-        self.progress_bar.step(qtty)
 
     def change_progbar_max(self, qtty:int):
         print(f"new progress bar maximum is {qtty}")

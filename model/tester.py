@@ -1,4 +1,4 @@
-import os, traceback, random, threading, shutil
+import os, traceback, random, threading, shutil, time
 
 import tensorflow as tf
 import pandas as pd
@@ -148,6 +148,24 @@ class Tester(object):
             except:
                 pass
 
+class TesterGUIconnector(object):
+    def __init__(self, config: dict, tests):
+        self.active_tester = None
+        self.train_thread = threading.Thread(name="testThread", target=self.threaded_update)
+
+    def start_connection(self):
+        self.train_thread.start()
+
+    def update_current_tester(self, t:Tester):
+        self.active_tester = t
+
+    def threaded_update(self):
+        while(True):
+            
+
+            time.sleep(1)
+
+
 def compute_metrics(mrr, hits, ep):
     hits = [i[1]/ep for i in hits.items()]
     mrr = [1/i if(i != 0) else 0 for i in mrr]
@@ -196,23 +214,6 @@ def extract_config_info(agent_path):
                 srp = [aux[0]=="True", None if aux[1].strip()=="None" else aux[1].strip()]
 
     return app, alg, rwt, srp
-
-class TesterGUIconnector(object):
-    def __init__(self, t:Tester):
-        self.active_tester = t
-        self.train_thread = threading.Thread(name="testThread", target=self.threaded_update)
-
-    def start_connection(self):
-        self.train_thread.start()
-
-    def update_current_tester(self, t:Tester):
-        self.active_tester = t
-
-    def threaded_update(self):
-        while(True):
-            
-
-            time.sleep(1)
 
 ################## START ####################
 def main(from_file):

@@ -23,12 +23,16 @@ class Trainer(object):
     '''
     Trainer method is the entry point to the training agent.
     '''
-    def __init__(self, env_config):
+    def __init__(self, env_config, from_gui = False, gui_connector = None):
         for key, val in env_config.items(): setattr(self, key, val)
         if (self.random_seed):
             seed = random.randint(0, (2**32)-1)
         else:
             seed = self.seed
+        
+        # GUI Elements to update.
+        self.total_iter_steps, self.current_iter_steps = 0, 0
+        self.current_progress_text = ""
 
         is_distance = "distance" in self.guided_to_compute
         self.set_gpu_config(self.gpu_acceleration)
@@ -176,8 +180,9 @@ Path: {self.agent.actions_mem}"
         return True 
 
 class TrainerGUIconnector(object):
-    def __init__(self, t:Trainer):
-        self.active_trainer = t
+    def __init__(self, config: dict, experiments):
+        self.active_trainer = None
+        self.config, self.experiments = config, experiments
 
         self.total_iterations, self.current_iteration = 0, 0
         self.total_iter_steps, self.current_iter_steps = 0, 0
@@ -192,18 +197,26 @@ class TrainerGUIconnector(object):
         self.active_trainer = t
 
     def update_info_variables(self):
-        # TODO: read from the trainer and update the variables
-        pass
+        self.total_iter_steps = self.active_trainer.total_iter_steps 
+        self.current_iter_steps = self.active_trainer.current_iter_steps
+        self.current_progress_text = self.active_trainer.current_progress_text
 
     def threaded_update(self):
         while(True):
             self.update_info_variables()
             time.sleep(1)
 
-def main(from_file, gui_connector = None):
-    config, EXPERIMENTS = get_config(train=True)
+def main(from_file, gui_connector : TrainerGUIconnector = None):
+    if(from_file):
+        config, EXPERIMENTS = get_config(train=True)
+    else:
+        config, EXPERIMENTS = gui_connector.config, gui_connector.experiments
 
-    for e in EXPERIMENTS:
+    gui_connector.total_iterations = len(EXPERIMENTS)
+    
+    for i, e in enumerate(EXPERIMENTS):
+        gui_connector.current_iteration = i
+
         config["laps"] = e.laps 
         config["dataset"] = e.dataset
         config["single_relation_pair"] = [e.single_relation, e.relation_to_train]
@@ -211,7 +224,11 @@ def main(from_file, gui_connector = None):
 
         for emb in e.embeddings:
             config["embedding"] = emb
-            m = Trainer(config)
+            m = Trainer(config, from_gui=not from_file, gui_connector=gui_connector)
+            gui_connector.update_current_trainer(m)
+            gui_connector.start_connection()
+            gui_connector.current_progress_text = "Initializing..."
+
             hasFinished = m.run()
             if(not hasFinished and config["debug"]):
                 m.run_debug()
