@@ -40,7 +40,7 @@ class ToolTip(object):
 
 class ExperimentBanner(object):
     def __init__(self, frame, bannertext, experiment_name :str, laps : int, 
-     dataset : str, embeddings : list[str], single_rel_check:bool, single_rel_name: str, lapstext = "laps"):
+     dataset : str, embeddings, single_rel_check:bool, single_rel_name: str, lapstext = "laps"):
         parent = ttk.Labelframe(frame, text=bannertext)
         namelabel = ttk.Label(parent, text=f'name: {experiment_name}')
         datalabel = ttk.Label(parent, text=f'dataset: {dataset}')
@@ -115,20 +115,20 @@ def GetAgents():
         with open(f"{p}\\config_used.txt") as c:
             for ln in c:
                 if ln.startswith("dataset: "):
-                    dataset = ln.removeprefix('dataset: ').strip()
+                    dataset = ln.lstrip('dataset: ').strip()
 
                 if ln.startswith("single_relation_pair: "):
-                    aux = ln.removeprefix('single_relation_pair: ')
+                    aux = ln.lstrip('single_relation_pair: ')
                     aux = aux.replace("[", "").replace("]","").replace(" ", "").replace("\'", "").strip().split(",")
                     single_rel_pair = [aux[0]=="True", None if aux[1] == "None" else aux[1]]
 
         for b in os.listdir(p):
             if(b != "config_used.txt"):
-                aux = b.removeprefix(f"{dataset}-")
-                aux = aux.removesuffix(".h5")
+                aux = b.lstrip(f"{dataset}-")
+                aux = aux.rstrip(".h5")
                 embeddings.append(aux)
         
-        # print("\n",embeddings, name, dataset, single_rel_pair, "\n")
+        print("\n",embeddings, name, dataset, single_rel_pair, "\n")
 
         res.append(AgentInfo(name, embeddings, dataset, single_rel_pair[0], single_rel_pair[1]))
     

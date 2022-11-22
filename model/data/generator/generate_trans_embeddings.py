@@ -91,6 +91,7 @@ normalize = False,  add_inverse_path = True, fast_mode = False):
             
             os.remove(f"{datafolder}/entities.tsv")
             os.remove(f"{datafolder}/relations.tsv")
+       
             shutil.copyfile(f"{local_dir}/raw_data/entities.tsv", f"{datafolder}/entities.tsv")
             shutil.copyfile(f"{local_dir}/raw_data/relations.tsv", f"{datafolder}/relations.tsv")
         else:

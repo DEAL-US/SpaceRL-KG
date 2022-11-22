@@ -49,15 +49,12 @@ class mainmenu(object):
         self.add_elements()
 
         self.update_connectors()
-        self.launch_updater()
 
         self.root.mainloop()
 
     def update_connectors(self):
         self.tr_conn = TrainerGUIconnector(self.config, self.experiments)
         self.tst_conn = TesterGUIconnector(self.config, self.tests)
-
-        print(self.tr_conn, self.tst_conn)
 
     # MAIN ELEMENTS
 
@@ -227,6 +224,7 @@ class mainmenu(object):
         if(not self.is_running):
             self.is_running, self.running_exp = True, True
             tr_main(False, self.tr_conn)
+            self.launch_updater()
         else:
             self.showbusyerror()
 
@@ -234,6 +232,7 @@ class mainmenu(object):
         if(not self.is_running):
             self.is_running, self.running_tests = True, True
             self.testing.main(False, self.tst_conn)
+            self.launch_updater()
         else:
             self.showbusyerror()
 
@@ -241,8 +240,14 @@ class mainmenu(object):
         self.updater_thread = threading.Thread(name="updaterThread", target=self.update_progress)
         self.updater_thread.start()
 
+    def stop_updater(self):
+        self.change_progtext("Execution is finished.")
+        self.updater_thread._stop()
+        self.updater_thread.join()
+
     def update_progress(self):
-        while(True):
+        r = True
+        while(r):
             if(self.running_exp):
                 tot_it, curr_it, tot_it_step, curr_it_step, curr_prog = tr_get_gui()
             elif(self.running_tests):
@@ -256,8 +261,15 @@ class mainmenu(object):
                     self.change_progbar_max(tot_it_step)
                 
                 self.set_progbar_value(curr_it_step)
+
+            print(f"current iteration progress:{curr_it}/{tot_it}, current steps:{curr_it_step}/{tot_it_step}")
+            if(curr_it == tot_it and curr_it_step == tot_it_step):
+                r = False
+                self.is_running, self.running_exp, self.running_tests = False, False, False
             
             time.sleep(1)
+        
+        self.stop_updater()
 
     # errors
     def showbusyerror(self):

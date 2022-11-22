@@ -34,6 +34,9 @@ class Trainer(object):
         else:
             seed = self.seed
 
+        # GUI variables to update.
+        self.current_progress_text = "Initializing Trainer and connections."
+
         is_distance = "distance" in self.guided_to_compute
         self.set_gpu_config(self.gpu_acceleration)
         self.dm = DataManager(is_experiment = True, experiment_name=self.name)
@@ -65,7 +68,6 @@ class Trainer(object):
         self.score_history = []
     
     def run_prep(self):
-        
         if(self.use_episodes):
             iterations = self.episodes
         else:
@@ -84,9 +86,9 @@ class Trainer(object):
     def episode_misc(self, episode, score, loss, last_action, reached_end_node):
         #Logs, debugs, saving the model
         log_msg = f"Episode: {episode+1}, Score:{score}, Loss:{loss}, Average Score:{np.mean(self.score_history)} \
-Target: {self.env.target_triple[0]}-{self.env.target_triple[1]}-{self.env.target_triple[2]}, \
-Destination: {last_action[2]}, Arrival: {reached_end_node} \
-Path: {self.agent.actions_mem}"
+        Target: {self.env.target_triple[0]}-{self.env.target_triple[1]}-{self.env.target_triple[2]}, \
+        Destination: {last_action[2]}, Arrival: {reached_end_node} \
+        Path: {self.agent.actions_mem}"
 
         self.utils.verb_print(f"\n{log_msg}\n")
         self.utils.write_log(log_msg)
@@ -144,11 +146,25 @@ Path: {self.agent.actions_mem}"
     def run_debug(self, i = None):
         self.dm.debug_load(i, self.print_layers)
 
+    def update_gui_vars(self, tot_steps = None, curr_step = None, progtext = None):
+        if(tot_steps is not None):
+            self.total_iter_steps = tot_steps
+        
+        if(curr_step is not None):
+            self.current_iter_steps = curr_step
+
+        if(progtext is not None):
+            self.current_progress_text = progtext
+
     def run(self):
         'Runs the environment and agent iterations.'
         to_iter_over = self.run_prep()
-        
+
+        self.update_gui_vars(tot_steps = to_iter_over)
+
         for episode in to_iter_over:
+            self.update_gui_vars(curr_step = episode)
+            
             self.env.reset()
             done = False
             score = 0 
@@ -184,13 +200,13 @@ class TrainerGUIconnector(object):
         self.active_trainer = None
         self.config, self.experiments = config, experiments
 
+        global tr_total_iterations
         global tr_current_iteration
-        global tr_current_iter_steps
         global tr_current_progress_text
 
-        tr_current_iteration = 1234
-        tr_current_iter_steps = 345
-        tr_current_progress_text = "" 
+        tr_total_iterations = len(experiments)
+        tr_current_iteration = 1
+        tr_current_progress_text = "Intialization" 
 
         self.train_thread = threading.Thread(name="trainThread", target=self.threaded_update)
 
@@ -224,9 +240,10 @@ def main(from_file, gui_connector : TrainerGUIconnector = None):
     global tr_current_iteration
 
     tr_total_iterations = len(EXPERIMENTS)
+    tr_current_iteration = 0
     
     for i, e in enumerate(EXPERIMENTS):
-        tr_current_iteration = i
+        tr_current_iteration = i+1
 
         config["laps"] = e.laps 
         config["dataset"] = e.dataset
@@ -238,7 +255,6 @@ def main(from_file, gui_connector : TrainerGUIconnector = None):
             m = Trainer(config, from_gui=not from_file, gui_connector=gui_connector)
             gui_connector.update_current_trainer(m)
             gui_connector.start_connection()
-            gui_connector.current_progress_text = "Initializing..."
 
             hasFinished = m.run()
             if(not hasFinished and config["debug"]):
