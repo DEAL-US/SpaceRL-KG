@@ -129,8 +129,8 @@ class Test():
                 self.single_relation, self.relation_to_train = [aux[0]=="True", None if aux[1] == "None" else aux[1]]
 
 EXPERIMENTS = [
-    Experiment("film_genre_FB_Base_PPO_embedding_22", "FB15K-237", ["TransE_l2"], 22, True, relation = "/film/film/genre"),
-    # Experiment("countries-test", "COUNTRIES", ["TransE_l2", "DistMult", "ComplEx","TransR"], 1) 
+    # Experiment("film_genre_FB_Base_PPO_embedding_22", "FB15K-237", ["TransE_l2"], 22, True, relation = "/film/film/genre"),
+    Experiment("countiesall", "COUNTRIES", ["TransE_l2", "DistMult", "ComplEx","TransR"], 1) 
     # Experiment("Umls-distancerew-125laps-PPO", "UMLS", ["TransE_l2"], 10),
     # Experiment("embedding_testing", "NELL-995", ["TransE_l2"], 10, True, relation = "concept:animalpreyson"),
     # Experiment("Countries 500 base", "COUNTRIES", ["TransE_l2"], 500, single_relation=False, relation="neighborOf")

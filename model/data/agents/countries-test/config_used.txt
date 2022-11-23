@@ -18,3 +18,4 @@ dataset: COUNTRIES
 single_relation_pair: [False, None]
 name: countries-test
 embedding_index: 0
+embedding: TransE_l2

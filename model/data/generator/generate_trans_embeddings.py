@@ -4,12 +4,13 @@ import os
 import pickle
 import shutil
 import pandas as pd
+import torch
 
 # datasets = ["COUNTRIES", "FB15K-237", "KINSHIP", "MOVIES", "UMLS", "WN18RR"]
 # model_names =  ["TransE_l2","DistMult", "ComplEx", "RotatE"] #["TransR", "RESCAL"] # need a more powerful machine to run these.
 
 def generate_embedding(dataset, models = [], use_gpu = True, regenerate_existing = False,
-normalize = False,  add_inverse_path = True, fast_mode = False):
+normalize = False,  add_inverse_path = True, fast_mode = True):
     '''
     Generates several positional embeddings namely: "TransE_l2", "DistMult", "ComplEx", "RotatE", "TransR" & "RESCAL" \n
     you can specify any number of them with: models = ["TransE_l2","DistMult"] \n
@@ -27,6 +28,7 @@ normalize = False,  add_inverse_path = True, fast_mode = False):
     local_dir = pathlib.Path(__file__).parent.resolve()
     dataset_dir = str(pathlib.Path(local_dir).parent.parent.parent.absolute()) + "/datasets"
     datafolder = f"{dataset_dir}/{dataset}"
+    print(f"datafolder is: {datafolder}")
 
     if(len(models) == 0):
         models =  ["TransE_l2","DistMult", "ComplEx", "RotatE", "TransR", "RESCAL"]
@@ -48,10 +50,10 @@ normalize = False,  add_inverse_path = True, fast_mode = False):
             command += " --max_step 24000"
 
         #GPU vs CPU
-        if(use_gpu):
+        if(use_gpu & torch.cuda.is_available()):
             command += " --gpu 0"
         else:
-            command += " --num_thread 1 --num_proc 8"
+            command += " --num_thread 1 --num_proc 2"
 
         # Structural checks:
         
@@ -88,12 +90,9 @@ normalize = False,  add_inverse_path = True, fast_mode = False):
 
             print(f"running command {command}")
             os.system(command)
-            
-            os.remove(f"{datafolder}/entities.tsv")
-            os.remove(f"{datafolder}/relations.tsv")
        
-            shutil.copyfile(f"{local_dir}/raw_data/entities.tsv", f"{datafolder}/entities.tsv")
-            shutil.copyfile(f"{local_dir}/raw_data/relations.tsv", f"{datafolder}/relations.tsv")
+            shutil.copy(f"{local_dir}/raw_data/entities.tsv", f"{datafolder}/entities.tsv")
+            shutil.copy(f"{local_dir}/raw_data/relations.tsv", f"{datafolder}/relations.tsv")
         else:
             print(f"Selected embedding {model} is already generated for {dataset} dataset, if you want to regenerate use the regenerate boolean option")
 
@@ -184,6 +183,8 @@ def generate_raw(dataset, generator_dir, dataset_dir, add_inverse):
     file_to_write.write(content)
     file_to_write.close()
     file_to_read.close()
+
+# YOU CAN RUN THIS DIRECTLY TO GENERATE ALL THE POSSIBLE EMBEDDINGS AND AVOID WAITING IN THE FUTURE FOR ANY NEW ONES.
 
 # generate_embedding("COUNTRIES", use_gpu = True, regenerate_existing = True, add_inverse_path = True, fast_mode = True)
 # generate_embedding("FB15K-237", use_gpu = True, regenerate_existing = True, add_inverse_path = True, fast_mode = True)

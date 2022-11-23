@@ -124,7 +124,7 @@ class menu():
 
         #row3
         self.datasetlistbox.grid(row=3, column=0, padx=(0,20))
-        self.datasets_scrollbar.place(x = 125, y = 63, height=65)
+        self.datasets_scrollbar.place(x = 165, y = 69, height=73)
 
         self.embedlistbox.grid(row=3, column=1,)
         # self.embedding_scrollbar.place(x = 268, y = 65)
@@ -232,7 +232,7 @@ class menu():
 
         #row3
         self.agentlistbox.grid(row=3, column=0, padx=(0,20))
-        self.agents_scrollbar.place(x = 125, y = 70, height=66)
+        self.agents_scrollbar.place(x = 165, y = 69, height=73)
 
         self.t_embedlistbox.grid(row=3, column=1)
 

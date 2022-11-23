@@ -234,6 +234,7 @@ def main(from_file, gui_connector : TrainerGUIconnector = None):
     if(from_file):
         config, EXPERIMENTS = get_config(train=True)
     else:
+        print(gui_connector.experiments)
         config, EXPERIMENTS = gui_connector.config, gui_connector.experiments
 
     global tr_total_iterations
@@ -253,8 +254,10 @@ def main(from_file, gui_connector : TrainerGUIconnector = None):
         for emb in e.embeddings:
             config["embedding"] = emb
             m = Trainer(config, from_gui=not from_file, gui_connector=gui_connector)
-            gui_connector.update_current_trainer(m)
-            gui_connector.start_connection()
+            
+            if gui_connector is not None:
+                gui_connector.update_current_trainer(m)
+                gui_connector.start_connection()
 
             hasFinished = m.run()
             if(not hasFinished and config["debug"]):
@@ -263,5 +266,4 @@ def main(from_file, gui_connector : TrainerGUIconnector = None):
 def get_gui_values():
     return tr_total_iterations, tr_current_iteration, tr_total_iter_steps, tr_current_iter_steps, tr_current_progress_text
 
-
-# main(True) # uncomment to run from file directly.
+main(True) # uncomment to run from file directly.

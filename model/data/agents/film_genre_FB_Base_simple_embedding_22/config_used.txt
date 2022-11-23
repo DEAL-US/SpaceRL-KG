@@ -1,4 +1,4 @@
-guided_reward: True
+-jdhskjfdhsguided_reward: True
 guided_to_compute: ['terminal', 'embedding']
 use_LSTM: True
 use_episodes: False

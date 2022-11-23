@@ -1,0 +1,18 @@
+{
+    "dataset": "COUNTRIES",
+    "model": "ComplEx",
+    "emb_size": 200,
+    "max_train_step": 6000,
+    "batch_size": 1000,
+    "neg_sample_size": 200,
+    "lr": 0.25,
+    "gamma": 19.9,
+    "double_ent": false,
+    "double_rel": false,
+    "neg_adversarial_sampling": true,
+    "adversarial_temperature": 1.0,
+    "regularization_coef": 1e-09,
+    "regularization_norm": 3,
+    "emap_file": "entities.tsv",
+    "rmap_file": "relations.tsv"
+}

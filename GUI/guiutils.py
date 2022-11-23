@@ -6,8 +6,8 @@ import sys, pathlib, os
 # using pathlib to help with mac and linux compatibility.
 current_dir = pathlib.Path(__file__).parent.resolve()
 maindir = pathlib.Path(current_dir).parent.resolve()
-datasets_folder = pathlib.Path(f"{maindir}\\datasets").resolve()
-agents_folder = pathlib.Path(f"{maindir}\\model\\data\\agents").resolve()
+datasets_folder = pathlib.Path(f"{maindir}/datasets").resolve()
+agents_folder = pathlib.Path(f"{maindir}/model/data/agents").resolve()
 
 class ToolTip(object):
     def __init__(self, widget):
@@ -83,7 +83,7 @@ def CreateToolTip(widget, text):
     widget.bind('<Leave>', leave)
 
 def GetConfig(is_experiments):
-    sys.path.insert(0, f"{maindir}\\model")
+    sys.path.insert(0, f"{maindir}/model")
     from config import get_config
     sys.path.pop(0)
     return get_config(is_experiments)
@@ -110,9 +110,9 @@ def GetAgents():
         dataset = ""
         single_rel_pair = []
 
-        p = f"{agents_folder}\\{a}"
+        p = f"{agents_folder}/{a}"
 
-        with open(f"{p}\\config_used.txt") as c:
+        with open(f"{p}/config_used.txt") as c:
             for ln in c:
                 if ln.startswith("dataset: "):
                     dataset = ln.lstrip('dataset: ').strip()
@@ -136,14 +136,14 @@ def GetAgents():
 
     
 def GetExperimentInstance(name, dataset, embeddings, laps, single_rel, single_rel_name):
-    sys.path.insert(0, f"{maindir}\\model")
+    sys.path.insert(0, f"{maindir}/model")
     from config import Experiment
     sys.path.pop(0)
 
     return Experiment(name, dataset, embeddings, laps, single_rel, relation = single_rel_name)
 
 def GetTestInstance(agentname, testname, embeddings, episodes):
-    sys.path.insert(0, f"{maindir}\\model")
+    sys.path.insert(0, f"{maindir}/model")
     from config import Test
     sys.path.pop(0)
     
@@ -151,7 +151,7 @@ def GetTestInstance(agentname, testname, embeddings, episodes):
 
 def CheckForRelationInDataset(dataset_name, relation_name):
     relation_in_graph = False
-    filepath = pathlib.Path(f"{datasets_folder}\\{dataset_name}\\graph.txt").resolve()
+    filepath = pathlib.Path(f"{datasets_folder}/{dataset_name}/graph.txt").resolve()
     with open(filepath) as d:
         for l in d.readlines():
             if(l.split("\t")[1] == relation_name):

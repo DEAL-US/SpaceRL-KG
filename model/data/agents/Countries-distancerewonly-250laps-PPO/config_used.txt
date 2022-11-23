@@ -17,3 +17,4 @@ laps: 250
 dataset: COUNTRIES
 embedding_index: 0
 single_relation_pair: [False, None]
+embedding: TransE_l2

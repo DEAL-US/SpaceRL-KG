@@ -6,11 +6,11 @@ import time, os, sys, pathlib, subprocess, config_menu, test_train_menu, view_pa
 
 current_dir = pathlib.Path(__file__).parent.resolve()
 maindir = pathlib.Path(current_dir).parent.resolve()
-datasets_folder = f"{maindir}\\datasets"
-agents_folder = f"{maindir}\\model\\data\\agents"
+datasets_folder = f"{maindir}/datasets"
+agents_folder = f"{maindir}/model/data/agents"
 
 config, _ = GetConfig(True)
-sys.path.insert(0, f"{maindir}\\model")
+sys.path.insert(0, f"{maindir}/model")
 from trainer import Trainer, TrainerGUIconnector, main as tr_main, get_gui_values as tr_get_gui
 from tester import Tester, TesterGUIconnector, main as tst_main, get_gui_values as tst_get_gui
 sys.path.pop(0)
@@ -223,21 +223,20 @@ class mainmenu(object):
     def run_experimentation(self):
         if(not self.is_running):
             self.is_running, self.running_exp = True, True
-            tr_main(False, self.tr_conn)
-            self.launch_updater()
+            self.launch_updater(True)
         else:
             self.showbusyerror()
 
     def run_tests(self):
         if(not self.is_running):
             self.is_running, self.running_tests = True, True
-            self.testing.main(False, self.tst_conn)
-            self.launch_updater()
+            self.launch_updater(False)
         else:
             self.showbusyerror()
 
-    def launch_updater(self):
-        self.updater_thread = threading.Thread(name="updaterThread", target=self.update_progress)
+    def launch_updater(self, is_train):
+        self.updater_thread = threading.Thread(name="updaterThread",
+        target=lambda: self.update_progress(is_train))
         self.updater_thread.start()
 
     def stop_updater(self):
@@ -245,7 +244,12 @@ class mainmenu(object):
         self.updater_thread._stop()
         self.updater_thread.join()
 
-    def update_progress(self):
+    def update_progress(self, is_train):
+        if(is_train):
+            tr_main(False, self.tr_conn)
+        else:
+            tst_main(False, self.tst_conn)
+
         r = True
         while(r):
             if(self.running_exp):
