@@ -254,4 +254,5 @@ def get_gui_values():
     pass
     # return tr_total_iterations, tr_current_iteration, tr_total_iter_steps, tr_current_iter_steps, tr_current_progress_text
 
-# main(True) # Uncomment to run from file directly.
+if __name__ == "__main__":
+    main(True)

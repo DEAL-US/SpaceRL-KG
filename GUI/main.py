@@ -2,14 +2,13 @@ from tkinter import ttk, messagebox
 from tkinter import *
 from guiutils import GetConfig
 
-import time, os, sys, pathlib, subprocess, config_menu, test_train_menu, view_paths_menu, threading
+import time, random, os, sys, pathlib, subprocess, config_menu, test_train_menu, view_paths_menu, threading
 
 current_dir = pathlib.Path(__file__).parent.resolve()
 maindir = pathlib.Path(current_dir).parent.resolve()
 datasets_folder = f"{maindir}/datasets"
 agents_folder = f"{maindir}/model/data/agents"
 
-config, _ = GetConfig(True)
 sys.path.insert(0, f"{maindir}/model")
 from trainer import Trainer, TrainerGUIconnector, main as tr_main, get_gui_values as tr_get_gui
 from tester import Tester, TesterGUIconnector, main as tst_main, get_gui_values as tst_get_gui
@@ -18,11 +17,14 @@ sys.path.pop(0)
 class mainmenu(object):
     def __init__(self):
         # functionality
-        self.config, _ = GetConfig(True)
+        self.config = GetConfig(True)
 
         self.experiments, self.experiment_banners = [], []
         self.tests, self.test_banners = [], []
         self.config_is_open, self.setup_is_open, self.paths_is_open = False, False, False
+
+        # multithread support:
+        Tcl().eval('set tcl_platform(threaded)')
 
         # flags:
         self.is_running = False
@@ -97,6 +99,9 @@ class mainmenu(object):
 
         self.view_paths_button = ttk.Button(self.mainframe, text='View Paths', 
         command= lambda: self.open_menu("paths"))
+
+        # self.view_paths_button = ttk.Button(self.mainframe, text='View Paths', 
+        # command= lambda: self.update_all_progress(random.randint(0,99), 100, "text"))
 
         #error text.
         self.error_text = Label(self.mainframe, text="", fg='red', bg="#33393b")
@@ -194,10 +199,15 @@ class mainmenu(object):
     def open_folder(self, folder:str):
         folder_to_open = datasets_folder if folder == "datasets" else agents_folder
 
-        print(folder_to_open)
         # x11, win32 or aqua
         if(self.OSNAME == 'x11'): #linux
-            subprocess.run(['xdg-open', os.path.realpath(folder_to_open)])
+            try:
+                subprocess.run(['xdg-open', os.path.realpath(folder_to_open)])
+            except:
+                # WSL support
+                result = subprocess.run(["wslpath", "-w", folder_to_open], text=True, capture_output=True)
+                windows_path = result.stdout
+                subprocess.run(["explorer.exe", windows_path])
 
         elif(self.OSNAME == 'win32'): #windows
             subprocess.run(['explorer', os.path.realpath(folder_to_open)])
@@ -216,6 +226,8 @@ class mainmenu(object):
             icon='warning', title='Interruption alert.')
 
             if(canclose):
+                self.stop_updater()
+                self.kill_all_threads()
                 self.root.destroy()
         else:
             self.root.destroy()
@@ -239,16 +251,35 @@ class mainmenu(object):
         target=lambda: self.update_progress(is_train))
         self.updater_thread.start()
 
+    def kill_all_threads(self):
+        mainthread = None
+        for thread in threading.enumerate(): 
+            if(thread.name != "MainThread"):
+                try:
+                    thread.daemon = True
+                except:pass
+            else:
+                mainthread = thread
+        
+        mainthread._stop()
+
+
     def stop_updater(self):
         self.change_progtext("Execution is finished.")
-        self.updater_thread._stop()
-        self.updater_thread.join()
+        
 
     def update_progress(self, is_train):
-        if(is_train):
-            tr_main(False, self.tr_conn)
-        else:
-            tst_main(False, self.tst_conn)
+        self.runner_thread = threading.Thread(name="runnerThread",
+        target=lambda: self.mainthread(is_train))
+        self.runner_thread.start()
+
+        r = True
+        while(r):
+            try:
+                r = not self.tr_conn.active_trainer.is_ready
+                print(f"checking if the trainer is ready {r}")
+            except:pass
+            time.sleep(0.5)
 
         r = True
         while(r):
@@ -258,15 +289,9 @@ class mainmenu(object):
                 tot_it, curr_it, tot_it_step, curr_it_step, curr_prog = tst_get_gui()
 
             if(self.is_running):
-                t = f"({curr_it}/{tot_it})-{curr_prog}"
-                self.change_progtext(t)
-
-                if(self.progress_bar['maximum'] != tot_it_step):
-                    self.change_progbar_max(tot_it_step)
-                
-                self.set_progbar_value(curr_it_step)
-
-            print(f"current iteration progress:{curr_it}/{tot_it}, current steps:{curr_it_step}/{tot_it_step}")
+                t = f"({curr_it}/{tot_it})-({curr_it_step}/{tot_it_step})-{curr_prog}"
+                self.update_all_progress(curr_it_step, tot_it_step, t)
+         
             if(curr_it == tot_it and curr_it_step == tot_it_step):
                 r = False
                 self.is_running, self.running_exp, self.running_tests = False, False, False
@@ -274,6 +299,12 @@ class mainmenu(object):
             time.sleep(1)
         
         self.stop_updater()
+    
+    def mainthread(self, is_train):
+        if(is_train):
+            tr_main(False, self.tr_conn)
+        else:
+            tst_main(False, self.tst_conn)
 
     # errors
     def showbusyerror(self):
@@ -291,7 +322,11 @@ Wait for it to finish or abort the execution.")
         self.progress_bar['value'] = v
 
     def change_progbar_max(self, qtty:int):
-        print(f"new progress bar maximum is {qtty}")
         self.progress_bar['maximum'] = qtty
+
+    def update_all_progress(self, curr, tot, text):
+        self.progress_text['text'] = text
+        self.progress_bar['value'] = curr
+        self.progress_bar['maximum'] = tot
 
 mainmenu()

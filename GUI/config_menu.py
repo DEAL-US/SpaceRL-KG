@@ -37,6 +37,7 @@ class menu():
         self.cores_entry = ttk.Entry(self.general_lf, textvariable=coresvar, text="cores",
         validate='focusout', validatecommand=vcmd, invalidcommand=ivcmd)
         CreateToolTip(self.cores_entry, text="number of cores to use.")
+        self.cores_entry.delete(0, 'end')
         self.cores_entry.insert(0, self.config["available_cores"])
 
         use_gpu = BooleanVar(value=self.config["gpu_acceleration"])
@@ -161,6 +162,7 @@ class menu():
         self.alpha_entry = ttk.Entry(self.entries_frame, textvariable=alpha_var, text="alpha", validate='focusout', 
         validatecommand = vcmd1, invalidcommand = ivcmd1)
         CreateToolTip(self.alpha_entry, text="(0.8-0.99) previous step network learnin rate (PPO only).")
+        self.alpha_entry.delete(0, 'end')
         self.alpha_entry.insert(0, self.config["alpha"])
 
         self.gamma_label = ttk.Label(self.entries_frame, text='Gamma')
@@ -170,6 +172,7 @@ class menu():
         self.gamma_entry = ttk.Entry(self.entries_frame, textvariable=gamma_var, text="gamma", validate='focusout', 
         validatecommand = vcmd2, invalidcommand = ivcmd2)
         CreateToolTip(self.gamma_entry, text="(0.9-0.99) decay rate of past observations in backprop reward.")
+        self.gamma_entry.delete(0, 'end')
         self.gamma_entry.insert(0, self.config["gamma"])
 
         self.lr_label = ttk.Label(self.entries_frame, text='Learning Rate')
@@ -179,6 +182,7 @@ class menu():
         self.lr_entry = ttk.Entry(self.entries_frame, textvariable=lr_var, text="lr", validate='focusout', 
         validatecommand = vcmd3, invalidcommand = ivcmd3)
         CreateToolTip(self.lr_entry, text="(1e-3 - 1e-5) neural network learning rate.")
+        self.lr_entry.delete(0, 'end')
         self.lr_entry.insert(0, self.config["learning_rate"])
 
 
@@ -191,6 +195,7 @@ class menu():
         self.path_entry = ttk.Entry(self.shared_tf, textvariable=path_var, text="path", validate='focusout', 
         validatecommand = vcmd4, invalidcommand = ivcmd4)
         CreateToolTip(self.path_entry, text="(3-10) discovered path length.")
+        self.path_entry.delete(0, 'end')
         self.path_entry.insert(0, self.config["path_length"])
 
         random_seed_var = BooleanVar(value=self.config["random_seed"])
@@ -205,6 +210,7 @@ class menu():
         self.seed_entry = ttk.Entry(self.shared_tf, textvariable=set_seed_var, text="seed", validate='focusout', 
         validatecommand = vcmd5, invalidcommand = ivcmd5)
         CreateToolTip(self.seed_entry, text="(int) if random seed is not set, uses the specified value.")
+        self.seed_entry.delete(0, 'end')
         self.seed_entry.insert(0, self.config["seed"])
 
         self.save_button = ttk.Button(self.mainframe, text="Save", 

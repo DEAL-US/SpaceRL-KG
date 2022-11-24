@@ -19,3 +19,4 @@ single_relation_pair: [True, '/film/film/genre']
 name: film_genre_FB_Base_simple_distance_100
 embedding_index: 0
 embedding: TransE_l2
+embeddings: ['TransE_l2']

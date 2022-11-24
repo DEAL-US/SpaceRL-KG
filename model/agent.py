@@ -143,15 +143,15 @@ class Agent(object):
             actor = Model(inputs = [state, advantage, old_pred], outputs = [probs])
             actor.compile(loss = 'mean_squared_error', optimizer=optimizer)#self.proximal_policy_loss(advantage=advantage, old_prediction=old_pred)
             
-            print("=== Build Actor Network ===")
-            print(actor.summary())
+            # print("=== Build Actor Network ===")
+            # print(actor.summary())
     
             critic = self.build_critic_network(input_size, hidden_layer_size, LTSM_layer_size, lr)
             optimizer=adam_v2.Adam(learning_rate=lr)
             critic.compile(loss="mean_squared_error", optimizer=optimizer)
 
-            print("=== Build Critic Network ===")
-            print(critic.summary())
+            # print("=== Build Critic Network ===")
+            # print(critic.summary())
 
             actor_copy = self.build_network_from_copy(actor, lr)
 
@@ -162,8 +162,8 @@ class Agent(object):
             optimizer = adam_v2.Adam(learning_rate=lr)  #, clipvalue=0.5, clipnorm=1)
             policy.compile(loss = "mean_squared_error", optimizer = optimizer)
 
-            print("=== Build Policy Network ===")
-            print(policy.summary())
+            # print("=== Build Policy Network ===")
+            # print(policy.summary())
 
             return policy, None, None
 

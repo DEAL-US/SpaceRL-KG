@@ -18,3 +18,4 @@ dataset: FB15K-237
 single_relation_pair: [True, '/film/film/genre']
 name: film_genre_FB_Base_simple_embedding_22
 embedding: TransE_l2
+embeddings: ['TransE_l2']

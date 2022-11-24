@@ -105,10 +105,8 @@ class Experiment():
         else:
             self.relation_to_train = None
 
-
 current_dir = pathlib.Path(__file__).parent.resolve()
 agents_folder = pathlib.Path(f"{current_dir}/data/agents").resolve()
-
 
 class Test():
     def __init__(self, test_name:str, agent_name:str, embeddings, episodes : int):
@@ -116,21 +114,26 @@ class Test():
         self.agent_name = agent_name
         self.episodes = episodes
         self.embeddings = embeddings
+        self.to_delete = False
 
         agent_path = pathlib.Path(f"{agents_folder}/{self.agent_name}").resolve()
-        config_used = open(f"{agent_path}/config_used.txt")
-        for ln in config_used.readlines():
-            if ln.startswith("dataset: "):
-                self.dataset = ln.lstrip("dataset: ").strip()
+        try:
+            config_used = open(f"{agent_path}/config_used.txt")
+            for ln in config_used.readlines():
+                if ln.startswith("dataset: "):
+                    self.dataset = ln.lstrip("dataset: ").strip()
 
-            if ln.startswith("single_relation_pair: "):
-                aux = ln.lstrip("single_relation_pair: ").strip()
-                aux = aux.replace("[", "").replace("]","").replace(" ", "").replace("\'", "").strip().split(",")
-                self.single_relation, self.relation_to_train = [aux[0]=="True", None if aux[1] == "None" else aux[1]]
+                if ln.startswith("single_relation_pair: "):
+                    aux = ln.lstrip("single_relation_pair: ").strip()
+                    aux = aux.replace("[", "").replace("]","").replace(" ", "").replace("\'", "").strip().split(",")
+                    self.single_relation, self.relation_to_train = [aux[0]=="True", None if aux[1] == "None" else aux[1]]
+        except:
+            print(f"Incoherent Test detected: {self.name}")
+            self.to_delete = True
 
 EXPERIMENTS = [
     # Experiment("film_genre_FB_Base_PPO_embedding_22", "FB15K-237", ["TransE_l2"], 22, True, relation = "/film/film/genre"),
-    Experiment("countiesall", "COUNTRIES", ["TransE_l2", "DistMult", "ComplEx","TransR"], 1) 
+    Experiment("countiesall", "COUNTRIES", ["TransR"], 1) 
     # Experiment("Umls-distancerew-125laps-PPO", "UMLS", ["TransE_l2"], 10),
     # Experiment("embedding_testing", "NELL-995", ["TransE_l2"], 10, True, relation = "concept:animalpreyson"),
     # Experiment("Countries 500 base", "COUNTRIES", ["TransE_l2"], 500, single_relation=False, relation="neighborOf")
@@ -139,12 +142,16 @@ EXPERIMENTS = [
 TESTS = [
     Test("countries-test", "countries-test", ["TransE_l2", "DistMult"], 10),
     Test("another-test", "Countries-distancerewonly-250laps-PPO", ["TransE_l2"], 10),
-
-    # Test("COUNTRIES", ["TransE_l2"], 500, single_relation=True, relation="neighborOf")
+    Test("good_test", "countiesall", ["TransE_l2", "DistMult", "ComplEx"], 10),
 ]
 
-def get_config(train):
-    if train:
-        return config, EXPERIMENTS
+TESTS = [t for t in TESTS if not t.to_delete]
+
+def get_config(train, only_config = False):
+    if(only_config):
+        return config
     else:
-        return config, TESTS
+        if train:
+            return config, EXPERIMENTS
+        else:
+            return config, TESTS

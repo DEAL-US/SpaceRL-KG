@@ -77,7 +77,7 @@ class menu():
         self.laps_entry = ttk.Entry(self.trainframe, textvariable=lapsvar, text="laps",
         validate='key', validatecommand= self.vcmd, invalidcommand=self.ivcmd)
         self.laps_entry.delete(0, 'end')
-        self.laps_entry.insert(0, 10)
+        self.laps_entry.insert(0, 1)
 
         embeddings = ["TransE_l2", "DistMult", "ComplEx", "TransR"]
         choices_emb = StringVar(value=embeddings)
@@ -278,8 +278,8 @@ class menu():
                 error_text += "name collides with existing experiment.\n"
 
             
-            if(laps<10 or laps >999):
-                error_text += "laps range is 10-999\n"
+            if(laps<1 or laps >999):
+                error_text += "laps range is 1-999\n"
 
             if(dataset == "--------"):
                 error_text += "no dataset selected\n"
@@ -371,7 +371,6 @@ class menu():
             self.train_index -= 1
         else:
             pass
-    
 
     def populate_embedding_listbox_test(self, event):
         i = self.agentlistbox.curselection()[0]

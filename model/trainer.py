@@ -35,7 +35,8 @@ class Trainer(object):
             seed = self.seed
 
         # GUI variables to update.
-        self.current_progress_text = "Initializing Trainer and connections."
+        self.update_gui_vars(progtext="Initializing Trainer and connections.", tot_steps=1, curr_step=0)
+        self.is_ready = False
 
         is_distance = "distance" in self.guided_to_compute
         self.set_gpu_config(self.gpu_acceleration)
@@ -72,15 +73,17 @@ class Trainer(object):
             iterations = self.episodes
         else:
             iterations = self.laps*len(self.env.triples)
-        
+
+        self.update_gui_vars(tot_steps = iterations, progtext="Running...")
         print(f"running for {iterations} iterations")
 
         if(self.verbose):
-            to_iter_over = range(iterations)
-        else:
             to_iter_over = tqdm(range(iterations),
             f"Running episodes for: {self.dataset}-{self.env.selected_embedding_name}")
+        else:
+            to_iter_over = range(iterations)
 
+        self.is_ready = True
         return to_iter_over
 
     def episode_misc(self, episode, score, loss, last_action, reached_end_node):
@@ -156,11 +159,12 @@ class Trainer(object):
         if(progtext is not None):
             self.current_progress_text = progtext
 
+        # print(f"\n{self.current_iter_steps}/{self.total_iter_steps} - {self.current_progress_text}\n")
+    
+    
     def run(self):
         'Runs the environment and agent iterations.'
         to_iter_over = self.run_prep()
-
-        self.update_gui_vars(tot_steps = to_iter_over)
 
         for episode in to_iter_over:
             self.update_gui_vars(curr_step = episode)
@@ -244,12 +248,14 @@ def main(from_file, gui_connector : TrainerGUIconnector = None):
     tr_current_iteration = 0
     
     for i, e in enumerate(EXPERIMENTS):
+
         tr_current_iteration = i+1
 
         config["laps"] = e.laps 
         config["dataset"] = e.dataset
         config["single_relation_pair"] = [e.single_relation, e.relation_to_train]
         config["name"] = e.name
+        config["embeddings"] = e.embeddings # for config copy.
 
         for emb in e.embeddings:
             config["embedding"] = emb
@@ -266,4 +272,5 @@ def main(from_file, gui_connector : TrainerGUIconnector = None):
 def get_gui_values():
     return tr_total_iterations, tr_current_iteration, tr_total_iter_steps, tr_current_iter_steps, tr_current_progress_text
 
-main(True) # uncomment to run from file directly.
+if __name__ == "__main__":
+    main(True)

@@ -1,6 +1,0 @@
-UMLS
-hits@1,TransE_l2,0.116
-hits@3,TransE_l2,0.396
-hits@5,TransE_l2,0.62
-hits@10,TransE_l2,0.836
-MRR,TransE_l2,0.31259206349206375

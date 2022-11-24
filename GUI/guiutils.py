@@ -86,7 +86,7 @@ def GetConfig(is_experiments):
     sys.path.insert(0, f"{maindir}/model")
     from config import get_config
     sys.path.pop(0)
-    return get_config(is_experiments)
+    return get_config(is_experiments, only_config = True)
 
 def GetDatasets():
     res = []
@@ -103,7 +103,6 @@ def GetAgents():
     agent_list.remove('.gitkeep')
     agent_list.remove('TRAINED')
     
-
     for a in agent_list:
         embeddings = []
         name = a
@@ -122,13 +121,12 @@ def GetAgents():
                     aux = aux.replace("[", "").replace("]","").replace(" ", "").replace("\'", "").strip().split(",")
                     single_rel_pair = [aux[0]=="True", None if aux[1] == "None" else aux[1]]
 
-        for b in os.listdir(p):
-            if(b != "config_used.txt"):
-                aux = b.lstrip(f"{dataset}-")
-                aux = aux.rstrip(".h5")
-                embeddings.append(aux)
+                if ln.startswith("embeddings: "):
+                    aux = ln.lstrip('embeddings: ')
+                    embeddings = aux.replace("[", "").replace("]","").replace(" ", "").replace("\'", "").strip().split(",")
+
         
-        print("\n",embeddings, name, dataset, single_rel_pair, "\n")
+        # print("\n",embeddings, name, dataset, single_rel_pair, "\n")
 
         res.append(AgentInfo(name, embeddings, dataset, single_rel_pair[0], single_rel_pair[1]))
     

@@ -53,7 +53,7 @@ normalize = False,  add_inverse_path = True, fast_mode = True):
         if(use_gpu & torch.cuda.is_available()):
             command += " --gpu 0"
         else:
-            command += " --num_thread 1 --num_proc 2"
+            command += " --num_thread 1 --num_proc 8"
 
         # Structural checks:
         
