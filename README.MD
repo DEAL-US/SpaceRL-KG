@@ -42,7 +42,7 @@ To activate them run:
 `pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu116`
 
 **Tensorflow** 
-
+new version of CUDA and 2.8 tf.
 
 # Instalation
 
