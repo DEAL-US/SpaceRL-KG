@@ -6,13 +6,11 @@ import shutil
 import pandas as pd
 import torch
 
-# datasets = ["COUNTRIES", "FB15K-237", "KINSHIP", "MOVIES", "UMLS", "WN18RR"]
-# model_names =  ["TransE_l2","DistMult", "ComplEx", "RotatE"] #["TransR", "RESCAL"] # need a more powerful machine to run these.
 
 def generate_embedding(dataset, models = [], use_gpu = True, regenerate_existing = False,
 normalize = False,  add_inverse_path = True, fast_mode = True):
     '''
-    Generates several positional embeddings namely: "TransE_l2", "DistMult", "ComplEx", "RotatE", "TransR" & "RESCAL" \n
+    Generates several positional embeddings namely: "TransE_l2", "DistMult", "ComplEx", "TransR"\n
     you can specify any number of them with: models = ["TransE_l2","DistMult"] \n
     we provide the following dataset raws as folders:  \n
     "COUNTRIES", "FB15K-237", "KINSHIP", "MOVIES", "NELL-995", "UMLS", "WN18RR" \n
@@ -31,7 +29,7 @@ normalize = False,  add_inverse_path = True, fast_mode = True):
     print(f"datafolder is: {datafolder}")
 
     if(len(models) == 0):
-        models =  ["TransE_l2","DistMult", "ComplEx", "RotatE", "TransR", "RESCAL"]
+        models =  ["TransE_l2","DistMult", "ComplEx", "TransR"]
 
     print(f"generating embeddings for dataset {dataset} and models {models}")
 
@@ -185,10 +183,11 @@ def generate_raw(dataset, generator_dir, dataset_dir, add_inverse):
     file_to_read.close()
 
 # YOU CAN RUN THIS DIRECTLY TO GENERATE ALL THE POSSIBLE EMBEDDINGS AND AVOID WAITING IN THE FUTURE FOR ANY NEW ONES.
+if __name__ == "__main__":
+    use_gpu, regenerate_existing , fast_mode = True, True, True
 
-# generate_embedding("COUNTRIES", use_gpu = True, regenerate_existing = True, add_inverse_path = True, fast_mode = True)
-# generate_embedding("FB15K-237", use_gpu = True, regenerate_existing = True, add_inverse_path = True, fast_mode = True)
-# generate_embedding("KINSHIP", use_gpu = True, regenerate_existing = True, add_inverse_path = True, fast_mode = True)
-# generate_embedding("NELL-995", use_gpu = True, regenerate_existing = True, add_inverse_path = True, fast_mode = True)
-# generate_embedding("UMLS", use_gpu = True, regenerate_existing = True, add_inverse_path = True, fast_mode = True)
-# generate_embedding("WN18RR", use_gpu = True, regenerate_existing = True, add_inverse_path = True, fast_mode = True)
+    # add or remove the datasets you want to generate embeddings for.
+    datasets = ["COUNTRIES", "FB15K-237", "KINSHIP", "NELL-995", "UMLS", "WN18RR"]
+    for d in datasets:
+        generate_embedding(d, [], use_gpu, regenerate_existing, normalize=True,
+        add_inverse_path=True, fast_mode=fast_mode)

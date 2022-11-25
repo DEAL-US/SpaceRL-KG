@@ -27,7 +27,7 @@ class menu():
         self.training_tf = ttk.Labelframe(self.mainframe, text='Training')
         self.shared_tf = ttk.Labelframe(self.mainframe, text='Shared')
 
-        self.errors = Label(self.mainframe, text='', fg='red', bg="#33393b")
+        self.errors = Label(self.mainframe, text='', fg='red', bg="#FFFFFF")
 
         # GENERAL
         self.coreslabel = ttk.Label(self.general_lf, text='CPU cores:')

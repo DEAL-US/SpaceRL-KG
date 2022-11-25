@@ -7,5 +7,6 @@ gym==0.26.2
 torch==1.13.0
 dgl==0.4.3
 dglke==0.1.2
+TKinterModernThemes==1.9.2
 
 protobuf==3.20.*

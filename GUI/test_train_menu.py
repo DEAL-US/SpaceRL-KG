@@ -43,7 +43,7 @@ class menu():
         # Create a canvas object and a vertical scrollbar for scrolling it.
         self.experiments_frame_scrollbar = ttk.Scrollbar(self.trainframe)
         self.experiment_canvas = Canvas(self.trainframe, bd=2, 
-        height=200, bg='#33393b', highlightthickness=0)
+        height=200, bg='#FFFFFF', highlightthickness=0)
         self.experiments_frame_scrollbar.config(command = self.experiment_canvas.yview)
 
         # Reset the view
@@ -102,7 +102,7 @@ class menu():
         self.remove_last_train = ttk.Button(self.trainframe, text="remove last", 
         command=lambda: self.remove_from_list("train"))
 
-        self.error_text_train = Label(self.trainframe, text="", fg='red', bg="#33393b")
+        self.error_text_train = Label(self.trainframe, text="", fg='red', bg="#FFFFFF")
 
         self.grid_trainframe()
 
@@ -154,7 +154,7 @@ class menu():
         # Create a canvas object and a vertical scrollbar for scrolling it.
         self.test_frame_scrollbar = ttk.Scrollbar(self.testframe)
         self.test_canvas = Canvas(self.testframe, bd=2, 
-        height=200, bg='#33393b', highlightthickness=0)
+        height=200, bg='#FFFFFF', highlightthickness=0)
         self.test_frame_scrollbar.config(command = self.test_canvas.yview)
 
         # Reset the view
@@ -209,7 +209,7 @@ class menu():
         self.remove_last_test = ttk.Button(self.testframe, text="remove last", 
         command=lambda: self.remove_from_list("test"))
 
-        self.error_text_test = Label(self.testframe, text="", fg='red', bg="#33393b")
+        self.error_text_test = Label(self.testframe, text="", fg='red', bg="#FFFFFF")
 
         self.grid_testframe()
     

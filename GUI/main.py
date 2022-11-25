@@ -2,7 +2,7 @@ from tkinter import ttk, messagebox
 from tkinter import *
 from guiutils import GetConfig
 
-import time, random, os, sys, pathlib, subprocess, config_menu, test_train_menu, view_paths_menu, threading
+import time, os, sys, pathlib, subprocess, config_menu, test_train_menu, view_paths_menu, threading
 
 current_dir = pathlib.Path(__file__).parent.resolve()
 maindir = pathlib.Path(current_dir).parent.resolve()
@@ -104,7 +104,7 @@ class mainmenu(object):
         # command= lambda: self.update_all_progress(random.randint(0,99), 100, "text"))
 
         #error text.
-        self.error_text = Label(self.mainframe, text="", fg='red', bg="#33393b")
+        self.error_text = Label(self.mainframe, text="", fg='red', bg="#FFFFFF")
 
         self.grid_elements()
 
@@ -145,10 +145,12 @@ class mainmenu(object):
         self.error_text.grid(row=6, column=0, columnspan=2, pady=3)
 
     def add_styles(self):
-        s = ttk.Style()
-        self.root.tk.call('lappend', 'auto_path', f"{current_dir}/awdark/")
-        self.root.tk.call('package', 'require', 'awdark')
-        s.theme_use('awdark')
+        # self.root.tk.call('lappend', 'auto_path', f"{current_dir}/themes/awdark/")
+        # self.root.tk.call('package', 'require', 'awdark')
+
+        self.root.tk.call('source', f"{current_dir}/themes/azure/azure.tcl")
+        self.root.tk.call("set_theme", "light")
+
 
     # SUBMENU HANDLING
     def open_menu(self, menutype):
@@ -267,7 +269,6 @@ class mainmenu(object):
     def stop_updater(self):
         self.change_progtext("Execution is finished.")
         
-
     def update_progress(self, is_train):
         self.runner_thread = threading.Thread(name="runnerThread",
         target=lambda: self.mainthread(is_train))
@@ -293,6 +294,7 @@ class mainmenu(object):
                 self.update_all_progress(curr_it_step, tot_it_step, t)
          
             if(curr_it == tot_it and curr_it_step == tot_it_step):
+                print(f"Exiting runner loop --> {curr_it}/{tot_it} - {curr_it_step}/{tot_it_step}")
                 r = False
                 self.is_running, self.running_exp, self.running_tests = False, False, False
             

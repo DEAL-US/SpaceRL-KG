@@ -21,7 +21,6 @@ from utils import Utils
 # Global GUI values
 tr_total_iterations, tr_current_iteration = 0, 0
 tr_total_iter_steps, tr_current_iter_steps = 0, 0
-rt_current_progress_text = ""
 
 class Trainer(object):
     '''
@@ -35,7 +34,7 @@ class Trainer(object):
             seed = self.seed
 
         # GUI variables to update.
-        self.update_gui_vars(progtext="Initializing Trainer and connections.", tot_steps=1, curr_step=0)
+        self.update_gui_vars(progtext="Initializing Trainer...", tot_steps=1, curr_step=0)
         self.is_ready = False
 
         is_distance = "distance" in self.guided_to_compute
@@ -148,19 +147,6 @@ class Trainer(object):
 
     def run_debug(self, i = None):
         self.dm.debug_load(i, self.print_layers)
-
-    def update_gui_vars(self, tot_steps = None, curr_step = None, progtext = None):
-        if(tot_steps is not None):
-            self.total_iter_steps = tot_steps
-        
-        if(curr_step is not None):
-            self.current_iter_steps = curr_step
-
-        if(progtext is not None):
-            self.current_progress_text = progtext
-
-        # print(f"\n{self.current_iter_steps}/{self.total_iter_steps} - {self.current_progress_text}\n")
-    
     
     def run(self):
         'Runs the environment and agent iterations.'
@@ -199,10 +185,21 @@ class Trainer(object):
 
         return True 
 
+    def update_gui_vars(self, tot_steps = None, curr_step = None, progtext = None):
+        if(tot_steps is not None):
+            self.total_iter_steps = tot_steps
+        
+        if(curr_step is not None):
+            self.current_iter_steps = curr_step
+
+        if(progtext is not None):
+            self.current_progress_text = progtext
+
 class TrainerGUIconnector(object):
     def __init__(self, config: dict, experiments):
         self.active_trainer = None
         self.config, self.experiments = config, experiments
+        self.started = False
 
         global tr_total_iterations
         global tr_current_iteration
@@ -215,6 +212,7 @@ class TrainerGUIconnector(object):
         self.train_thread = threading.Thread(name="trainThread", target=self.threaded_update)
 
     def start_connection(self):
+        self.started = True
         self.train_thread.start()
 
     def update_current_trainer(self, t:Trainer):
@@ -244,26 +242,26 @@ def main(from_file, gui_connector : TrainerGUIconnector = None):
     global tr_total_iterations
     global tr_current_iteration
 
-    tr_total_iterations = len(EXPERIMENTS)
-    tr_current_iteration = 0
+    aux = [len(e.embeddings) for e in EXPERIMENTS]
+    tr_total_iterations = sum(aux)
     
     for i, e in enumerate(EXPERIMENTS):
-
-        tr_current_iteration = i+1
-
         config["laps"] = e.laps 
         config["dataset"] = e.dataset
         config["single_relation_pair"] = [e.single_relation, e.relation_to_train]
         config["name"] = e.name
         config["embeddings"] = e.embeddings # for config copy.
 
-        for emb in e.embeddings:
+        for j, emb in enumerate(e.embeddings):
+            tr_current_iteration = (i+1)*(j+1)
+            
             config["embedding"] = emb
             m = Trainer(config, from_gui=not from_file, gui_connector=gui_connector)
             
             if gui_connector is not None:
                 gui_connector.update_current_trainer(m)
-                gui_connector.start_connection()
+                if(not gui_connector.started):
+                    gui_connector.start_connection()
 
             hasFinished = m.run()
             if(not hasFinished and config["debug"]):
