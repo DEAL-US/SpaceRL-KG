@@ -39,14 +39,9 @@ To activate them run:
 
 **Pytorch** is required for embedding generation, they have CUDA compatibility out of the box and it can installed via pip with the following commands, or you can install it manually from their website, [**here**](https://pytorch.org/get-started/locally/)
 
-### Linux & Windows
 `pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu116`
 
-
-
-
-
-
+**Tensorflow** 
 
 
 # Instalation
