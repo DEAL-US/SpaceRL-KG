@@ -231,10 +231,15 @@ class mainmenu(object):
                 self.stop_updater()
                 self.kill_all_threads()
                 self.root.destroy()
+                quit()
         else:
             self.root.destroy()
 
     def run_experimentation(self):
+        if(len(self.experiments) == 0):
+            self.change_error_text("You need to add some EXPERIMENTS \nbefore launching the training session!")
+            return
+
         if(not self.is_running):
             self.is_running, self.running_exp = True, True
             self.launch_updater(True)
@@ -242,6 +247,10 @@ class mainmenu(object):
             self.showbusyerror()
 
     def run_tests(self):
+        if(len(self.tests) == 0):
+            self.change_error_text("You need to add some TESTS \nbefore launching the training session!")
+            return
+
         if(not self.is_running):
             self.is_running, self.running_tests = True, True
             self.launch_updater(False)
@@ -250,20 +259,15 @@ class mainmenu(object):
 
     def launch_updater(self, is_train):
         self.updater_thread = threading.Thread(name="updaterThread",
-        target=lambda: self.update_progress(is_train))
+        target=lambda: self.update_progress(is_train), daemon=True)
         self.updater_thread.start()
 
     def kill_all_threads(self):
-        mainthread = None
         for thread in threading.enumerate(): 
-            if(thread.name != "MainThread"):
-                try:
-                    thread.daemon = True
-                except:pass
-            else:
-                mainthread = thread
-        
-        mainthread._stop()
+            try:
+                thread.daemon = True
+            except:
+                print(f"error setting thread {thread.name} as daemon.")
 
 
     def stop_updater(self):
@@ -271,7 +275,7 @@ class mainmenu(object):
         
     def update_progress(self, is_train):
         self.runner_thread = threading.Thread(name="runnerThread",
-        target=lambda: self.mainthread(is_train))
+        target=lambda: self.mainthread(is_train), daemon=True)
         self.runner_thread.start()
 
         r = True

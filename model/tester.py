@@ -69,11 +69,11 @@ class Tester(object):
 
         self.set_gpu_config(self.gpu_acceleration)
 
-        self.update_gui_vars("Initializing Tester...", tot_steps=1, curr_step=0)
+        self.update_gui_vars(tot_steps=1, curr_step=0, progtext="Initializing Tester...",)
 
         self.dm = DataManager(is_experiment=False, experiment_name=self.name, respath=respath)
 
-        self.env = KGEnv(self.dm, self.dataset, srp, emb, seed, 8, self.path_length,
+        self.env = KGEnv(self.dm, self.dataset, srp, emb, False, seed, 8, self.path_length,
          False, False, self.gpu_acceleration, True, 0, False)
 
         self.agent = Agent(self.dm, self.env, 0.99, 1e-4, True, "leaky_relu", [],"max_percent",
@@ -177,7 +177,7 @@ class TesterGUIconnector(object):
         tst_current_iteration = 1
         tst_current_progress_text = "Intialization"
         
-        self.train_thread = threading.Thread(name="testThread", target=self.threaded_update)
+        self.train_thread = threading.Thread(name="testThread", target=self.threaded_update, daemon=True)
 
     def start_connection(self):
         self.started = True
@@ -267,11 +267,9 @@ def main(from_file, gui_connector: TesterGUIconnector = None):
     tst_total_iterations = len(TESTS)
     tst_current_iteration = 0
 
-    dataframes, agents_paths, respaths = run_prep()
+    dataframes, agents_paths, respaths = run_prep(TESTS)
 
     for i, t in enumerate(TESTS):
-
-
         agents = get_agents(agents_paths[i], t.dataset, t.embeddings)
         print(f"\nTESTING FOR {t}\n WITH AGENTS: \n{agents}\n")
         app, alg, rwt, srp = extract_config_info(agents_paths[i])

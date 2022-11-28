@@ -99,7 +99,13 @@ class KGEnv(gym.Env):
         self.single_relation, self.relation_name = single_relation_pair
     
         if(self.single_relation):
-            self.triples = [t for t in self.triples if t[1] == self.relation_name]
+            self.relation_name = self.relation_name.replace("\'", "")
+            print(f"pruning triples where relation is not {self.relation_name}")          
+            self.triples = [t for t in self.triples if self.relation_name in t[1]] 
+
+            if(len(self.triples) == 0):
+                print(f"there are no triples with relation {self.relation_name}, please try again...")
+                quit()
 
         self.reset()
 

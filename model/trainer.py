@@ -209,7 +209,7 @@ class TrainerGUIconnector(object):
         tr_current_iteration = 1
         tr_current_progress_text = "Intialization" 
 
-        self.train_thread = threading.Thread(name="trainThread", target=self.threaded_update)
+        self.train_thread = threading.Thread(name="trainThread", target=self.threaded_update, daemon=True)
 
     def start_connection(self):
         self.started = True

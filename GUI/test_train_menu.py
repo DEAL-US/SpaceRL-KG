@@ -77,7 +77,7 @@ class menu():
         self.laps_entry = ttk.Entry(self.trainframe, textvariable=lapsvar, text="laps",
         validate='key', validatecommand= self.vcmd, invalidcommand=self.ivcmd)
         self.laps_entry.delete(0, 'end')
-        self.laps_entry.insert(0, 1)
+        self.laps_entry.insert(0, 10)
 
         embeddings = ["TransE_l2", "DistMult", "ComplEx", "TransR"]
         choices_emb = StringVar(value=embeddings)
@@ -124,7 +124,7 @@ class menu():
 
         #row3
         self.datasetlistbox.grid(row=3, column=0, padx=(0,20))
-        self.datasets_scrollbar.place(x = 165, y = 69, height=73)
+        self.datasets_scrollbar.place(x = 155, y = 88, height=73)
 
         self.embedlistbox.grid(row=3, column=1,)
         # self.embedding_scrollbar.place(x = 268, y = 65)
@@ -188,7 +188,7 @@ class menu():
         self.t_runs_entry = ttk.Entry(self.testframe, textvariable=runsvar, text="runs",
         validate='key', validatecommand= self.vcmd, invalidcommand=self.ivcmd)
         self.t_runs_entry.delete(0, 'end')
-        self.t_runs_entry.insert(0, 100)
+        self.t_runs_entry.insert(0, 200)
 
         #listboxes
         self.t_embeddings = []
@@ -232,7 +232,7 @@ class menu():
 
         #row3
         self.agentlistbox.grid(row=3, column=0, padx=(0,20))
-        self.agents_scrollbar.place(x = 165, y = 69, height=73)
+        self.agents_scrollbar.place(x = 155, y = 88, height=73)
 
         self.t_embedlistbox.grid(row=3, column=1)
 
@@ -335,8 +335,8 @@ class menu():
             if(CheckTestCollision(name)):
                 error_text += "name collides with existing test.\n"
 
-            if(runs<100 or runs >9999):
-                error_text += "runs range is 100-9999\n"
+            if(runs < 5 or runs > 9999):
+                error_text += "runs range is 5-9999\n"
 
             for ex in self.tests:
                 if(ex.name == name):

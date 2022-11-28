@@ -5,7 +5,8 @@ from keras.models import Model, model_from_json
 from keras.optimizers import adam_v2, rmsprop_v2
 import keras.backend as K
 from tqdm import tqdm
-import time
+
+import time, traceback
 
 from data.data_manager import DataManager
 from environment import KGEnv
@@ -69,8 +70,10 @@ class Agent(object):
                     self.old_policy_network = self.build_network_from_copy(self.policy_network, learning_rate)
                 else:
                     self.policy_network = self.dm.restore_saved_agent(f"{self.env.dataset_name}-{self.env.selected_embedding_name}")
-            except:
+            except Exception as e:
                 print("couldn't restore the network, building new one.")
+                print("related exception:\n")
+                traceback.print_exc()
                 self.policy_network, self.critic, self.old_policy_network = self.build_policy_networks(input_size, LTSM_layer_size, hiden_layer_size, learning_rate, use_LSTM)
         else:
             self.policy_network, self.critic, self.old_policy_network = self.build_policy_networks(input_size, LTSM_layer_size, hiden_layer_size, learning_rate, use_LSTM)

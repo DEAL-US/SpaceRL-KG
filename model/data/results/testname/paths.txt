@@ -1,7 +1,0 @@
-[('jamaica', 'NO_OP', 'jamaica'), ('caribbean', 'locatedIn', 'caribbean'), ('caribbean', 'NO_OP', 'caribbean'), ('caribbean', 'NO_OP', 'caribbean'), ('americas', 'locatedIn', 'americas')]
-[('caribbean', 'locatedIn', 'caribbean'), ('americas', 'locatedIn', 'americas'), ('americas', 'NO_OP', 'americas'), ('americas', 'NO_OP', 'americas'), ('americas', 'NO_OP', 'americas')]
-[('south_america', 'locatedIn', 'south_america'), ('americas', 'locatedIn', 'americas'), ('americas', 'NO_OP', 'americas'), ('americas', 'NO_OP', 'americas'), ('americas', 'NO_OP', 'americas')]
-[('south_america', 'locatedIn', 'south_america'), ('americas', 'locatedIn', 'americas'), ('americas', 'NO_OP', 'americas'), ('americas', 'NO_OP', 'americas'), ('americas', 'NO_OP', 'americas')]
-[('french_polynesia', 'NO_OP', 'french_polynesia'), ('oceania', 'locatedIn', 'oceania'), ('tonga', '¬locatedIn', 'tonga'), ('polynesia', 'locatedIn', 'polynesia'), ('tonga', '¬locatedIn', 'tonga')]
-[('spain', 'neighborOf', 'spain'), ('andorra', 'neighborOf', 'andorra'), ('europe', 'locatedIn', 'europe'), ('europe', 'NO_OP', 'europe'), ('europe', 'NO_OP', 'europe')]
-[('syria', '¬neighborOf', 'syria'), ('lebanon', 'neighborOf', 'lebanon'), ('asia', 'locatedIn', 'asia'), ('asia', 'NO_OP', 'asia'), ('asia', 'NO_OP', 'asia')]
