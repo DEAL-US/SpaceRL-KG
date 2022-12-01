@@ -78,6 +78,5 @@ class DataProcessor(object):
                         i+=1
                         
 
-processor = DataProcessor(["COUNTRIES", "FB15K-237",
-"KINSHIP","NELL-995","UMLS", "WN18RR"])
+processor = DataProcessor(["COUNTRIES", "FB15K-237", "KINSHIP","NELL-995","UMLS", "WN18RR"])
 processor.extract_info_from_logs()

@@ -17,17 +17,27 @@ import os
 import shutil
 
 class DataManager(object):
-    def __init__(self, is_experiment=True, experiment_name = "default_name", respath=""):
+    """
+    The data manager class is tasked with organizing and saving the data during testing, experimentation and embedding generation
+    Each instance of data manager covers a single test or experiment instance.
+
+    :param is_experiment: wether this instance is for an experiment or a test.
+    :param name: the name of the experiment or test to manage.
+    :param respath: the path to the folder to save the test result. If it does not exist its created.
+
+    :returns: None
+    """
+    def __init__(self, is_experiment:bool=True, name:str = "default_name", respath:str=""):
         self.data_path = Path(__file__).parent.resolve()
 
         self.datasets_path = f"{self.data_path.parent.parent.absolute().resolve()}/datasets"
         self.caches_path = f"{self.data_path}/caches"
         self.base_agent_path = f"{self.data_path}/agents"
-        self.agents_path = f"{self.base_agent_path}/{experiment_name}"
+        self.agents_path = f"{self.base_agent_path}/{name}"
 
         self.test_result_path = respath
         self.is_experiment = is_experiment
-        self.name = experiment_name
+        self.name = name
 
         self.run_integrity_checks()
 
@@ -39,6 +49,11 @@ class DataManager(object):
             os.mkdir(self.test_result_path)
 
     def run_integrity_checks(self):
+        """
+        checks for abnormal states in the folder structure and corrects them. 
+
+        :returns: None
+        """
         print("running integrity checks")
         subfolders = [f.name for f in os.scandir(self.datasets_path) if f.is_dir()]
         for s in subfolders:
@@ -56,26 +71,36 @@ class DataManager(object):
             agent_dir = f"{self.base_agent_path}/{s}"
             self.remove_folders(agent_dir, 1) # removes folders with only config_used.txt
         
-    def remove_folders(self, path_abs, filecount):
+    def remove_folders(self, path_abs:str, filecount:int):
+        """
+        helper method to delete incongruent folders
+
+        :param path_abs: path to the folder to check
+        :param filecount: file count for the folder to be deleted.
+
+        :returns: None
+        """
         files = os.listdir(path_abs)
         if len(files) == filecount:
             print(f"removing path {path_abs}")
             shutil.rmtree(path_abs)
 
-    def get_dataset(self, dataset, embedding_name):
-        '''
-        Returns the triples that make up a required dataset, the embedding representation of the components \n
-        of the dataset, the length of those representations and initializes the log file for that particular dataset \n
-        Parameters: \n
-            dataset (str) => name of the folder containing the dataset \n
-            embedding_name (str) => the name of the embedding type to use. \n
-        Returns: \n
-            (triples, relations_emb, entities_emb, embedding_len) \n
-            triples (list) => the triples in format => [(e1, r , e2), ..., (e1n, r , e2n)] \n
-            relations_emb (dict), entities_emb(dict) => the dataset {embeddings} in the following format: \n
-            {e1:[0.34,...,0.565], [...], en:[...], [...] ,r1:[...], rn:[...]} \n
-            embedding_len (int) => the length of the embedding space \n
-        '''
+    def get_dataset(self, dataset:str, embedding_name:str):
+        """
+        Returns the triples that make up a required dataset, the embedding representation of the component of the dataset,\
+        the length of those representations and initializes the log file for that particular dataset
+
+        :param dataset: name of the folder containing the dataset
+        :param embedding_name: the name of the embedding type to use. 
+
+        :returns:  
+        (triples, relations_emb, entities_emb, embedding_len) \n
+        triples (list) => the triples in format => [(e1, r , e2), ..., (e1n, r , e2n)]  \n
+        relations_emb (dict) & entities_emb(dict) => the dataset {embeddings} separated in entities and relations in the following format:
+        {e1:[0.34,...,0.565], [...], en:[...], [...] ,r1:[...], rn:[...]} \n
+        embedding_len (int) => the length of the embedding space  \n
+
+        """
 
         self.logs_file_path = f"{self.data_path}/logs/{dataset}_{embedding_name}.log"
         selected_file = "graph.txt"
@@ -106,15 +131,17 @@ class DataManager(object):
         # we mark as active since we've asked for a dataset somewhere.
         self.active_dataset = True
 
-        return (triples, relations_emb, entities_emb, ent_len)
+        return triples, relations_emb, entities_emb, ent_len
 
-    def save_agent_model(self, name, model :Model):
-        '''
-        Save the keras model values into a .npy file [array] in the agents directory.\n
-        Parameters: \n
-            model_layers(numpy array): [[0.2323,0.6788,...],[0.5675,0.978,...],..] \n
-            name (str): the name to save the agent. \n
-        '''
+    def save_agent_model(self, name:str, model :Model):
+        """
+        Save the keras model values into a <name>.h5 or a directory <name> with actor.h5 and critic.h5 if PPO.
+
+        :param name: the name of the agent to save.
+        :param model: the keras model to save
+    
+        :returns: None
+        """
         if len(model) == 1:
             saved_agent_dir = f"{self.agents_path}/{name}.h5"
             model[0].save(saved_agent_dir, save_format="h5")
@@ -125,26 +152,30 @@ class DataManager(object):
             model[0].save(f"{folder_agent_dir}/actor.h5", save_format="h5")
             model[1].save(f"{folder_agent_dir}/critic.h5", save_format="h5")
 
-    def restore_saved_agent(self, name):
-        '''
-        Returns the agent model 
-        Parameters:
-            name(str): the name of the agent.
-        Returns:
-            models(numpy array): [[0.2323,0.6788,...],[0.5675,0.978,...],..]
-        '''
+    def restore_saved_agent(self, name:str):
+        """
+        returns the saved agent as a keras model to be used
+
+        :param name: the name of the agent to restore. 
+
+        :returns: a keras model of the agent.
+        :raises FileNotFoundException: if the specified agent does not exist 
+        """
+
         print("restoring model...")
         saved_agent_dir = f"{self.agents_path}/{name}.h5"
         return load_model(saved_agent_dir) 
     
-    def restore_saved_agent_PPO(self, name):
-        '''
-        Returns the agent model 
-        Parameters:
-            name(str): the name of the agent.
-        Returns:
-            models(numpy array): [[0.2323,0.6788,...],[0.5675,0.978,...],..]
-        '''
+    def restore_saved_agent_PPO(self, name:str):
+        """
+        returns the saved agent as keras models to be used 
+
+        :param name: the name of the agent to restore
+
+        :returns: actor, critic => the acotor and critic keras models.  
+        :raises FileNotFoundException: if the specified agent does not exist 
+        """
+
         print("restoring model...")
         saved_agent_dir = f"{self.agents_path}/{name}"
         actor = load_model(f"{saved_agent_dir}/actor.h5")
@@ -152,10 +183,15 @@ class DataManager(object):
 
         return actor, critic
 
-    def write_log(self, content):
-        '''
-        writes the content in the corresponding logfile, the logfile is automatically swapped when asking for a dataset.
-        '''
+    def write_log(self, content:str):
+        """
+        writes the content in the corresponding logfile, the logfile is automatically swapped when calling the get_dataset function
+
+        :param content: what to add to the log 
+
+        :returns: None
+        """
+    
         if(self.active_dataset):
             current_date_formated = datetime.strftime(datetime.now(), "%d-%m-%Y %H:%M:%S")
             with open(self.logs_file_path, "a") as f:
@@ -163,32 +199,57 @@ class DataManager(object):
         else:
             print("no dataset is loaded, cannot log, call get_dataset before logging.")
 
-    def get_cache_for_dataset(self, dataset):
-        '''
-        gets the cache for a given dataset, raises FileNotFoundException if not avaliable.
-        '''
+    def get_cache_for_dataset(self, dataset:str):
+        """
+        gets the cache for a given dataset
+
+        :param dataset: the name of the dataset.
+
+        :returns: The reward cache for the specified dataset
+        :raises FileNotFoundException: if not avaliable
+        """
         filepath = self.caches_path+"/"+dataset+".pkl"
         with open(filepath, "rb") as f:
             return pickle.load(f)
     
-    def save_cache_for_dataset(self, dataset :str, cache):
-        '''
-        saves the cache into a pickle file for the given dataset.
-        '''
+    def save_cache_for_dataset(self, dataset:str, cache:dict):
+        """
+        Saves the given cache for the specified dataset.
+
+        :param dataset: the name of the dataset
+        :cache: the cache to save.
+
+        :returns: None
+        """
+
         filepath = self.caches_path+"/"+dataset+".pkl"
         with open(filepath, "wb") as f:
             pickle.dump(cache, f)
 
-    def saveall(self, dataset, cache, agent_name, model):
+    def saveall(self, dataset:str, cache:dict, agent_name:str, model:Model):
+        """
+        Performs every saving operation linked to a dataset
+        
+        :param dataset: the name of the dataset
+        :param cache: the cache to save.
+        :param agent_name: the name of the agent
+        :param model: the keras model to save.
+
+        :returns: None
+        """
         print("saving data...")
         self.save_cache_for_dataset(dataset, cache)
         self.save_agent_model(agent_name, model)
 
-    def debug_save(self, name):
-        '''
-        saves the current keras model as well as 
-        the input that triggered the NN error.
-        '''
+    def debug_save(self, name:str):
+        """
+        If debug mode is active save the crash information on agent crash
+        Saves the current keras model as well as the input that triggered the NN error.
+
+        :param name: agent name 
+
+        :returns: None
+        """
         current_date_formated = datetime.strftime(datetime.now(), "%d-%m-%Y_%H:%M:%S")
         saved_agent_dir = f"{self.agents_path}/{name}.h5"
         crash_agent_dir = f"{self.data_path}/debug/{current_date_formated}_crash_report/model.h5"
@@ -198,7 +259,15 @@ class DataManager(object):
         saved_array_dir = f"{self.data_path}/debug/{current_date_formated}_crash_report/input.npy"
         np.save(saved_array_dir, self.latest_inputs)
 
-    def debug_load(self, folder_index, print_layers):
+    def debug_load(self, folder_index:int, print_layers:bool):
+        """
+        loads the crash information and prints it.
+
+        :param folder_index: which folder to load by its index in the debug directory.
+        :print_layers: wether to print the NN intermediate layers before the crash. 
+
+        :returns: None
+        """
         debug_dir = "data/debug/"
         dirs = os.listdir(debug_dir)
         if(folder_index is None):
@@ -217,9 +286,21 @@ class DataManager(object):
         print(f"input that triggered this was: {input_arr}")
 
     def update_lastest_input(self, latest_input):
+        """
+        updates latest input.
+
+        :param latest_input: the value of the input.
+
+        :returns: None
+        """
         self.latest_inputs = latest_input
 
     def copy_config(self):
+        """
+        copies the current config information into the experiment folder
+
+        :returns: None
+        """
         config, _ = get_config(False)
         # make a copy of the dict and remove the unwanted config lines.
         c = dict(config)
