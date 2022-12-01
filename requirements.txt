@@ -1,0 +1,11 @@
+GPUtil==1.4.0
+tensorflow==2.8
+tqdm==4.64.*
+multiprocess==0.70.*
+pandas==1.5.1
+gym==0.26.2
+torch==1.13.0
+dgl==0.4.3
+dglke==0.1.2
+
+protobuf==3.20.*
