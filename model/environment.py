@@ -19,10 +19,10 @@ from utils import Utils
 logger = logging.getLogger()
 
 class KGEnv(gym.Env):
-    '''
+    """
     Defines the environment and keeps track of the episodes that have been elapsed during training.
-    We use the Gym package (https://github.com/openai/gym) as it offers a standard API to generate 
-    environments and tie them up with keras agents
+    We use the Gym package (https://github.com/openai/gym) as it offers a standard model to generate 
+    environments and tie them up with keras agents.
 
     ### Description
     The environment is the currently selected knowledge graph built with inverse relationships
@@ -38,33 +38,24 @@ class KGEnv(gym.Env):
     Since the complete state of the graph cannot be observed by the agent due to the size limitations
     we make the agent aware of its current location (et) and  the query triple(e1q, rq, e?), but not the answer (e2q)
 
-    ### Rewards
-    - terminal rewards: +1 if agent reaches tail entity in determined time, -1 otherwise.
+    :param data_manager: The data manager instance asociated 
+    :param dataset: The name of the folder containing the dataset file (graph.txt)
+    :param single_relation_pair: (is_single_rel(bool), single_rel_name(str)), the tuple representing if we are training for a single relation.
+    :param embedding: the embedding representation to load.
+    :param is_distance: if the reward calculation contains distance.
+    :param seed: the seed to operate on
+    :param threads: number of cores to use on calculations.
+    :param path_length: the length of path exploration.
+    :param regenerate_embeddings: wether to regenerate embeddings or use the saved ones.
+    :param normalize_embeddings: if recalculation is active, wether to normalize them.
+    :param gpu_accel: wether to use the gpu for calculations.
+    :param use_episodes: wether to use a set number of episodes or not
+    :param laps: the loops to perform over the dataset.
+    :param verbose: wether to print detailed information every episode.
 
-    - length based reward: 1-log(len(path)), discourages long paths, we punish the agent if it finds paths longer than 10 edges.
-
-    - path diversity: we want to avoid redundant knowledge from being generated so we use the 
-    cosine similarity comparing the sum of the path taken with the connected paths to the entity 
-    and reward it based on how different is is from the known paths
-    spatial.distance.cosine(average(known_paths), taken_path)
-
-    ### Arguments
-
-    Params (dict): All of the necessary variables for the network performance (unknow which ones yet.)
-    Data (dict): which dataset and dataset embeeddings to use in experimentation. 
-    
-
-    '''
-    def __init__(self, data_manager: DataManager, dataset, single_relation_pair, embedding, is_distance, seed, threads,
-    path_length, regenerate_embeddings, normalize_embeddings, gpu_accel, use_episodes, laps, verbose):
-        '''
-        Initialize the environment with the desired batch size, the length of the path and the location of the dataset. \n
-        ### Parameters:\n
-            dataset (str) => The name of the folder containing the dataset file (graph.txt) \n
-            embedding_index (int) => 0: TransE_l2, 1: DistMult, 2: ComplEx, 3: RotatE, 4:TransR, 5: RESCAL \n
-            path_length (int) => the number of steps the agent will be allowed to do before stopping the episode \n
-            queries (list) * => a list of triples to train, if not passed a random triple will be selected from the provided seed\n
-        '''
+    """
+    def __init__(self, data_manager: DataManager, dataset:str, single_relation_pair:tuple, embedding:str, is_distance:bool, seed:int, threads:int,
+    path_length:int, regenerate_embeddings:bool, normalize_embeddings:bool, gpu_accel:bool, use_episodes:bool, laps:int, verbose:bool):
         self.dataset_name = dataset 
         
         # generation of new dataset embedding
@@ -109,11 +100,17 @@ class KGEnv(gym.Env):
 
         self.reset()
 
-    def step(self, action): # required by openAI.gym
-        '''
-        Recieves the chosen action in the format (chosen_relation, chosen_entity)
-        then updates the state of the environment accordingly.
-        '''
+    def step(self, action:list): # required by openAI.gym
+        """
+        Performs one environment step, determined by the recieved action.
+
+        :param action: the action in its triple format
+
+        :returns:
+        state -> the current state after the step is performed.
+        done -> if the episode is done.
+        info -> empty dict (conforming with gym, but we provide no extra info.)
+        """
         self.current_node = action[1] # assign the selected action node as the new current node.
         self.state = self.get_encoded_state() # recalculate the state of the environment.
         self.update_actions() # update the actions in the new state.
@@ -135,28 +132,31 @@ class KGEnv(gym.Env):
 
     @property
     def action_space(self): # required by openAI.gym, must return a Spaces type from gym.spaces
-        '''
-        returns a Box space with dimensions relative 
-        to the current embedding representations length
+        """
+        Returns the action space of the environment, which is the minimum and maximum values of the embeddings.
+        These do not all represent possible actions, but the scope in which actions can be contained.
 
-        since the actions are made up of the relation and the
-        destination node we pass their mins and max as a Box space.
-        '''
+        :returns: A boxed state of all possible actions in the current environment.
+        """
         return spaces.Box(low=np.array([*self.min_rel_emb, *self.min_ent_emb]), high = np.array([*self.max_rel_emb, *self.max_ent_emb]))
     
     @property
     def observation_space(self): # required by openAI.gym
-        '''
-        returns a Boxed space for the representation of the observations
-        it encodes the positional triple et, then the 
-        '''
+        """
+        Returns the observation space of the environment, which is the minimum and maximum values of the embeddings.
+        These do not all represent possible observation, but the scope in which observations can be contained.
+
+        :returns: A boxed state of all possible observations in the current environment.
+        """
         return spaces.Box(low=np.array([*self.min_ent_emb, *self.min_rel_emb, *self.min_ent_emb]),
         high=np.array([*self.max_ent_emb, *self.max_rel_emb, *self.max_ent_emb]))
 
     def reset(self):
-        '''
-        Resets the environment, selecting a new triple for the agent to obtain.
-        '''
+        """
+        resets the environment for the next episode.
+
+        :returns: the state after the reset.
+        """
         valid = False
         # updates the target_triple variable.
         while(not valid):
@@ -178,10 +178,11 @@ class KGEnv(gym.Env):
         return self.state 
 
     def select_target(self):
-        '''
-        choose a new target triple to find.
-        returns true if valid triple is found, false otherwise.
-        '''
+        """
+        choose a new target triple to find. 
+
+        :returns: true if valid triple is found, false otherwise.
+        """
 
         if(self.use_episodes):
             self.target_triple = random.choice(self.triples)
@@ -202,7 +203,13 @@ class KGEnv(gym.Env):
 
         return True
         
-    def cache_init(self, dataset, is_distance):
+    def cache_init(self, dataset:str, is_distance:bool):
+        """
+        initializes the cache for distance rewards for the selected dataset.
+
+        :param dataset: the name of the dataset
+        :param is_distance: if true tries to load cache, sets cache to None otherwise.
+        """
         if(not is_distance):
             self.distance_cache = None
         else:
@@ -212,25 +219,39 @@ class KGEnv(gym.Env):
             except FileNotFoundError:
                 self.distance_cache = pairdict()
 
-    def save_current_cache(self, dataset):
+    def save_current_cache(self, dataset:str):
+        """
+        saves the dataset cache.
+
+        :param dataset: the dataset name
+        """
         self.dm.save_cache_for_dataset(dataset, self.distance_cache)
     
     def reset_queries(self):
+        """
+        resets the queries and randomizes them
+        """
         self.queries = copy.deepcopy(self.triples)
         random.shuffle(self.queries)
 
     def get_current_state(self):
-        '''
-        gets the current state 
-        '''
+        """
+        returns the current state of the environment.
+
+        :returns: 
+        self.target_triple[0] -> e1
+        self.target_triple[1] -> r
+        self.target_triple[2] -> e2
+        self.current_node -> et
+        """
         return self.target_triple[0], self.target_triple[1], self.target_triple[2], self.current_node
 
     def get_encoded_state(self):
-        '''
-        The encoding of the state is just the addition of the 
-        embedding representation of the triple + the node position.
-        return [*e1,*r,*e2,*et]
-        '''
+        """
+        The encoding of the state is just the addition of the embedding representation of the triple + the node position.
+
+        :returns: [*e1,*r,*e2,*et]
+        """
         e1 = self.entity_emb[self.target_triple[0]]
         r = self.relation_emb[self.target_triple[1]]
         e2 = self.entity_emb[self.target_triple[2]]
@@ -239,11 +260,11 @@ class KGEnv(gym.Env):
         return [*e1,*r,*e2,*et]
 
     def get_encoded_observations(self):
-        '''
-        The encoding of the observations is just the addition of the 
-        embedding representation of the query + the node position.
-        return [(*e1,*r),*et]
-        '''
+        """
+        The encoding of the observations is just the addition of the embedding representation of the query + the node position.
+
+        :returns: [(*e1,*r),*et]
+        """
         e1 = self.entity_emb[self.target_triple[0]]
         r = self.relation_emb[self.target_triple[1]]
         et = self.entity_emb[self.current_node]
@@ -251,10 +272,9 @@ class KGEnv(gym.Env):
         return [*e1,*r,*et]
 
     def update_actions(self):
-        '''
-        When called updates all posible actions you can take in the current state
-        and adds the them to the enviroment.actions list.
-        '''
+        """
+        Updates the actions for the new step
+        """
         neighbors = copy.deepcopy(self.kg.get_neighbors(self.current_node))
         if(self.current_node == self.target_triple[0]):
             # if we are training and we are in the initial node we remove the direct relation
@@ -273,15 +293,16 @@ class KGEnv(gym.Env):
                 action = (relation, dest_entity)
                 self.actions.append(action)
 
-    # def calculate_reward(self, last_step):
-    #     # moved to agent with get_next_state_reward.
-    #     pass
+    def get_embedding_info(self, evaluated_node:str, end_node:str):
+        """
+        Calculate the embedding rewards for the current node.
 
-    # def get_current_path_and_reward(self, extra_action = None):
-    #     #removed
-    #     pass
+        :param evaluated_node: the current node of exploration.
+        :param end_node: the destination node.
 
-    def get_embedding_info(self, evaluated_node, end_node):
+        :returns: this is a description of what is returned
+        :raises keyError: raises an exception
+        """
         a = np.array(self.entity_emb[evaluated_node])
         b = np.array(self.entity_emb[end_node])
         
@@ -296,12 +317,15 @@ class KGEnv(gym.Env):
 
         return(dot, euc_dist, cos_sim)
     
-    def get_distance(self, current_node, end_node):
-        '''
-        given the current node calculate the minimum distance to the end node
-        the maximum reward being in the end node and reducing by half for each step away.
-        potential problem: if the graph is very interconnected this will be always high.
-        '''
+    def get_distance(self, current_node:str, end_node:str):
+        """
+        given the current node calculate the minimum distance to the end node.
+
+        :param current_node: the current node in the environment
+        :param end_node: the target node.
+
+        :returns: the distance to the end node from the current node.
+        """
         if(current_node == end_node):
             return 0
 
@@ -350,8 +374,22 @@ class KGEnv(gym.Env):
 
             return d
 
-    def dist_func(self,init_index, last_index, to_evaluate,
-    d, done_flag, to_evaluate_next_step, visited, current_node, end_node):
+    def dist_func(self, init_index:int, last_index:int, to_evaluate:list,
+    d:int, done_flag: bool, to_evaluate_next_step: list, visited:list, current_node:str, end_node:str):
+        """
+        helper function to calculate the distance to the end node.
+        
+        :param init_index: starting point in list of nodes to evaluate.
+        :param last_index: end point in list of nodes to evaluate
+        :param to_evaluate: the current list of nodes to get the neighbors to.
+        :param d: current distance from starting node.
+        :param done_flag: true if we reached the last node.
+        :param to_evaluate_next_step: the next iteration list of nodes to evaluate.
+        :param visited: the list of visited nodes.
+        :param current_node: the current node of exploration
+        :param end_node: the destination node.
+
+        """
         for node in list(to_evaluate)[init_index:last_index]:
             visited.add(node)
             neighbors = copy.deepcopy(self.kg.get_neighbors(node))
@@ -377,15 +415,12 @@ class KGEnv(gym.Env):
                 done_flag[0] = True
                 break
         
-
     def calculate_embedding_min_max(self):
-        '''
-        Iterates over the embedding representations of the entities and 
-        relations and computes the minimum and maximum values to be used in
-        a gym.Spaces.Box()\n
-        returns:\n 
-        [*mins_rel, *mins_ent], [*maxs_rel, *maxs_ent]
-        '''
+        """
+        Iterates over the embedding representations of the entities and relations and computes the minimum and maximum values to be used in a gym.Spaces.Box()
+
+        :returns: mins_rel, mins_ent, maxs_rel, maxs_ent (the minimum and maximum values for entities and relations.)
+        """
         mins_rel = list(np.zeros(self.embedding_len,))
         maxs_rel = list(np.zeros(self.embedding_len,))
         mins_ent = list(np.zeros(self.embedding_len,))

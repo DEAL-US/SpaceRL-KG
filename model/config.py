@@ -55,16 +55,19 @@ config = {
     
     # applies L1 and L2 regularization at different stages of training.
     "regularizers":['kernel'], #"kernel", "bias", "activity" 
-
+    
+    # which algorithm to use when learning.
     # PPO uses actor critic networks and BASE is a simple feed-forward network.
     # you can then choose retropropagation of rewards to compute as a REINFORCE model or simple to keep the rewards 
     # based on the results of the episode without adding any aditional computation to the reward.
     "algorithm": "BASE", #BASE, PPO
 
+    # which way to feed the rewards to the network.
     # retroprogation causes the rewards closer to the end of the episode have more 
     # influence over the neural network, whereas simple offers a homogenous distibution.
     "reward_type": "simple", # retropropagation, simple
     
+    # how the actions are chosen from the list of possible ones in every step.
     # probability-> action calculation biased by the probability of the network output.
     # max -> pick the highest value offered by the network.
     # probability makes training stochasting while max makes it deterministic.

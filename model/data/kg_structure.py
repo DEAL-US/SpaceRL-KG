@@ -4,11 +4,17 @@ from random import random
 # ------------------ GRAPH DEFINITION ----------------------
 class KnowledgeGraph():
     """
-    Class to generate Knowledge graphs from a set of triples
-    the graph can be directed or non-directed 
+    class to generate Knowledge graphs from a set of triples the graph can be directed or non-directed 
     You can choose to add the inverse relations to the representation.
+
+    :param triples: a set of triples (e1, r, e2) to generate the kg.
+    :param directed: wether the graph is or not directed. If a directed graph has a connection from e1->r->e2 it does not necessarely have the reverse one.
+    :param inverse_triples: wether to populate the graph with the inverse of a triple, i.e. if (e1, r, e2) then (e2, ¬r, e1) (making a directed graph bidirectional) 
+    :param verbose: prints information about the progress
+
+    :returns: None
     """
-    def __init__(self, triples, directed = False, inverse_triples = False, verbose = False):
+    def __init__(self, triples:list, directed:bool = False, inverse_triples:bool = False, verbose:bool = False):
         self.verbose = verbose
         self.triples = triples
         #{
@@ -25,8 +31,14 @@ class KnowledgeGraph():
             
         self.add_triples(triples)
     
-    def add_triples(self, triples):
-        """ Add triples (list of triples) to graph """
+    def add_triples(self, triples: list):
+        """
+        Add triples to graph 
+
+        :param triples: a list of triples (e1, r, e2) to generate the kg.
+
+        :returns: None
+        """
         for e1, r , e2 in triples:
 
             self.add(e1, r, e2)
@@ -39,21 +51,40 @@ class KnowledgeGraph():
                 if(self.verbose):
                     print(f"adding triple: {e2}, ¬{r}, {e1}")
         
-    def add(self, e1, r, e2):
-        """ Add connection between e1 and e2 with relation r """
+    def add(self, e1:str, r:str, e2:str):
+        """
+        Add connection between e1 and e2 with relation r
+
+        :param e1: the string representation of the first entity in the triple
+        :param r: the string representation of the reation in the triple
+        :param e2: the string representation of the second entity in the triple
+
+        :returns: None
+        """
         self._graph[e1][r].add(e2)
         if(not self._directed):
             self._graph[e2][r].add(e1)
  
-    def get_neighbors(self, node):
-        '''Returns the neighboring nodes to the requested one'''
+    def get_neighbors(self, node:str):
+        """
+        Returns the neighboring nodes to the requested one
+
+        :param node: the entity to get the inmediate neighbors
+
+        :returns: a dictionary containing the neighbors of the node.
+        """
         return self._graph[node]
   
-    def subgraph(self, center_node, distance):
-        '''
+    def subgraph(self, center_node:str, distance:int):
+        """
         Given a center node and a neihborhood distance builds a graph of connected entities around the chosen node
         If the distance is 0 it continues until no more nodes are connected.
-        '''
+
+        :param center_node: the entity to start the subgraph from
+        :param distance: depth of subgraph
+
+        :returns: the requested subgraph
+        """
         if(distance < 0):
             print("invalid distance")
             raise(IndexError)
@@ -113,42 +144,14 @@ class KnowledgeGraph():
         res = KnowledgeGraph(triples, directed=True)
         return res
                 
-    def remove_random_subset(self, connectivity = 3, removal_percentage = 10):
-        '''
-        Removes a number of triples from the graph that correspond to the indicated removal percentage
-
-        connectivity: the minimum number of connected nodes so that te entity could be selecte for triple removal.
-        
-        removal_percentage: the percentage of the graph that wants to be removed from the selected triples, 
-        if the % is over the total graph size the returned value will be None, recommended value = 10
-
-        the removal process will avoid completely removing an entity from the graph.
-
-        ATTENTION: THIS IS A VERY COSTLY OPERATION.
-        '''
-        top = self.top_entities_sorted_by_conectivity(connectivity)
-        top_sum = sum(top.values())-len(top.values()) # we don't want to remove all the conectivity from nodes so we really have 1 less per triple.
-
-        n_percent_triples = len(self.triples) * (removal_percentage/100)
-
-        if (n_percent_triples < top_sum):
-            print(f"surpassed threshold {int(n_percent_triples)} of graph, removing random subset from the top --> {top_sum} triples.")
-            removed_triples = []
-            
-            for _ in range(int(n_percent_triples)):
-                parent_entity, relation, tail_entity = self.recursive_triple_removal(top)
-                removed_triples.append((parent_entity, relation, tail_entity))
-
-            # self.triples = [x for x in self.triples if x not in removed_triples]
-            return removed_triples
-
-        else:
-            raise ValueError(f"threshold not met {int(n_percent_triples)} of graph to be removed, connectivity subset is --> {top_sum} triples only.")
-
-    def top_entities_sorted_by_conectivity(self, min_connectivity):
-        '''
+    def top_entities_sorted_by_conectivity(self, min_connectivity:int):
+        """
         Returns all entities sorted by connectivity that are over or equal the indicated limit.
-        '''
+
+        :param min_connectivity: the connectivity value to check
+        
+        :returns: the requested entities
+        """
         res = dict()
         for e, r in  self._graph.items():
             tot = 0
@@ -160,39 +163,6 @@ class KnowledgeGraph():
 
         res = dict(sorted(res.items(), key=lambda x: x[1], reverse=True))
         return res
-
-    def recursive_triple_removal(self, top):
-        '''
-        Removes an entity from the graph taking into account that it cannot fully disconnect it.
-        Calls itself in case it would to check for a new one.
-        '''
-        parent_entity = random.choices(list(top.keys()), top.values())[0]
-        top[parent_entity] -= 1
-        triples_dict = self._graph[parent_entity]
-
-        relations = list(triples_dict.keys())
-        len_ent_relations = []
-
-        for v in triples_dict.values():
-            len_ent_relations.append(len(v))
-
-        if(sum(len_ent_relations) == 1):
-            #removing this triple would disconnect the entity from the graph as a parent entity.
-            print(f"this removal would disconnect ({parent_entity}) from graph, retrying...")
-            return self.recursive_triple_removal(top) # so we try again.
-
-        relation = random.choices(relations, len_ent_relations)[0]
-
-        relation_index = relations.index(relation)
-        aux = list(triples_dict.values())
-
-        tail_entity = random.choice(list(aux[relation_index]))
-        # print(f"{parent_entity}, {relation}, {tail_entity}")
-
-
-        self.remove_triple(parent_entity, relation, tail_entity)
-        return parent_entity, relation, tail_entity
-
     
 # t = [("a","b","c"),("c","b","d"),("a","b","d"),("a","f","c"),("d","f","a")]
 # kg = KnowledgeGraph(t, directed=True, inverse_triples=True)
