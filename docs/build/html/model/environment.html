@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Environment &mdash; RL-KG 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Agent" href="trainer.html" />
+    <link rel="prev" title="Configuration" href="config.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> RL-KG
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="model.html">Model</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="agent.html">Agent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Environment</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#model.environment.KGEnv"><code class="docutils literal notranslate"><span class="pre">KGEnv</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gym">Gym</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.KGEnv.step"><code class="docutils literal notranslate"><span class="pre">step()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.KGEnv.reset"><code class="docutils literal notranslate"><span class="pre">reset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.KGEnv.action_space"><code class="docutils literal notranslate"><span class="pre">action_space()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.KGEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">observation_space()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#caches">Caches</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.KGEnv.cache_init"><code class="docutils literal notranslate"><span class="pre">cache_init()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.KGEnv.save_current_cache"><code class="docutils literal notranslate"><span class="pre">save_current_cache()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#states-observations-actions">States, Observations &amp; Actions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.KGEnv.get_current_state"><code class="docutils literal notranslate"><span class="pre">get_current_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.KGEnv.get_encoded_state"><code class="docutils literal notranslate"><span class="pre">get_encoded_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.KGEnv.get_encoded_observations"><code class="docutils literal notranslate"><span class="pre">get_encoded_observations()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.KGEnv.select_target"><code class="docutils literal notranslate"><span class="pre">select_target()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.KGEnv.reset_queries"><code class="docutils literal notranslate"><span class="pre">reset_queries()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.KGEnv.update_actions"><code class="docutils literal notranslate"><span class="pre">update_actions()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#rewards-embeddings">Rewards &amp; Embeddings</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.KGEnv.get_distance"><code class="docutils literal notranslate"><span class="pre">get_distance()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.KGEnv.dist_func"><code class="docutils literal notranslate"><span class="pre">dist_func()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.KGEnv.calculate_embedding_min_max"><code class="docutils literal notranslate"><span class="pre">calculate_embedding_min_max()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.KGEnv.get_embedding_info"><code class="docutils literal notranslate"><span class="pre">get_embedding_info()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pair-dictionary">Pair dictionary</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.pairdict"><code class="docutils literal notranslate"><span class="pre">pairdict</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.pairdict.__getitem__"><code class="docutils literal notranslate"><span class="pre">__getitem__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.pairdict.__setitem__"><code class="docutils literal notranslate"><span class="pre">__setitem__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.environment.pairdict.tuple_check"><code class="docutils literal notranslate"><span class="pre">tuple_check()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="trainer.html">Agent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tester.html">Tester</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Agent</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">RL-KG</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="model.html">Model</a></li>
+      <li class="breadcrumb-item active">Environment</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/model/environment.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="environment">
+<h1>Environment<a class="headerlink" href="#environment" title="Permalink to this heading"></a></h1>
+<p>The environment class manages the Reinforcement Leaning environment.
+It inherits from OpenAIs gym class which defines several core functions for an environment.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="model.environment.KGEnv">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.environment.</span></span><span class="sig-name descname"><span class="pre">KGEnv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_manager</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataManager</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_relation_pair</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_distance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regenerate_embeddings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_embeddings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gpu_accel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_episodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">laps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.KGEnv" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the environment and keeps track of the episodes that have been elapsed during training.
+We use the Gym package (<a class="reference external" href="https://github.com/openai/gym">https://github.com/openai/gym</a>) as it offers a standard model to generate 
+environments and tie them up with keras agents.</p>
+<p>### Description
+The environment is the currently selected knowledge graph built with inverse relationships</p>
+<p>The agent is positioned in the initial node that we want to connect via a certain relationship and then
+we act over the graph moving the agents location trying to find the end entity for the triple.</p>
+<p>### Action space
+The actions vary depending on the current node we are in, we can take any edge connected 
+to this node as an action moving the agent to the next node, actions are pairs of (“relation”,”node”)</p>
+<p>### Observation space
+Since the complete state of the graph cannot be observed by the agent due to the size limitations
+we make the agent aware of its current location (et) and  the query triple(e1q, rq, e?), but not the answer (e2q)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_manager</strong> – The data manager instance asociated</p></li>
+<li><p><strong>dataset</strong> – The name of the folder containing the dataset file (graph.txt)</p></li>
+<li><p><strong>single_relation_pair</strong> – (is_single_rel(bool), single_rel_name(str)), the tuple representing if we are training for a single relation.</p></li>
+<li><p><strong>embedding</strong> – the embedding representation to load.</p></li>
+<li><p><strong>is_distance</strong> – if the reward calculation contains distance.</p></li>
+<li><p><strong>seed</strong> – the seed to operate on</p></li>
+<li><p><strong>threads</strong> – number of cores to use on calculations.</p></li>
+<li><p><strong>path_length</strong> – the length of path exploration.</p></li>
+<li><p><strong>regenerate_embeddings</strong> – wether to regenerate embeddings or use the saved ones.</p></li>
+<li><p><strong>normalize_embeddings</strong> – if recalculation is active, wether to normalize them.</p></li>
+<li><p><strong>gpu_accel</strong> – wether to use the gpu for calculations.</p></li>
+<li><p><strong>use_episodes</strong> – wether to use a set number of episodes or not</p></li>
+<li><p><strong>laps</strong> – the loops to perform over the dataset.</p></li>
+<li><p><strong>verbose</strong> – wether to print detailed information every episode.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<p>It’s functions can be divided into 4 sections</p>
+<section id="gym">
+<h2>Gym<a class="headerlink" href="#gym" title="Permalink to this heading"></a></h2>
+<p>OpenAIs gym provides several functions, we override several of them to fit our environment, these are:</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="model.environment.KGEnv.step">
+<span class="sig-prename descclassname"><span class="pre">model.environment.KGEnv.</span></span><span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.KGEnv.step" title="Permalink to this definition"></a></dt>
+<dd><p>Performs one environment step, determined by the recieved action.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>action</strong> – the action in its triple format</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+<p>state -&gt; the current state after the step is performed.</p>
+<p>done -&gt; if the episode is done.</p>
+<p>info -&gt; empty dict (conforming with gym, but we provide no extra info.)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.environment.KGEnv.reset">
+<span class="sig-prename descclassname"><span class="pre">model.environment.KGEnv.</span></span><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.KGEnv.reset" title="Permalink to this definition"></a></dt>
+<dd><p>resets the environment for the next episode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the state after the reset.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.environment.KGEnv.action_space">
+<span class="sig-prename descclassname"><span class="pre">model.environment.KGEnv.</span></span><span class="sig-name descname"><span class="pre">action_space</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.KGEnv.action_space" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the action space of the environment, which is the minimum and maximum values of the embeddings.
+These do not all represent possible actions, but the scope in which actions can be contained.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A boxed state (gym.spaces) of all possible actions in the current environment.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.environment.KGEnv.observation_space">
+<span class="sig-prename descclassname"><span class="pre">model.environment.KGEnv.</span></span><span class="sig-name descname"><span class="pre">observation_space</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.KGEnv.observation_space" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the observation space of the environment, which is the minimum and maximum values of the embeddings.
+These do not all represent possible observation, but the scope in which observations can be contained.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A boxed space(gym.spaces) of all possible observations in the current environment.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="caches">
+<h2>Caches<a class="headerlink" href="#caches" title="Permalink to this heading"></a></h2>
+<p>We build a reward cache to avoid calculating the same reward twice since it is a costly task.
+These functions handle the initialization and storage of these caches.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="model.environment.KGEnv.cache_init">
+<span class="sig-prename descclassname"><span class="pre">model.environment.KGEnv.</span></span><span class="sig-name descname"><span class="pre">cache_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_distance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.KGEnv.cache_init" title="Permalink to this definition"></a></dt>
+<dd><p>initializes the cache for distance rewards for the selected dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> – the name of the dataset</p></li>
+<li><p><strong>is_distance</strong> – if true tries to load cache, sets cache to None otherwise.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.environment.KGEnv.save_current_cache">
+<span class="sig-prename descclassname"><span class="pre">model.environment.KGEnv.</span></span><span class="sig-name descname"><span class="pre">save_current_cache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.KGEnv.save_current_cache" title="Permalink to this definition"></a></dt>
+<dd><p>saves the dataset cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dataset</strong> – the dataset name</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="states-observations-actions">
+<h2>States, Observations &amp; Actions<a class="headerlink" href="#states-observations-actions" title="Permalink to this heading"></a></h2>
+<p>These functions manage the observations and actions that are currently available in the environment.
+They calculate where the agent can and cannot go, how probable an action is and which triples are left to explore.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="model.environment.KGEnv.get_current_state">
+<span class="sig-prename descclassname"><span class="pre">model.environment.KGEnv.</span></span><span class="sig-name descname"><span class="pre">get_current_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.KGEnv.get_current_state" title="Permalink to this definition"></a></dt>
+<dd><p>returns the current state of the environment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<p>self.target_triple[0] -&gt; e1</p>
+<p>self.target_triple[1] -&gt; r</p>
+<p>self.target_triple[2] -&gt; e2</p>
+<p>self.current_node -&gt; et</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.environment.KGEnv.get_encoded_state">
+<span class="sig-prename descclassname"><span class="pre">model.environment.KGEnv.</span></span><span class="sig-name descname"><span class="pre">get_encoded_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.KGEnv.get_encoded_state" title="Permalink to this definition"></a></dt>
+<dd><p>The encoding of the state is just the addition of the embedding representation of the triple + the node position.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>[<a href="#id1"><span class="problematic" id="id2">*</span></a>e1,*r,*e2,*et]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.environment.KGEnv.get_encoded_observations">
+<span class="sig-prename descclassname"><span class="pre">model.environment.KGEnv.</span></span><span class="sig-name descname"><span class="pre">get_encoded_observations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.KGEnv.get_encoded_observations" title="Permalink to this definition"></a></dt>
+<dd><p>The encoding of the observations is just the addition of the embedding representation of the query + the node position.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>[(<a href="#id3"><span class="problematic" id="id4">*</span></a>e1,*r),*et]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.environment.KGEnv.select_target">
+<span class="sig-prename descclassname"><span class="pre">model.environment.KGEnv.</span></span><span class="sig-name descname"><span class="pre">select_target</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.KGEnv.select_target" title="Permalink to this definition"></a></dt>
+<dd><p>choose a new target triple to find.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>true if valid triple is found, false otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.environment.KGEnv.reset_queries">
+<span class="sig-prename descclassname"><span class="pre">model.environment.KGEnv.</span></span><span class="sig-name descname"><span class="pre">reset_queries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.KGEnv.reset_queries" title="Permalink to this definition"></a></dt>
+<dd><p>resets the queries and randomizes them</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.environment.KGEnv.update_actions">
+<span class="sig-prename descclassname"><span class="pre">model.environment.KGEnv.</span></span><span class="sig-name descname"><span class="pre">update_actions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.KGEnv.update_actions" title="Permalink to this definition"></a></dt>
+<dd><p>Updates the actions for the new step</p>
+</dd></dl>
+
+</section>
+<section id="rewards-embeddings">
+<h2>Rewards &amp; Embeddings<a class="headerlink" href="#rewards-embeddings" title="Permalink to this heading"></a></h2>
+<p>These functions manage the embeddings and rewards calculated for each step.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="model.environment.KGEnv.get_distance">
+<span class="sig-prename descclassname"><span class="pre">model.environment.KGEnv.</span></span><span class="sig-name descname"><span class="pre">get_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.KGEnv.get_distance" title="Permalink to this definition"></a></dt>
+<dd><p>given the current node calculate the minimum distance to the end node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>current_node</strong> – the current node in the environment</p></li>
+<li><p><strong>end_node</strong> – the target node.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the distance to the end node from the current node.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.environment.KGEnv.dist_func">
+<span class="sig-prename descclassname"><span class="pre">model.environment.KGEnv.</span></span><span class="sig-name descname"><span class="pre">dist_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_evaluate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">done_flag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_evaluate_next_step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visited</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.KGEnv.dist_func" title="Permalink to this definition"></a></dt>
+<dd><p>helper function to calculate the distance to the end node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>init_index</strong> – starting point in list of nodes to evaluate.</p></li>
+<li><p><strong>last_index</strong> – end point in list of nodes to evaluate</p></li>
+<li><p><strong>to_evaluate</strong> – the current list of nodes to get the neighbors to.</p></li>
+<li><p><strong>d</strong> – current distance from starting node.</p></li>
+<li><p><strong>done_flag</strong> – true if we reached the last node.</p></li>
+<li><p><strong>to_evaluate_next_step</strong> – the next iteration list of nodes to evaluate.</p></li>
+<li><p><strong>visited</strong> – the list of visited nodes.</p></li>
+<li><p><strong>current_node</strong> – the current node of exploration</p></li>
+<li><p><strong>end_node</strong> – the destination node.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.environment.KGEnv.calculate_embedding_min_max">
+<span class="sig-prename descclassname"><span class="pre">model.environment.KGEnv.</span></span><span class="sig-name descname"><span class="pre">calculate_embedding_min_max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.KGEnv.calculate_embedding_min_max" title="Permalink to this definition"></a></dt>
+<dd><p>Iterates over the embedding representations of the entities and relations and computes the minimum and maximum values to be used in a gym.Spaces.Box()</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>mins_rel, mins_ent, maxs_rel, maxs_ent (the minimum and maximum values for entities and relations.)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.environment.KGEnv.get_embedding_info">
+<span class="sig-prename descclassname"><span class="pre">model.environment.KGEnv.</span></span><span class="sig-name descname"><span class="pre">get_embedding_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluated_node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.KGEnv.get_embedding_info" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the embedding rewards for the current node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>evaluated_node</strong> – the current node of exploration.</p></li>
+<li><p><strong>end_node</strong> – the destination node.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>this is a description of what is returned</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="pair-dictionary">
+<h2>Pair dictionary<a class="headerlink" href="#pair-dictionary" title="Permalink to this heading"></a></h2>
+<p>The caches use a special implementation of the dict class that can only ever accept tuples as keys.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="model.environment.pairdict">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.environment.</span></span><span class="sig-name descname"><span class="pre">pairdict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.pairdict" title="Permalink to this definition"></a></dt>
+<dd><p>Extends the basic python dict to only accept pairs as keys</p>
+</dd></dl>
+
+<p>These are the overriden function sigantures</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="model.environment.pairdict.__getitem__">
+<span class="sig-prename descclassname"><span class="pre">model.environment.pairdict.</span></span><span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.pairdict.__getitem__" title="Permalink to this definition"></a></dt>
+<dd><p>x.__getitem__(y) &lt;==&gt; x[y]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.environment.pairdict.__setitem__">
+<span class="sig-prename descclassname"><span class="pre">model.environment.pairdict.</span></span><span class="sig-name descname"><span class="pre">__setitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.pairdict.__setitem__" title="Permalink to this definition"></a></dt>
+<dd><p>Set self[key] to value.</p>
+</dd></dl>
+
+<p>and the auxiliary function</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="model.environment.pairdict.tuple_check">
+<span class="sig-prename descclassname"><span class="pre">model.environment.pairdict.</span></span><span class="sig-name descname"><span class="pre">tuple_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.environment.pairdict.tuple_check" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="config.html" class="btn btn-neutral float-left" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="trainer.html" class="btn btn-neutral float-right" title="Agent" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, DEAL.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

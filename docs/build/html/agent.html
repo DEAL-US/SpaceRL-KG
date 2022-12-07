@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent &mdash; RL-KG 1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Environment" href="environment.html" />
+    <link rel="prev" title="Model" href="model.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> RL-KG
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="model.html">Model</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Agent</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#model.agent.Agent"><code class="docutils literal notranslate"><span class="pre">Agent</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#network-building">Network Building</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.policy_config"><code class="docutils literal notranslate"><span class="pre">policy_config()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.build_policy_networks"><code class="docutils literal notranslate"><span class="pre">build_policy_networks()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.build_critic_network"><code class="docutils literal notranslate"><span class="pre">build_critic_network()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.build_network_from_copy"><code class="docutils literal notranslate"><span class="pre">build_network_from_copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.lstm_middle"><code class="docutils literal notranslate"><span class="pre">lstm_middle()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#actions-rewards">Actions &amp; Rewards</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.encode_action"><code class="docutils literal notranslate"><span class="pre">encode_action()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.get_next_state_reward"><code class="docutils literal notranslate"><span class="pre">get_next_state_reward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.get_inputs_and_rewards"><code class="docutils literal notranslate"><span class="pre">get_inputs_and_rewards()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.get_network_outputs"><code class="docutils literal notranslate"><span class="pre">get_network_outputs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.pick_action_from_outputs"><code class="docutils literal notranslate"><span class="pre">pick_action_from_outputs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.select_action"><code class="docutils literal notranslate"><span class="pre">select_action()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.select_action_runtime"><code class="docutils literal notranslate"><span class="pre">select_action_runtime()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#policy-updates">Policy Updates</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.update_target_network"><code class="docutils literal notranslate"><span class="pre">update_target_network()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.get_y_true"><code class="docutils literal notranslate"><span class="pre">get_y_true()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.learn"><code class="docutils literal notranslate"><span class="pre">learn()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.calculate_backpropagation_rewards"><code class="docutils literal notranslate"><span class="pre">calculate_backpropagation_rewards()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.calculate_PPO_rewards"><code class="docutils literal notranslate"><span class="pre">calculate_PPO_rewards()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#auxiliary">Auxiliary</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.reset"><code class="docutils literal notranslate"><span class="pre">reset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.remember"><code class="docutils literal notranslate"><span class="pre">remember()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.numpyfy_memories"><code class="docutils literal notranslate"><span class="pre">numpyfy_memories()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model.agent.Agent.stringify_actions"><code class="docutils literal notranslate"><span class="pre">stringify_actions()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="environment.html">Environment</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">RL-KG</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="model.html">Model</a></li>
+      <li class="breadcrumb-item active">Agent</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/agent.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="agent">
+<h1>Agent<a class="headerlink" href="#agent" title="Permalink to this heading"></a></h1>
+<p>The agent class is tasked with generating the Tensorflow models that will serve
+as the Reinforcement Learning agents which will carry out the path exploration.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="model.agent.Agent">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.agent.</span></span><span class="sig-name descname"><span class="pre">Agent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_manager</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataManager</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">environment</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="environment.html#model.environment.KGEnv" title="model.environment.KGEnv"><span class="pre">KGEnv</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_LSTM</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regularizers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_comp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">guided_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_pick_policy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algorithm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">guided_reward</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">restore_agent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent" title="Permalink to this definition"></a></dt>
+<dd><p>The RL agent class, it contains the keras models, and is the one tasked with calculating the possible actions in every step,
+the probabilities, the rewards, storing the memories for each step, etc…</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_manager</strong> – the instantiated data manager for this training/testing instance.</p></li>
+<li><p><strong>environment</strong> – the linked environment for this agent.</p></li>
+<li><p><strong>gamma</strong> – [0.90-0.99] decay rate of past observations for backpropagation</p></li>
+<li><p><strong>learning_rate</strong> – [1e-3, 1e-5] neural network learning rate.</p></li>
+<li><p><strong>alpha</strong> – [0.8-0.99] previous step network learning rate (for PPO only.)</p></li>
+<li><p><strong>use_LSTM</strong> – wether to add LSTM layers to the model</p></li>
+<li><p><strong>activation</strong> – activation function for intermediate layers. options: “relu”, “prelu”, “leaky_relu”, “elu”, “tanh”</p></li>
+<li><p><strong>regularizers</strong> – applies L1 and L2 regularization at different stages of training. options: “kernel”, “bias”, “activity”</p></li>
+<li><p><strong>rew_comp</strong> – modifies how the y_true value is calculated. options: “max_percent”, “one_hot_max”, “straight”</p></li>
+<li><p><strong>guided_reward</strong> – wether to follow a step-based reward or just a reward at the end of the episode.</p></li>
+<li><p><strong>guided_options</strong> – if guided rewards are active, which one(s) to use. options: “distance”,”terminal”,”embedding”</p></li>
+<li><p><strong>action_pick_policy</strong> – how the actions are chosen from the list of possible ones in every step. options: “probability”, “max”</p></li>
+<li><p><strong>algorithm</strong> – which algorithm to use when learning. options: “BASE”, “PPO”</p></li>
+<li><p><strong>reward_type</strong> – which way to feed the rewards to the network. options: “retropropagation”, “simple”</p></li>
+<li><p><strong>restore_agent</strong> – if true continues the training from where it left off and loads the agent if possible.</p></li>
+<li><p><strong>verbose</strong> – if true prints detailed information every episode.</p></li>
+<li><p><strong>debug</strong> – if true offers information about crashes, runs post-mortem.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>It can be separated into 4 sections.</p>
+<section id="network-building">
+<h2>Network Building<a class="headerlink" href="#network-building" title="Permalink to this heading"></a></h2>
+<p>These set of functions generate the different sections of the models layers and
+its intermediate components.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.policy_config">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">policy_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.policy_config" title="Permalink to this definition"></a></dt>
+<dd><p>Performs some structural checks for the network building.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<p>kernel_init -&gt; kernel initializer string description for keras model.</p>
+<p>activation -&gt; performs a leaky ReLU initialization if the activation parameter demands for it.</p>
+<p>k_reg -&gt; initalizes kernel regularization</p>
+<p>b_reg -&gt; initalizes bias regularization</p>
+<p>a_reg -&gt; initalizes activity regularization</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.build_policy_networks">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">build_policy_networks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LTSM_layer_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_layer_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_lstm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.build_policy_networks" title="Permalink to this definition"></a></dt>
+<dd><p>initializes the keras model based on the size of the input layer given.
+Returns a model with a sigmoid activation as the last layer to be used as the probability for the specific action passed as an input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_size</strong> – the input size of the network to build.</p></li>
+<li><p><strong>LTSM_layer_size</strong> – the intermediate LSTM layer size.</p></li>
+<li><p><strong>hidden_layer_size</strong> – the intermediate Dense layer size.</p></li>
+<li><p><strong>lr</strong> – learning rate of the network.</p></li>
+<li><p><strong>use_lstm</strong> – wether to use LSTM intermediate layers or not.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+<p>policy, None, None (For BASE algorithm) <strong>OR</strong> actor, critic, actor_copy (For PPO algorithm)</p>
+<p>policy &amp; actor -&gt; represent the models that calculate the action probabilities for each step.</p>
+<p>critic -&gt; evaluates the rewards vs the progress made and its used to better this calculation.</p>
+<p>actor_copy -&gt; is a clone of the actor network that is one step behind, used for PPO calculations.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.build_critic_network">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">build_critic_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_layer_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LTSM_layer_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.build_critic_network" title="Permalink to this definition"></a></dt>
+<dd><p>Builds a critic network.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_size</strong> – the input size of the network to build.</p></li>
+<li><p><strong>LTSM_layer_size</strong> – the intermediate LSTM layer size.</p></li>
+<li><p><strong>hidden_layer_size</strong> – the intermediate Dense layer size.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the critic network.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.build_network_from_copy">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">build_network_from_copy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.build_network_from_copy" title="Permalink to this definition"></a></dt>
+<dd><p>Copies the given network</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>network</strong> – the network to copy</p></li>
+<li><p><strong>learning_rate</strong> – the new learning rate for the network.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the copied network.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.lstm_middle">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">lstm_middle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_layer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dense</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LTSM_layer_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_layer_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_init</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_reg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">L1L2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_reg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">L1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a_reg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">L1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.lstm_middle" title="Permalink to this definition"></a></dt>
+<dd><p>constructs the intermediate LSTM layers for the network.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prev_layer</strong> – The dense layer to connect them to.</p></li>
+<li><p><strong>LTSM_layer_size</strong> – the intermediate LSTM layer size.</p></li>
+<li><p><strong>hidden_layer_size</strong> – the intermediate Dense layer size.</p></li>
+<li><p><strong>activation</strong> – activation fuction for intermediate layers.</p></li>
+<li><p><strong>kernel_init</strong> – kernel initializer string description for keras model.</p></li>
+<li><p><strong>k_reg</strong> – kernel regularizer</p></li>
+<li><p><strong>b_reg</strong> – bias regularizer</p></li>
+<li><p><strong>a_reg</strong> – activity regularizer</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the last linked LSTM layer to connect to the model.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="actions-rewards">
+<h2>Actions &amp; Rewards<a class="headerlink" href="#actions-rewards" title="Permalink to this heading"></a></h2>
+<p>These set of functions handles the generation of the reward values,
+propagation of them to them to the network and the selection of actions.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.encode_action">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">encode_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chosen_rel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chosen_ent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.encode_action" title="Permalink to this definition"></a></dt>
+<dd><p>Encodes the action as its embedding representation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>chosen_rel</strong> – entity to encode</p></li>
+<li><p><strong>chosen_ent</strong> – relation to enconde</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>[*relation_embedding, *entity_embedding]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.get_next_state_reward">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">get_next_state_reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_taken</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.get_next_state_reward" title="Permalink to this definition"></a></dt>
+<dd><p>Gets the reward for the next state if that action is chosen, its calculated in 3 toggleable steps</p>
+<ul class="simple">
+<li><p>terminal rewards -&gt; returns 1 if agent is located at the tail entity at the end of the episode, adds 0 otherwise.</p></li>
+<li><p>distance -&gt; we reward the agent based on the distance to the tail entity</p></li>
+<li><p>embedding -&gt; computes several metrics of embedding similarity and uses them to compute a reward.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>action_taken</strong> – action being evaluated.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the reward [0.05 - 1]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.get_inputs_and_rewards">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">get_inputs_and_rewards</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.get_inputs_and_rewards" title="Permalink to this definition"></a></dt>
+<dd><p>Based on the current environment state, gets the rewards to all actions in the current state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<p>inputs -&gt; all the encoded actions that the agent can perform in the current step.</p>
+<p>rewards -&gt; the calculated rewards for every action possible.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.get_network_outputs">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">get_network_outputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.get_network_outputs" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the output of the network for all actions in the step</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>action_taken</strong> – action being evaluated.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>all the network outputs for each input.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.pick_action_from_outputs">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">pick_action_from_outputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.pick_action_from_outputs" title="Permalink to this definition"></a></dt>
+<dd><p>Given the network outputs, calculate the action to be taken</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>outputs</strong> – the network outputs for all actions.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+<p>chosen_action -&gt; the chosen action</p>
+<p>chosen_action_index -&gt; the index of the action in the action list.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.select_action">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">select_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.select_action" title="Permalink to this definition"></a></dt>
+<dd><p>Evaluating the actions to be taken, as well as the query triple and the location of exploration, calculates the action to follow.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<p>chosen_action -&gt; the literal representation action that was chosen to be followed.</p>
+<p>inputs[chosen_action_index] -&gt; the encoded representation of the action that was selected.</p>
+<p>rewards[chosen_action_index] -&gt; the rewards that were calculated for that action</p>
+<p>max(rewards) -&gt; the best reward in the episode.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.select_action_runtime">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">select_action_runtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.select_action_runtime" title="Permalink to this definition"></a></dt>
+<dd><p>Simplified version of the action selector, it calculates nothing, only gets the outputs from the trained model. Used by tester.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the literal representation of the action that was chosen by the agent.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="policy-updates">
+<h2>Policy Updates<a class="headerlink" href="#policy-updates" title="Permalink to this heading"></a></h2>
+<p>These set of functions handle what the model recieves as update inputs.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.update_target_network">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">update_target_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.update_target_network" title="Permalink to this definition"></a></dt>
+<dd><p>Updates the old network in PPO before aplying the changes to it.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.get_y_true">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">get_y_true</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_mem</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_rew_mem</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.get_y_true" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the y_true based on the max reward for the episode and the reward of the chosen action.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rew_mem</strong> – the calculated reward for the chosen action</p></li>
+<li><p><strong>max_rew_mem</strong> – the maximum reward for the episode.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>y_true (the information to feedback to the network based on its action chosen.)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.learn">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">learn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.learn" title="Permalink to this definition"></a></dt>
+<dd><p>Updates the policy network using the NN model.
+This function is used after the MC sampling is done following the function:</p>
+<p>Δθ = α * gradient + log(probabilities)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>loss</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.calculate_backpropagation_rewards">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">calculate_backpropagation_rewards</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rew_mem</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.calculate_backpropagation_rewards" title="Permalink to this definition"></a></dt>
+<dd><p>As per the REINFORCE implementation we calculate the backpropagation of the rewards for each step of the training
+we then use these values to train the NN.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rew_mem</strong> – the calculated reward for the chosen action</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the propagated rewards calculated for each step.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.calculate_PPO_rewards">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">calculate_PPO_rewards</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_rew</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.calculate_PPO_rewards" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the rewards for the PPO algorithm following its formula.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>last_rew</strong> – the last calculated reward before the end of the episode.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+<p>discounted_r_old -&gt; the reward from the old policy network.
+discounted_r -&gt; the calculated reward for the actor network.</p>
+</dd></dl>
+
+</section>
+<section id="auxiliary">
+<h2>Auxiliary<a class="headerlink" href="#auxiliary" title="Permalink to this heading"></a></h2>
+<p>Auxiliary functions.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.reset">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.reset" title="Permalink to this definition"></a></dt>
+<dd><p>resets the memories of the episode</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.remember">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">remember</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_rew</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.remember" title="Permalink to this definition"></a></dt>
+<dd><p>stores the memories for the episode</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.numpyfy_memories">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">numpyfy_memories</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.numpyfy_memories" title="Permalink to this definition"></a></dt>
+<dd><p>converts the memories into numpy arrays and returns them</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.agent.Agent.stringify_actions">
+<span class="sig-prename descclassname"><span class="pre">model.agent.Agent.</span></span><span class="sig-name descname"><span class="pre">stringify_actions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.agent.Agent.stringify_actions" title="Permalink to this definition"></a></dt>
+<dd><p>converts the memories into numpy arrays</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="model.html" class="btn btn-neutral float-left" title="Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="environment.html" class="btn btn-neutral float-right" title="Environment" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, DEAL.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
