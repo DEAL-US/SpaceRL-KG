@@ -12,8 +12,6 @@ sys.path.insert(0, str(api_dir))
 sys.path.insert(0, str(gui_dir))
 sys.path.insert(0, str(models_dir))
 
-print(sys.executable)
-
 print(sys.path)
 
 # Configuration file for the Sphinx documentation builder.

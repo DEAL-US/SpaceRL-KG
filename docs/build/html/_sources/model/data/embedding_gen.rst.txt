@@ -1,6 +1,7 @@
-Agent
-=========
-The agent class is tasked with generating the Tensorflow models that will serve 
-as the Reinforcement Learning agents which will carry out the path exploration.
+Embedding generator
+====================
+A set of functions to generate embeddings for the different datasets.
 
-.. autoclass:: model.agent.Agent
+.. autofunction:: model.data.generator.generate_trans_embeddings.generate_embedding
+.. autofunction:: model.data.generator.generate_trans_embeddings.process_embeddings
+.. autofunction:: model.data.generator.generate_trans_embeddings.generate_raw

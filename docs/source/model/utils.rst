@@ -1,6 +1,10 @@
 Utils
 =========
-The agent class is tasked with generating the Tensorflow models that will serve 
-as the Reinforcement Learning agents which will carry out the path exploration.
+The utils class contains methods to handle logging and printing in a global scale.
 
-.. autoclass:: model.agent.Agent
+.. autoclass:: model.utils.Utils
+
+with its functions 
+
+.. autofunction:: model.utils.Utils.verb_print
+.. autofunction:: model.utils.Utils.write_log

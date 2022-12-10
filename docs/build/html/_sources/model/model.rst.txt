@@ -7,7 +7,7 @@ The core components to this module are the following
 
 .. toctree::
    :caption: Core Components
-   :maxdepth: 2
+   :maxdepth: 3
 
    agent
    config

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Main Menu &mdash; RL-KG 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="GUI" href="GUI.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> RL-KG
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../model/model.html">Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model/data/data.html">Data</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="GUI.html">GUI</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Main Menu</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#GUI.main.mainmenu"><code class="docutils literal notranslate"><span class="pre">mainmenu</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#window-structure">Window Structure</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.add_elements"><code class="docutils literal notranslate"><span class="pre">add_elements()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.grid_elements"><code class="docutils literal notranslate"><span class="pre">grid_elements()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.add_styles"><code class="docutils literal notranslate"><span class="pre">add_styles()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#submenu-handling">Submenu Handling</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.open_menu"><code class="docutils literal notranslate"><span class="pre">open_menu()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.extract_config_on_close"><code class="docutils literal notranslate"><span class="pre">extract_config_on_close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.extract_info_on_close"><code class="docutils literal notranslate"><span class="pre">extract_info_on_close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.pathmenu_teardown"><code class="docutils literal notranslate"><span class="pre">pathmenu_teardown()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#execution">Execution</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.run_experimentation"><code class="docutils literal notranslate"><span class="pre">run_experimentation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.run_tests"><code class="docutils literal notranslate"><span class="pre">run_tests()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#thread-handling">Thread Handling</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.kill_all_threads"><code class="docutils literal notranslate"><span class="pre">kill_all_threads()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.mainthread"><code class="docutils literal notranslate"><span class="pre">mainthread()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#error-handling">Error Handling</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.showbusyerror"><code class="docutils literal notranslate"><span class="pre">showbusyerror()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.change_error_text"><code class="docutils literal notranslate"><span class="pre">change_error_text()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#updates">Updates</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.update_connectors"><code class="docutils literal notranslate"><span class="pre">update_connectors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.update_progress"><code class="docutils literal notranslate"><span class="pre">update_progress()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.launch_updater"><code class="docutils literal notranslate"><span class="pre">launch_updater()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.change_progtext"><code class="docutils literal notranslate"><span class="pre">change_progtext()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.set_progbar_value"><code class="docutils literal notranslate"><span class="pre">set_progbar_value()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.change_progbar_max"><code class="docutils literal notranslate"><span class="pre">change_progbar_max()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.update_all_progress"><code class="docutils literal notranslate"><span class="pre">update_all_progress()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#miscellaneous">Miscellaneous</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.open_folder"><code class="docutils literal notranslate"><span class="pre">open_folder()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.main.mainmenu.intercept_close"><code class="docutils literal notranslate"><span class="pre">intercept_close()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">RL-KG</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="GUI.html">GUI</a></li>
+      <li class="breadcrumb-item active">Main Menu</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/GUI/main.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="main-menu">
+<h1>Main Menu<a class="headerlink" href="#main-menu" title="Permalink to this heading"></a></h1>
+<p>The main menu class contains the elements to render the main window and the logic to connect to the rest of the module.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="GUI.main.mainmenu">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GUI.main.</span></span><span class="sig-name descname"><span class="pre">mainmenu</span></span><a class="headerlink" href="#GUI.main.mainmenu" title="Permalink to this definition"></a></dt>
+<dd><p>Instantiates and runs the main window of the GUI.</p>
+</dd></dl>
+
+<p>We can separate the functions into 7 different categories</p>
+<section id="window-structure">
+<h2>Window Structure<a class="headerlink" href="#window-structure" title="Permalink to this heading"></a></h2>
+<p>Responsible for the correct position and size of different Gui elements.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.add_elements">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">add_elements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.add_elements" title="Permalink to this definition"></a></dt>
+<dd><p>Adds all tkinter elements to the main window.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.grid_elements">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">grid_elements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.grid_elements" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the position of all tkinter elements in the main window.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.add_styles">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">add_styles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.add_styles" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the style from the styles folder for all the application.</p>
+</dd></dl>
+
+</section>
+<section id="submenu-handling">
+<h2>Submenu Handling<a class="headerlink" href="#submenu-handling" title="Permalink to this heading"></a></h2>
+<p>Responsible for creating and managing information from submenus</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.open_menu">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">open_menu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">menutype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.open_menu" title="Permalink to this definition"></a></dt>
+<dd><p>rest text</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>menutype</strong> – the type of the menu to open, options -&gt; config, setup, paths</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.extract_config_on_close">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">extract_config_on_close</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_menu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">menu</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.extract_config_on_close" title="Permalink to this definition"></a></dt>
+<dd><p>Awaits for the configuration menu to be closed and retrieves the information on it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config_menu</strong> – the config menu object that was instantiated.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.extract_info_on_close">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">extract_info_on_close</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">setup_window</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">menu</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.extract_info_on_close" title="Permalink to this definition"></a></dt>
+<dd><p>Awaits for the setup menu to be closed and retrieves the information on it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>setup_window</strong> – the setup menu object that was instantiated.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.pathmenu_teardown">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">pathmenu_teardown</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pathmenu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">menu</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.pathmenu_teardown" title="Permalink to this definition"></a></dt>
+<dd><p>Runs consistency checks with the pathmenu is closed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pathmenu</strong> – the path menu object that was instantiated.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="execution">
+<h2>Execution<a class="headerlink" href="#execution" title="Permalink to this heading"></a></h2>
+<p>These functions handle the execution of the model module.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.run_experimentation">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">run_experimentation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.run_experimentation" title="Permalink to this definition"></a></dt>
+<dd><p>Initializes the experimentation based on the setup window data.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.run_tests">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">run_tests</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.run_tests" title="Permalink to this definition"></a></dt>
+<dd><p>Initializes the testing based on the setup window data.</p>
+</dd></dl>
+
+</section>
+<section id="thread-handling">
+<h2>Thread Handling<a class="headerlink" href="#thread-handling" title="Permalink to this heading"></a></h2>
+<p>Launching threads and mantaining their states.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.kill_all_threads">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">kill_all_threads</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.kill_all_threads" title="Permalink to this definition"></a></dt>
+<dd><p>stops all execution threads</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.mainthread">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">mainthread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.mainthread" title="Permalink to this definition"></a></dt>
+<dd><p>starts the execution of the testing or training modules</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>is_train</strong> – if True it starts the training thread, it starts the testing thread otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="error-handling">
+<h2>Error Handling<a class="headerlink" href="#error-handling" title="Permalink to this heading"></a></h2>
+<p>Visual updates to report errors to the user.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.showbusyerror">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">showbusyerror</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.showbusyerror" title="Permalink to this definition"></a></dt>
+<dd><p>displays a busy error in an error window.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.change_error_text">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">change_error_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">newtext</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.change_error_text" title="Permalink to this definition"></a></dt>
+<dd><p>updates the error text at the bottom of the main window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>newtext</strong> – text to diplay.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="updates">
+<h2>Updates<a class="headerlink" href="#updates" title="Permalink to this heading"></a></h2>
+<p>Handles the updating of the different parts of the GUI and program</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.update_connectors">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">update_connectors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.update_connectors" title="Permalink to this definition"></a></dt>
+<dd><p>Initializes new connectors for the trainer and testing modules based on the config and setup window results.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.update_progress">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">update_progress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.update_progress" title="Permalink to this definition"></a></dt>
+<dd><p>main loop of the progress section, it checks the connector periodically for new information and updates the main window based on the result.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>is_train</strong> – which of the update loops to run, if True it updates the trainer loop, tester otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.launch_updater">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">launch_updater</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.launch_updater" title="Permalink to this definition"></a></dt>
+<dd><p>Initializes the updater thread and starts it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>is_train</strong> – which of the loops to start, Training if True, Testing otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.change_progtext">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">change_progtext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">newtext</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.change_progtext" title="Permalink to this definition"></a></dt>
+<dd><p>modifies the progress texts in the main window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>newtext</strong> – the text to display</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.set_progbar_value">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">set_progbar_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.set_progbar_value" title="Permalink to this definition"></a></dt>
+<dd><p>modifies the progressbar current internal value in the main window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>v</strong> – the new value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.change_progbar_max">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">change_progbar_max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qtty</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.change_progbar_max" title="Permalink to this definition"></a></dt>
+<dd><p>modifies the progressbar max internal value in the main window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>qtty</strong> – the new value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.update_all_progress">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">update_all_progress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">curr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.update_all_progress" title="Permalink to this definition"></a></dt>
+<dd><p>updates all progress information simultaneously.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>curr</strong> – the current progess info</p></li>
+<li><p><strong>tot</strong> – the maximum progress info</p></li>
+<li><p><strong>text</strong> – the current text progress</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="miscellaneous">
+<h2>Miscellaneous<a class="headerlink" href="#miscellaneous" title="Permalink to this heading"></a></h2>
+<p>Miscellaneous helper functions.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.open_folder">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">open_folder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.open_folder" title="Permalink to this definition"></a></dt>
+<dd><p>Opens the selected folder for the user, adjusting based on the OS.
+Should work for Linux, Windows, Mac &amp; WSL.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>folder</strong> – name of the folder to open, options -&gt; datasets, agents</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.main.mainmenu.intercept_close">
+<span class="sig-prename descclassname"><span class="pre">GUI.main.mainmenu.</span></span><span class="sig-name descname"><span class="pre">intercept_close</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.main.mainmenu.intercept_close" title="Permalink to this definition"></a></dt>
+<dd><p>overrides the colsing function of the main window and shows a warning if needed.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="GUI.html" class="btn btn-neutral float-left" title="GUI" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, DEAL.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

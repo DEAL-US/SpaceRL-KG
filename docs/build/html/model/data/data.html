@@ -20,7 +20,7 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Agent" href="embedding_gen.html" />
+    <link rel="next" title="Embedding generator" href="embedding_gen.html" />
     <link rel="prev" title="Utils" href="../utils.html" /> 
 </head>
 
@@ -43,9 +43,9 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../model.html">Model</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Data</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="embedding_gen.html">Agent</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data_manager.html">Agent</a></li>
-<li class="toctree-l2"><a class="reference internal" href="KG_struct.html">Agent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="embedding_gen.html">Embedding generator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_manager.html">Data Manager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="KG_struct.html">Knowledge Graph Structure</a></li>
 </ul>
 </li>
 </ul>
@@ -80,16 +80,49 @@
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Data Components</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="embedding_gen.html">Agent</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="embedding_gen.html#model.agent.Agent"><code class="docutils literal notranslate"><span class="pre">Agent</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="embedding_gen.html">Embedding generator</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="embedding_gen.html#model.data.generator.generate_trans_embeddings.generate_embedding"><code class="docutils literal notranslate"><span class="pre">generate_embedding()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="embedding_gen.html#model.data.generator.generate_trans_embeddings.process_embeddings"><code class="docutils literal notranslate"><span class="pre">process_embeddings()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="embedding_gen.html#model.data.generator.generate_trans_embeddings.generate_raw"><code class="docutils literal notranslate"><span class="pre">generate_raw()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="data_manager.html">Agent</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="data_manager.html#model.agent.Agent"><code class="docutils literal notranslate"><span class="pre">Agent</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_manager.html">Data Manager</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data_manager.html#model.data.data_manager.DataManager"><code class="docutils literal notranslate"><span class="pre">DataManager</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_manager.html#datasets-caches">Datasets &amp; Caches</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data_manager.html#model.data.data_manager.DataManager.get_dataset"><code class="docutils literal notranslate"><span class="pre">get_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_manager.html#model.data.data_manager.DataManager.get_cache_for_dataset"><code class="docutils literal notranslate"><span class="pre">get_cache_for_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_manager.html#model.data.data_manager.DataManager.save_cache_for_dataset"><code class="docutils literal notranslate"><span class="pre">save_cache_for_dataset()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="KG_struct.html">Agent</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="KG_struct.html#model.agent.Agent"><code class="docutils literal notranslate"><span class="pre">Agent</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_manager.html#agent-models">Agent &amp; Models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data_manager.html#model.data.data_manager.DataManager.save_agent_model"><code class="docutils literal notranslate"><span class="pre">save_agent_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_manager.html#model.data.data_manager.DataManager.restore_saved_agent"><code class="docutils literal notranslate"><span class="pre">restore_saved_agent()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_manager.html#model.data.data_manager.DataManager.restore_saved_agent_PPO"><code class="docutils literal notranslate"><span class="pre">restore_saved_agent_PPO()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_manager.html#model.data.data_manager.DataManager.saveall"><code class="docutils literal notranslate"><span class="pre">saveall()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data_manager.html#debug-logs">Debug &amp; Logs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data_manager.html#model.data.data_manager.DataManager.write_log"><code class="docutils literal notranslate"><span class="pre">write_log()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_manager.html#model.data.data_manager.DataManager.debug_save"><code class="docutils literal notranslate"><span class="pre">debug_save()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_manager.html#model.data.data_manager.DataManager.debug_load"><code class="docutils literal notranslate"><span class="pre">debug_load()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data_manager.html#miscellaneous">Miscellaneous</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data_manager.html#model.data.data_manager.DataManager.update_lastest_input"><code class="docutils literal notranslate"><span class="pre">update_lastest_input()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_manager.html#model.data.data_manager.DataManager.copy_config"><code class="docutils literal notranslate"><span class="pre">copy_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_manager.html#model.data.data_manager.DataManager.run_integrity_checks"><code class="docutils literal notranslate"><span class="pre">run_integrity_checks()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="data_manager.html#model.data.data_manager.DataManager.remove_folders"><code class="docutils literal notranslate"><span class="pre">remove_folders()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="KG_struct.html">Knowledge Graph Structure</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="KG_struct.html#model.data.kg_structure.KnowledgeGraph"><code class="docutils literal notranslate"><span class="pre">KnowledgeGraph</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="KG_struct.html#model.data.kg_structure.KnowledgeGraph.add_triples"><code class="docutils literal notranslate"><span class="pre">add_triples()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="KG_struct.html#model.data.kg_structure.KnowledgeGraph.add"><code class="docutils literal notranslate"><span class="pre">add()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="KG_struct.html#model.data.kg_structure.KnowledgeGraph.get_neighbors"><code class="docutils literal notranslate"><span class="pre">get_neighbors()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="KG_struct.html#model.data.kg_structure.KnowledgeGraph.subgraph"><code class="docutils literal notranslate"><span class="pre">subgraph()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="KG_struct.html#model.data.kg_structure.KnowledgeGraph.top_entities_sorted_by_conectivity"><code class="docutils literal notranslate"><span class="pre">top_entities_sorted_by_conectivity()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -101,7 +134,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../utils.html" class="btn btn-neutral float-left" title="Utils" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="embedding_gen.html" class="btn btn-neutral float-right" title="Agent" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="embedding_gen.html" class="btn btn-neutral float-right" title="Embedding generator" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

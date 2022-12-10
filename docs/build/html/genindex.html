@@ -40,6 +40,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="model/model.html">Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="model/data/data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="GUI/GUI.html">GUI</a></li>
 </ul>
 
         </div>
@@ -76,8 +77,10 @@
  | <a href="#D"><strong>D</strong></a>
  | <a href="#E"><strong>E</strong></a>
  | <a href="#G"><strong>G</strong></a>
+ | <a href="#I"><strong>I</strong></a>
  | <a href="#K"><strong>K</strong></a>
  | <a href="#L"><strong>L</strong></a>
+ | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
@@ -85,6 +88,8 @@
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
+ | <a href="#W"><strong>W</strong></a>
  
 </div>
 <h2 id="_">_</h2>
@@ -104,9 +109,21 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="model/environment.html#model.environment.KGEnv.action_space">action_space() (in module model.environment.KGEnv)</a>
 </li>
+      <li><a href="model/data/KG_struct.html#model.data.kg_structure.KnowledgeGraph.add">add() (in module model.data.kg_structure.KnowledgeGraph)</a>
+</li>
+      <li><a href="GUI/config.html#GUI.config_menu.menu.add_elements">add_elements() (in module GUI.config_menu.menu)</a>
+
+      <ul>
+        <li><a href="GUI/main.html#GUI.main.mainmenu.add_elements">(in module GUI.main.mainmenu)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="model/agent.html#model.agent.Agent">Agent (class in model.agent)</a>, <a href="model/data/KG_struct.html#model.agent.Agent">[1]</a>, <a href="model/data/data_manager.html#model.agent.Agent">[2]</a>, <a href="model/data/embedding_gen.html#model.agent.Agent">[3]</a>, <a href="model/trainer.html#model.agent.Agent">[4]</a>, <a href="model/utils.html#model.agent.Agent">[5]</a>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.add_styles">add_styles() (in module GUI.main.mainmenu)</a>
+</li>
+      <li><a href="model/data/KG_struct.html#model.data.kg_structure.KnowledgeGraph.add_triples">add_triples() (in module model.data.kg_structure.KnowledgeGraph)</a>
+</li>
+      <li><a href="model/agent.html#model.agent.Agent">Agent (class in model.agent)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -132,11 +149,21 @@
 </li>
       <li><a href="model/agent.html#model.agent.Agent.calculate_backpropagation_rewards">calculate_backpropagation_rewards() (in module model.agent.Agent)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="model/environment.html#model.environment.KGEnv.calculate_embedding_min_max">calculate_embedding_min_max() (in module model.environment.KGEnv)</a>
 </li>
       <li><a href="model/agent.html#model.agent.Agent.calculate_PPO_rewards">calculate_PPO_rewards() (in module model.agent.Agent)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.change_error_text">change_error_text() (in module GUI.main.mainmenu)</a>
+</li>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.change_progbar_max">change_progbar_max() (in module GUI.main.mainmenu)</a>
+</li>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.change_progtext">change_progtext() (in module GUI.main.mainmenu)</a>
+</li>
+      <li><a href="model/tester.html#model.tester.compute_metrics">compute_metrics() (in module model.tester)</a>
+</li>
+      <li><a href="model/data/data_manager.html#model.data.data_manager.DataManager.copy_config">copy_config() (in module model.data.data_manager.DataManager)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -144,6 +171,16 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="model/data/data_manager.html#model.data.data_manager.DataManager">DataManager (class in model.data.data_manager)</a>
+</li>
+      <li><a href="model/trainer.html#model.trainer.Trainer.debug_handle">debug_handle() (in module model.trainer.Trainer)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="model/data/data_manager.html#model.data.data_manager.DataManager.debug_load">debug_load() (in module model.data.data_manager.DataManager)</a>
+</li>
+      <li><a href="model/data/data_manager.html#model.data.data_manager.DataManager.debug_save">debug_save() (in module model.data.data_manager.DataManager)</a>
+</li>
       <li><a href="model/environment.html#model.environment.KGEnv.dist_func">dist_func() (in module model.environment.KGEnv)</a>
 </li>
   </ul></td>
@@ -154,9 +191,17 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="model/agent.html#model.agent.Agent.encode_action">encode_action() (in module model.agent.Agent)</a>
 </li>
+      <li><a href="model/trainer.html#model.trainer.Trainer.episode_misc">episode_misc() (in module model.trainer.Trainer)</a>
+</li>
+      <li><a href="GUI/test_train.html#model.config.Experiment">Experiment (class in model.config)</a>, <a href="model/config.html#model.config.Experiment">[1]</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="model/config.html#model.config.Experiment">Experiment (class in model.config)</a>
+      <li><a href="model/tester.html#model.tester.extract_config_info">extract_config_info() (in module model.tester)</a>
+</li>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.extract_config_on_close">extract_config_on_close() (in module GUI.main.mainmenu)</a>
+</li>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.extract_info_on_close">extract_info_on_close() (in module GUI.main.mainmenu)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -164,13 +209,23 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="model/data/embedding_gen.html#model.data.generator.generate_trans_embeddings.generate_embedding">generate_embedding() (in module model.data.generator.generate_trans_embeddings)</a>
+</li>
       <li><a href="model/tester.html#model.tester.Tester.generate_found_paths_files">generate_found_paths_files() (in module model.tester.Tester)</a>
 </li>
       <li><a href="model/tester.html#model.tester.Tester.generate_MRR_boxplot_and_source">generate_MRR_boxplot_and_source() (in module model.tester.Tester)</a>
 </li>
-      <li><a href="model/config.html#model.config.get_config">get_config() (in module model.config)</a>
+      <li><a href="model/data/embedding_gen.html#model.data.generator.generate_trans_embeddings.generate_raw">generate_raw() (in module model.data.generator.generate_trans_embeddings)</a>
+</li>
+      <li><a href="model/tester.html#model.tester.get_agents">get_agents() (in module model.tester)</a>
+</li>
+      <li><a href="model/data/data_manager.html#model.data.data_manager.DataManager.get_cache_for_dataset">get_cache_for_dataset() (in module model.data.data_manager.DataManager)</a>
+</li>
+      <li><a href="GUI/test_train.html#model.config.get_config">get_config() (in module model.config)</a>, <a href="model/config.html#model.config.get_config">[1]</a>
 </li>
       <li><a href="model/environment.html#model.environment.KGEnv.get_current_state">get_current_state() (in module model.environment.KGEnv)</a>
+</li>
+      <li><a href="model/data/data_manager.html#model.data.data_manager.DataManager.get_dataset">get_dataset() (in module model.data.data_manager.DataManager)</a>
 </li>
       <li><a href="model/environment.html#model.environment.KGEnv.get_distance">get_distance() (in module model.environment.KGEnv)</a>
 </li>
@@ -182,13 +237,39 @@
 </li>
       <li><a href="model/environment.html#model.environment.KGEnv.get_encoded_state">get_encoded_state() (in module model.environment.KGEnv)</a>
 </li>
+      <li><a href="model/tester.html#model.tester.get_gui_values">get_gui_values() (in module model.tester)</a>
+
+      <ul>
+        <li><a href="model/trainer.html#model.trainer.get_gui_values">(in module model.trainer)</a>
+</li>
+      </ul></li>
       <li><a href="model/agent.html#model.agent.Agent.get_inputs_and_rewards">get_inputs_and_rewards() (in module model.agent.Agent)</a>
+</li>
+      <li><a href="model/data/KG_struct.html#model.data.kg_structure.KnowledgeGraph.get_neighbors">get_neighbors() (in module model.data.kg_structure.KnowledgeGraph)</a>
 </li>
       <li><a href="model/agent.html#model.agent.Agent.get_network_outputs">get_network_outputs() (in module model.agent.Agent)</a>
 </li>
       <li><a href="model/agent.html#model.agent.Agent.get_next_state_reward">get_next_state_reward() (in module model.agent.Agent)</a>
 </li>
       <li><a href="model/agent.html#model.agent.Agent.get_y_true">get_y_true() (in module model.agent.Agent)</a>
+</li>
+      <li><a href="GUI/config.html#GUI.config_menu.menu.grid_elements">grid_elements() (in module GUI.config_menu.menu)</a>
+
+      <ul>
+        <li><a href="GUI/main.html#GUI.main.mainmenu.grid_elements">(in module GUI.main.mainmenu)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.intercept_close">intercept_close() (in module GUI.main.mainmenu)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="GUI/config.html#GUI.config_menu.menu.invalid">invalid() (in module GUI.config_menu.menu)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -199,16 +280,44 @@
       <li><a href="model/environment.html#model.environment.KGEnv">KGEnv (class in model.environment)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.kill_all_threads">kill_all_threads() (in module GUI.main.mainmenu)</a>
+</li>
+      <li><a href="model/data/KG_struct.html#model.data.kg_structure.KnowledgeGraph">KnowledgeGraph (class in model.data.kg_structure)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="model/agent.html#model.agent.Agent.learn">learn() (in module model.agent.Agent)</a>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.launch_updater">launch_updater() (in module GUI.main.mainmenu)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="model/agent.html#model.agent.Agent.learn">learn() (in module model.agent.Agent)</a>
+</li>
       <li><a href="model/agent.html#model.agent.Agent.lstm_middle">lstm_middle() (in module model.agent.Agent)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="M">M</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="model/tester.html#model.tester.main">main() (in module model.tester)</a>
+
+      <ul>
+        <li><a href="model/trainer.html#model.trainer.main">(in module model.trainer)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="GUI/main.html#GUI.main.mainmenu">mainmenu (class in GUI.main)</a>
+</li>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.mainthread">mainthread() (in module GUI.main.mainmenu)</a>
+</li>
+      <li><a href="GUI/config.html#GUI.config_menu.menu">menu (class in GUI.config_menu)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -227,6 +336,12 @@
       <li><a href="model/environment.html#model.environment.KGEnv.observation_space">observation_space() (in module model.environment.KGEnv)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.open_folder">open_folder() (in module GUI.main.mainmenu)</a>
+</li>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.open_menu">open_menu() (in module GUI.main.mainmenu)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="P">P</h2>
@@ -236,11 +351,15 @@
 </li>
       <li><a href="model/tester.html#model.tester.Tester.path_contains_entity">path_contains_entity() (in module model.tester.Tester)</a>
 </li>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.pathmenu_teardown">pathmenu_teardown() (in module GUI.main.mainmenu)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="model/agent.html#model.agent.Agent.pick_action_from_outputs">pick_action_from_outputs() (in module model.agent.Agent)</a>
 </li>
       <li><a href="model/agent.html#model.agent.Agent.policy_config">policy_config() (in module model.agent.Agent)</a>
+</li>
+      <li><a href="model/data/embedding_gen.html#model.data.generator.generate_trans_embeddings.process_embeddings">process_embeddings() (in module model.data.generator.generate_trans_embeddings)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -250,17 +369,37 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="model/agent.html#model.agent.Agent.remember">remember() (in module model.agent.Agent)</a>
 </li>
+      <li><a href="model/data/data_manager.html#model.data.data_manager.DataManager.remove_folders">remove_folders() (in module model.data.data_manager.DataManager)</a>
+</li>
       <li><a href="model/agent.html#model.agent.Agent.reset">reset() (in module model.agent.Agent)</a>
 
       <ul>
         <li><a href="model/environment.html#model.environment.KGEnv.reset">(in module model.environment.KGEnv)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="model/environment.html#model.environment.KGEnv.reset_queries">reset_queries() (in module model.environment.KGEnv)</a>
 </li>
+      <li><a href="model/data/data_manager.html#model.data.data_manager.DataManager.restore_saved_agent">restore_saved_agent() (in module model.data.data_manager.DataManager)</a>
+</li>
+      <li><a href="model/data/data_manager.html#model.data.data_manager.DataManager.restore_saved_agent_PPO">restore_saved_agent_PPO() (in module model.data.data_manager.DataManager)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="model/tester.html#model.tester.Tester.run">run() (in module model.tester.Tester)</a>
+
+      <ul>
+        <li><a href="model/trainer.html#model.trainer.Trainer.run">(in module model.trainer.Trainer)</a>
+</li>
+      </ul></li>
+      <li><a href="model/trainer.html#model.trainer.Trainer.run_debug">run_debug() (in module model.trainer.Trainer)</a>
+</li>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.run_experimentation">run_experimentation() (in module GUI.main.mainmenu)</a>
+</li>
+      <li><a href="model/data/data_manager.html#model.data.data_manager.DataManager.run_integrity_checks">run_integrity_checks() (in module model.data.data_manager.DataManager)</a>
+</li>
+      <li><a href="model/trainer.html#model.trainer.Trainer.run_prep">run_prep() (in module model.trainer.Trainer)</a>
+</li>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.run_tests">run_tests() (in module GUI.main.mainmenu)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -268,21 +407,45 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="model/data/data_manager.html#model.data.data_manager.DataManager.save_agent_model">save_agent_model() (in module model.data.data_manager.DataManager)</a>
+</li>
+      <li><a href="model/data/data_manager.html#model.data.data_manager.DataManager.save_cache_for_dataset">save_cache_for_dataset() (in module model.data.data_manager.DataManager)</a>
+</li>
+      <li><a href="GUI/config.html#GUI.config_menu.menu.save_config">save_config() (in module GUI.config_menu.menu)</a>
+</li>
       <li><a href="model/environment.html#model.environment.KGEnv.save_current_cache">save_current_cache() (in module model.environment.KGEnv)</a>
+</li>
+      <li><a href="model/data/data_manager.html#model.data.data_manager.DataManager.saveall">saveall() (in module model.data.data_manager.DataManager)</a>
 </li>
       <li><a href="model/agent.html#model.agent.Agent.select_action">select_action() (in module model.agent.Agent)</a>
 </li>
       <li><a href="model/agent.html#model.agent.Agent.select_action_runtime">select_action_runtime() (in module model.agent.Agent)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="model/environment.html#model.environment.KGEnv.select_target">select_target() (in module model.environment.KGEnv)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="model/tester.html#model.tester.Tester.set_gpu_config">set_gpu_config() (in module model.tester.Tester)</a>
+
+      <ul>
+        <li><a href="model/trainer.html#model.trainer.Trainer.set_gpu_config">(in module model.trainer.Trainer)</a>
 </li>
+      </ul></li>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.set_progbar_value">set_progbar_value() (in module GUI.main.mainmenu)</a>
+</li>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.showbusyerror">showbusyerror() (in module GUI.main.mainmenu)</a>
+</li>
+      <li><a href="model/tester.html#model.tester.TesterGUIconnector.start_connection">start_connection() (in module model.tester.TesterGUIconnector)</a>
+
+      <ul>
+        <li><a href="model/trainer.html#model.trainer.TrainerGUIconnector.start_connection">(in module model.trainer.TrainerGUIconnector)</a>
+</li>
+      </ul></li>
       <li><a href="model/environment.html#model.environment.KGEnv.step">step() (in module model.environment.KGEnv)</a>
 </li>
       <li><a href="model/agent.html#model.agent.Agent.stringify_actions">stringify_actions() (in module model.agent.Agent)</a>
+</li>
+      <li><a href="model/data/KG_struct.html#model.data.kg_structure.KnowledgeGraph.subgraph">subgraph() (in module model.data.kg_structure.KnowledgeGraph)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -290,11 +453,25 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="model/config.html#model.config.Test">Test (class in model.config)</a>
+      <li><a href="GUI/test_train.html#model.config.Test">Test (class in model.config)</a>, <a href="model/config.html#model.config.Test">[1]</a>
 </li>
+      <li><a href="model/tester.html#model.tester.Tester">Tester (class in model.tester)</a>
+</li>
+      <li><a href="model/tester.html#model.tester.TesterGUIconnector">TesterGUIconnector (class in model.tester)</a>
+</li>
+      <li><a href="model/tester.html#model.tester.TesterGUIconnector.threaded_update">threaded_update() (in module model.tester.TesterGUIconnector)</a>
+
+      <ul>
+        <li><a href="model/trainer.html#model.trainer.TrainerGUIconnector.threaded_update">(in module model.trainer.TrainerGUIconnector)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="model/tester.html#model.tester.Tester">Tester (class in model.tester)</a>
+      <li><a href="model/data/KG_struct.html#model.data.kg_structure.KnowledgeGraph.top_entities_sorted_by_conectivity">top_entities_sorted_by_conectivity() (in module model.data.kg_structure.KnowledgeGraph)</a>
+</li>
+      <li><a href="model/trainer.html#model.trainer.Trainer">Trainer (class in model.trainer)</a>
+</li>
+      <li><a href="model/trainer.html#model.trainer.TrainerGUIconnector">TrainerGUIconnector (class in model.trainer)</a>
 </li>
       <li><a href="model/environment.html#model.environment.pairdict.tuple_check">tuple_check() (in module model.environment.pairdict)</a>
 </li>
@@ -306,12 +483,60 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="model/environment.html#model.environment.KGEnv.update_actions">update_actions() (in module model.environment.KGEnv)</a>
 </li>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.update_all_progress">update_all_progress() (in module GUI.main.mainmenu)</a>
+</li>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.update_connectors">update_connectors() (in module GUI.main.mainmenu)</a>
+</li>
+      <li><a href="model/tester.html#model.tester.TesterGUIconnector.update_current_tester">update_current_tester() (in module model.tester.TesterGUIconnector)</a>
+</li>
+      <li><a href="model/trainer.html#model.trainer.TrainerGUIconnector.update_current_trainer">update_current_trainer() (in module model.trainer.TrainerGUIconnector)</a>
+</li>
+      <li><a href="model/tester.html#model.tester.Tester.update_gui_vars">update_gui_vars() (in module model.tester.Tester)</a>
+
+      <ul>
+        <li><a href="model/trainer.html#model.trainer.Trainer.update_gui_vars">(in module model.trainer.Trainer)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="model/tester.html#model.tester.Tester.update_gui_vars">update_gui_vars() (in module model.tester.Tester)</a>
+      <li><a href="model/tester.html#model.tester.TesterGUIconnector.update_info_variables">update_info_variables() (in module model.tester.TesterGUIconnector)</a>
+
+      <ul>
+        <li><a href="model/trainer.html#model.trainer.TrainerGUIconnector.update_info_variables">(in module model.trainer.TrainerGUIconnector)</a>
+</li>
+      </ul></li>
+      <li><a href="model/data/data_manager.html#model.data.data_manager.DataManager.update_lastest_input">update_lastest_input() (in module model.data.data_manager.DataManager)</a>
+</li>
+      <li><a href="GUI/main.html#GUI.main.mainmenu.update_progress">update_progress() (in module GUI.main.mainmenu)</a>
 </li>
       <li><a href="model/agent.html#model.agent.Agent.update_target_network">update_target_network() (in module model.agent.Agent)</a>
 </li>
+      <li><a href="model/utils.html#model.utils.Utils">Utils (class in model.utils)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="GUI/config.html#GUI.config_menu.menu.validation">validation() (in module GUI.config_menu.menu)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="model/utils.html#model.utils.Utils.verb_print">verb_print() (in module model.utils.Utils)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="model/data/data_manager.html#model.data.data_manager.DataManager.write_log">write_log() (in module model.data.data_manager.DataManager)</a>
+
+      <ul>
+        <li><a href="model/utils.html#model.utils.Utils.write_log">(in module model.utils.Utils)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 

@@ -87,10 +87,39 @@ Training and Testing new agents, embedding generation, data caching, logging and
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="agent.html">Agent</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="agent.html#model.agent.Agent"><code class="docutils literal notranslate"><span class="pre">Agent</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="agent.html#network-building">Network Building</a></li>
-<li class="toctree-l2"><a class="reference internal" href="agent.html#actions-rewards">Actions &amp; Rewards</a></li>
-<li class="toctree-l2"><a class="reference internal" href="agent.html#policy-updates">Policy Updates</a></li>
-<li class="toctree-l2"><a class="reference internal" href="agent.html#auxiliary">Auxiliary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agent.html#network-building">Network Building</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.policy_config"><code class="docutils literal notranslate"><span class="pre">policy_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.build_policy_networks"><code class="docutils literal notranslate"><span class="pre">build_policy_networks()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.build_critic_network"><code class="docutils literal notranslate"><span class="pre">build_critic_network()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.build_network_from_copy"><code class="docutils literal notranslate"><span class="pre">build_network_from_copy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.lstm_middle"><code class="docutils literal notranslate"><span class="pre">lstm_middle()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="agent.html#actions-rewards">Actions &amp; Rewards</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.encode_action"><code class="docutils literal notranslate"><span class="pre">encode_action()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.get_next_state_reward"><code class="docutils literal notranslate"><span class="pre">get_next_state_reward()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.get_inputs_and_rewards"><code class="docutils literal notranslate"><span class="pre">get_inputs_and_rewards()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.get_network_outputs"><code class="docutils literal notranslate"><span class="pre">get_network_outputs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.pick_action_from_outputs"><code class="docutils literal notranslate"><span class="pre">pick_action_from_outputs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.select_action"><code class="docutils literal notranslate"><span class="pre">select_action()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.select_action_runtime"><code class="docutils literal notranslate"><span class="pre">select_action_runtime()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="agent.html#policy-updates">Policy Updates</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.update_target_network"><code class="docutils literal notranslate"><span class="pre">update_target_network()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.get_y_true"><code class="docutils literal notranslate"><span class="pre">get_y_true()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.learn"><code class="docutils literal notranslate"><span class="pre">learn()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.calculate_backpropagation_rewards"><code class="docutils literal notranslate"><span class="pre">calculate_backpropagation_rewards()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.calculate_PPO_rewards"><code class="docutils literal notranslate"><span class="pre">calculate_PPO_rewards()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="agent.html#auxiliary">Auxiliary</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.reset"><code class="docutils literal notranslate"><span class="pre">reset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.remember"><code class="docutils literal notranslate"><span class="pre">remember()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.numpyfy_memories"><code class="docutils literal notranslate"><span class="pre">numpyfy_memories()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="agent.html#model.agent.Agent.stringify_actions"><code class="docutils literal notranslate"><span class="pre">stringify_actions()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a><ul>
@@ -101,15 +130,59 @@ Training and Testing new agents, embedding generation, data caching, logging and
 </li>
 <li class="toctree-l1"><a class="reference internal" href="environment.html">Environment</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="environment.html#model.environment.KGEnv"><code class="docutils literal notranslate"><span class="pre">KGEnv</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="environment.html#gym">Gym</a></li>
-<li class="toctree-l2"><a class="reference internal" href="environment.html#caches">Caches</a></li>
-<li class="toctree-l2"><a class="reference internal" href="environment.html#states-observations-actions">States, Observations &amp; Actions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="environment.html#rewards-embeddings">Rewards &amp; Embeddings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="environment.html#pair-dictionary">Pair dictionary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="environment.html#gym">Gym</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.KGEnv.step"><code class="docutils literal notranslate"><span class="pre">step()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.KGEnv.reset"><code class="docutils literal notranslate"><span class="pre">reset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.KGEnv.action_space"><code class="docutils literal notranslate"><span class="pre">action_space()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.KGEnv.observation_space"><code class="docutils literal notranslate"><span class="pre">observation_space()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="environment.html#caches">Caches</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.KGEnv.cache_init"><code class="docutils literal notranslate"><span class="pre">cache_init()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.KGEnv.save_current_cache"><code class="docutils literal notranslate"><span class="pre">save_current_cache()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="environment.html#states-observations-actions">States, Observations &amp; Actions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.KGEnv.get_current_state"><code class="docutils literal notranslate"><span class="pre">get_current_state()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.KGEnv.get_encoded_state"><code class="docutils literal notranslate"><span class="pre">get_encoded_state()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.KGEnv.get_encoded_observations"><code class="docutils literal notranslate"><span class="pre">get_encoded_observations()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.KGEnv.select_target"><code class="docutils literal notranslate"><span class="pre">select_target()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.KGEnv.reset_queries"><code class="docutils literal notranslate"><span class="pre">reset_queries()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.KGEnv.update_actions"><code class="docutils literal notranslate"><span class="pre">update_actions()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="environment.html#rewards-embeddings">Rewards &amp; Embeddings</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.KGEnv.get_distance"><code class="docutils literal notranslate"><span class="pre">get_distance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.KGEnv.dist_func"><code class="docutils literal notranslate"><span class="pre">dist_func()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.KGEnv.calculate_embedding_min_max"><code class="docutils literal notranslate"><span class="pre">calculate_embedding_min_max()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.KGEnv.get_embedding_info"><code class="docutils literal notranslate"><span class="pre">get_embedding_info()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="environment.html#pair-dictionary">Pair dictionary</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.pairdict"><code class="docutils literal notranslate"><span class="pre">pairdict</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.pairdict.__getitem__"><code class="docutils literal notranslate"><span class="pre">__getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.pairdict.__setitem__"><code class="docutils literal notranslate"><span class="pre">__setitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="environment.html#model.environment.pairdict.tuple_check"><code class="docutils literal notranslate"><span class="pre">tuple_check()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="trainer.html">Trainer</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="trainer.html#model.agent.Agent"><code class="docutils literal notranslate"><span class="pre">Agent</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="trainer.html#model.trainer.Trainer"><code class="docutils literal notranslate"><span class="pre">Trainer</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="trainer.html#model.trainer.Trainer.run_prep"><code class="docutils literal notranslate"><span class="pre">run_prep()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="trainer.html#model.trainer.Trainer.run"><code class="docutils literal notranslate"><span class="pre">run()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="trainer.html#model.trainer.Trainer.episode_misc"><code class="docutils literal notranslate"><span class="pre">episode_misc()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="trainer.html#model.trainer.Trainer.debug_handle"><code class="docutils literal notranslate"><span class="pre">debug_handle()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="trainer.html#model.trainer.Trainer.set_gpu_config"><code class="docutils literal notranslate"><span class="pre">set_gpu_config()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="trainer.html#model.trainer.Trainer.run_debug"><code class="docutils literal notranslate"><span class="pre">run_debug()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="trainer.html#model.trainer.Trainer.update_gui_vars"><code class="docutils literal notranslate"><span class="pre">update_gui_vars()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="trainer.html#model.trainer.TrainerGUIconnector"><code class="docutils literal notranslate"><span class="pre">TrainerGUIconnector</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="trainer.html#model.trainer.TrainerGUIconnector.start_connection"><code class="docutils literal notranslate"><span class="pre">start_connection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="trainer.html#model.trainer.TrainerGUIconnector.update_current_trainer"><code class="docutils literal notranslate"><span class="pre">update_current_trainer()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="trainer.html#model.trainer.TrainerGUIconnector.update_info_variables"><code class="docutils literal notranslate"><span class="pre">update_info_variables()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="trainer.html#model.trainer.TrainerGUIconnector.threaded_update"><code class="docutils literal notranslate"><span class="pre">threaded_update()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="trainer.html#model.trainer.get_gui_values"><code class="docutils literal notranslate"><span class="pre">get_gui_values()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="trainer.html#model.trainer.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tester.html">Tester</a><ul>
@@ -120,10 +193,22 @@ Training and Testing new agents, embedding generation, data caching, logging and
 <li class="toctree-l2"><a class="reference internal" href="tester.html#model.tester.Tester.path_contains_entity"><code class="docutils literal notranslate"><span class="pre">path_contains_entity()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="tester.html#model.tester.Tester.set_gpu_config"><code class="docutils literal notranslate"><span class="pre">set_gpu_config()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="tester.html#model.tester.Tester.update_gui_vars"><code class="docutils literal notranslate"><span class="pre">update_gui_vars()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="tester.html#model.tester.TesterGUIconnector"><code class="docutils literal notranslate"><span class="pre">TesterGUIconnector</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="tester.html#model.tester.TesterGUIconnector.start_connection"><code class="docutils literal notranslate"><span class="pre">start_connection()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="tester.html#model.tester.TesterGUIconnector.update_current_tester"><code class="docutils literal notranslate"><span class="pre">update_current_tester()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="tester.html#model.tester.TesterGUIconnector.update_info_variables"><code class="docutils literal notranslate"><span class="pre">update_info_variables()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="tester.html#model.tester.TesterGUIconnector.threaded_update"><code class="docutils literal notranslate"><span class="pre">threaded_update()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="tester.html#model.tester.compute_metrics"><code class="docutils literal notranslate"><span class="pre">compute_metrics()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="tester.html#model.tester.get_agents"><code class="docutils literal notranslate"><span class="pre">get_agents()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="tester.html#model.tester.extract_config_info"><code class="docutils literal notranslate"><span class="pre">extract_config_info()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="tester.html#model.tester.get_gui_values"><code class="docutils literal notranslate"><span class="pre">get_gui_values()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="tester.html#model.tester.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">Utils</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="utils.html#model.agent.Agent"><code class="docutils literal notranslate"><span class="pre">Agent</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#model.utils.Utils"><code class="docutils literal notranslate"><span class="pre">Utils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#model.utils.Utils.verb_print"><code class="docutils literal notranslate"><span class="pre">verb_print()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#model.utils.Utils.write_log"><code class="docutils literal notranslate"><span class="pre">write_log()</span></code></a></li>
 </ul>
 </li>
 </ul>
