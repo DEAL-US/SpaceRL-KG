@@ -7,6 +7,9 @@ import multiprocessing
 import sys
 
 class menu():
+    """
+    The config menu.
+    """
     def __init__(self, root, config):
         self.config = deepcopy(config)
 
@@ -22,6 +25,9 @@ class menu():
         self.add_elements()
 
     def add_elements(self):
+        """
+        Adds all tkinter elements to the config window.
+        """
         # LabelFrames:
         self.general_lf = ttk.Labelframe(self.mainframe, text='General')
         self.training_tf = ttk.Labelframe(self.mainframe, text='Training')
@@ -219,6 +225,9 @@ class menu():
         self.grid_elements()
 
     def grid_elements(self):
+        """
+        Sets the position of all tkinter elements in the main window.
+        """
         #row0:
         self.errors.grid(row=0, column=0)
         
@@ -352,7 +361,14 @@ class menu():
         for child in self.shared_tf.winfo_children():
             child.grid_configure(padx=9, pady=0)
 
-    def validation(self, value: str, origin):
+    def validation(self, value: str, origin:str):
+        """
+        Validates all user defined information.
+
+        :param value: the value in the text field at the time of validation
+        :param origin: the origin of the validation trigger it represents one of the text fields in the window. 
+
+        """
         int_origins, float_origins = ["path", "cpu", "seed"], ["alpha", "gamma", "lr"]
         all_origins = [*int_origins,*float_origins]
         ranges = [(3,10),(1,multiprocessing.cpu_count()),(1,sys.maxsize), (0.9,0.99),(0.8,0.99),(1e-5, 1e-3)]
@@ -378,7 +394,13 @@ class menu():
         else:
             return True
 
-    def invalid(self, origin):
+    def invalid(self, origin:str):
+        """
+        If the validation of the field didn't pass, what actions to take.
+
+        :param origin: the origin of the validation trigger it represents one of the text fields in the window. 
+
+        """
         print(f"the origin of the validation error is: {origin}")
         if(origin == "seed"):  
             self.seed_entry.delete(0,END)          
@@ -408,6 +430,9 @@ class menu():
             self.errors["text"] = "an unexpected error ocurred"
         
     def save_config(self):
+        """
+        Saves the configuration from the elements displayed.
+        """
         print("saving config")
         self.config["available_cores"] = self.cores_entry.get()
         self.config["gpu_acceleration"] = self.gpu_check.state()[0] == 'selected'

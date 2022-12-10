@@ -22,7 +22,7 @@ class Agent(object):
     :param environment: the linked environment for this agent.
     :param gamma: [0.90-0.99] decay rate of past observations for backpropagation
     :param learning_rate: [1e-3, 1e-5] neural network learning rate.
-    :param alpha: # [0.8-0.99] previous step network learning rate (for PPO only.)
+    :param alpha: [0.8-0.99] previous step network learning rate (for PPO only.)
     :param use_LSTM: wether to add LSTM layers to the model
     :param activation: activation function for intermediate layers. options: "relu", "prelu", "leaky_relu", "elu", "tanh"
     :param regularizers: applies L1 and L2 regularization at different stages of training. options: "kernel", "bias", "activity" 
@@ -108,11 +108,12 @@ class Agent(object):
         Performs some structural checks for the network building.
 
         :returns:
-        kernel_init -> kernel initializer string description for keras model.
-        activation -> performs a leaky ReLU initialization if the activation parameter demands for it.
-        k_reg -> initalizes kernel regularization
-        b_reg -> initalizes bias regularization
-        a_reg -> initalizes activity regularization
+        kernel_init -> kernel initializer string description for keras model.\n
+        activation -> performs a leaky ReLU initialization if the activation parameter demands for it. \n  
+        k_reg -> initalizes kernel regularization  \n
+        b_reg -> initalizes bias regularization  \n
+        a_reg -> initalizes activity regularization  \n
+
         """
         kernel_init = 'glorot_uniform'
         if(self.activation == "selu"):
@@ -143,12 +144,12 @@ class Agent(object):
 
         :returns:
         
-        policy, None, None (For BASE algorithm) OR actor, critic, actor_copy (For PPO algorithm)
+        policy, None, None (For BASE algorithm) **OR** actor, critic, actor_copy (For PPO algorithm)\n
 
-        policy & actor -> represent the models that calculate the action probabilities for each step.
-        critic -> evaluates the rewards vs the progress made and its used to better this calculation.
-        actor_copy -> is a clone of the actor network that is one step behind, used for PPO calculations.
-
+        policy & actor -> represent the models that calculate the action probabilities for each step.\n
+        critic -> evaluates the rewards vs the progress made and its used to better this calculation.\n
+        actor_copy -> is a clone of the actor network that is one step behind, used for PPO calculations.\n
+        
         """
         # Configuration dependent.
         kernel_init, activation, k_reg, b_reg, a_reg = self.policy_config()
@@ -219,11 +220,12 @@ class Agent(object):
         """
         Builds a critic network.
 
-        :param input_size: the input size of the network to build.
-        :param LTSM_layer_size: the intermediate LSTM layer size.
-        :param hidden_layer_size: the intermediate Dense layer size.
+        :param input_size: the input size of the network to build. \n
+        :param LTSM_layer_size: the intermediate LSTM layer size. \n
+        :param hidden_layer_size: the intermediate Dense layer size. \n
 
         :returns: the critic network.
+
         """
 
         kernel_init, activation, k_reg, b_reg, a_reg = self.policy_config()
@@ -255,10 +257,11 @@ class Agent(object):
         """
         Copies the given network
 
-        :param network: the network to copy
-        :param learning_rate: the new learning rate for the network.
+        :param network: the network to copy \n
+        :param learning_rate: the new learning rate for the network. \n
 
         :returns: the copied network.
+
         """
         network_structure = network.to_json()
         network_weights = network.get_weights()
@@ -304,46 +307,18 @@ class Agent(object):
 
         return lstm3
 
-    # def proximal_policy_loss(self, advantage, old_prediction):
-    #     loss_clipping = 0.1
-    #     entropy_loss = 0.2
-
-    #     def loss(y_true, y_pred):
-    #         print("=== LOSS ===")
-            
-    #         y_true= K.cast(y_true, K.tf.float32)
-    #         prob = y_true * y_pred
-    #         old_prob = y_true * old_prediction
-    #         r = prob / (old_prob + 1e-10)
-
-    #         print("=== PRINTING TENSORS ===")
-            
-    #         print("y_true = " + str(y_true))
-    #         print("prob = " + str(prob))
-    #         print("old_prob = " + str(old_prob))
-    #         print("r = " + str(K.eval(r)))
-
-    #         r_adv = r * advantage
-    #         clip = K.clip(r, min_value=1 - loss_clipping,max_value=1 + loss_clipping)
-    #         min_val = K.minimum(r_adv, clip * advantage)
-
-    #         res = -K.mean(min_val + entropy_loss * (prob * K.log(prob + 1e-10)))
-    #         print(f"loss is: {K.eval(res)}")
-    #         return res
-
-    #     return loss
-
     #############################
     #    ACTIONS AND REWARDS    #
     #############################
     def encode_action(self, chosen_rel:str, chosen_ent:str):
         """
-        encodes the action as its embedding representation
+        Encodes the action as its embedding representation
 
-        :param chosen_rel: entity to encode
-        :param chosen_ent: relation to enconde
+        :param chosen_rel: entity to encode \n
+        :param chosen_ent: relation to enconde \n
 
-        :returns: [*relation_embedding, *entity_embedding]
+        :returns: [\*relation_embedding, \*entity_embedding]
+
         """
         if(chosen_rel == "NO_OP"):
             rel_emb = list(np.zeros(int(self.action_len/2)))
@@ -354,13 +329,12 @@ class Agent(object):
         return [*rel_emb, *ent_emb]
         
     def get_next_state_reward(self, action_taken:tuple):
-  
         """
-        gets the reward for the next state if that action is chosen, its calculated in 3 toggleable steps
+        Gets the reward for the next state if that action is chosen, its calculated in 3 toggleable steps
 
-        - terminal rewards -> returns 1 if agent is located at the tail entity at the end of the episode, adds 0 otherwise.
-        - distance -> we reward the agent based on the distance to the tail entity
-        - embedding -> computes several metrics of embedding similarity and uses them to compute a reward.
+        - terminal rewards -> returns 1 if agent is located at the tail entity at the end of the episode, adds 0 otherwise. \n
+        - distance -> we reward the agent based on the distance to the tail entity \n
+        - embedding -> computes several metrics of embedding similarity and uses them to compute a reward. \n
 
         :param action_taken: action being evaluated.
 
@@ -458,11 +432,11 @@ class Agent(object):
             
     def get_inputs_and_rewards(self):
         """
-        based on the current environment state, gets the rewards to all actions in the current state.
+        Based on the current environment state, gets the rewards to all actions in the current state.
 
         :returns: 
-        inputs -> all the encoded actions that the agent can perform in the current step.
-        rewards -> the calculated rewards for every action possible.
+        inputs -> all the encoded actions that the agent can perform in the current step. \n
+        rewards -> the calculated rewards for every action possible. \n
 
         """
         inputs, rewards = [], []
@@ -487,11 +461,12 @@ class Agent(object):
 
     def get_network_outputs(self, num_actions:int, inputs:list):
         """
-        calculates the output of the network for all actions in the step
+        Calculates the output of the network for all actions in the step
 
         :param action_taken: action being evaluated.
 
         :returns: all the network outputs for each input.
+
         """
 
         # this number was chosen for a 3080 TI with 10GB of memory
@@ -538,14 +513,13 @@ class Agent(object):
 
     def pick_action_from_outputs(self, outputs:list):
         """
-        given the network outputs, calculate the action to be taken
+        Given the network outputs, calculate the action to be taken
 
         :param outputs: the network outputs for all actions.
 
         :returns: 
-
-        chosen_action -> the chosen action
-        chosen_action_index -> the index of the action in the action list.
+        chosen_action -> the chosen action \n
+        chosen_action_index -> the index of the action in the action list. \n
 
         """
         # if network returns all zeroes avoid nan by choosing random.
@@ -565,13 +539,13 @@ class Agent(object):
 
     def select_action(self):
         """
-        evaluating the actions to be taken, as well as the query triple and the location of exploration, calculates the action to follow.
+        Evaluating the actions to be taken, as well as the query triple and the location of exploration, calculates the action to follow.
 
         :returns:
-        chosen_action -> the literal representation action that was chosen to be followed.
-        inputs[chosen_action_index] -> the encoded representation of the action that was selected.
-        rewards[chosen_action_index] -> the rewards that were calculated for that action
-        max(rewards) -> the best reward in the episode.
+        chosen_action -> the literal representation action that was chosen to be followed.\n
+        inputs[chosen_action_index] -> the encoded representation of the action that was selected. \n
+        rewards[chosen_action_index] -> the rewards that were calculated for that action \n
+        max(rewards) -> the best reward in the episode. \n
 
         """
         if(self.guided_reward):
@@ -596,10 +570,10 @@ class Agent(object):
 
     def select_action_runtime(self):
         """
-        a simplified version of the action selector, it calculates nothing, only gets the outputs from the trained model. Used by tester.
+        Simplified version of the action selector, it calculates nothing, only gets the outputs from the trained model. Used by tester.
 
-        :returns:
-        chosen_action -> the literal representation action that was chosen to be followed.
+        :returns: the literal representation of the action that was chosen by the agent.
+
         """
 
         inputs = []
@@ -643,7 +617,7 @@ class Agent(object):
 
     def update_target_network(self):
         """
-        updates the old network in PPO before aplying the changes to it.
+        Updates the old network in PPO before aplying the changes to it.
 
         """
         self.old_policy_network.set_weights(
@@ -652,7 +626,7 @@ class Agent(object):
 
     def get_y_true(self, rew_mem:float, max_rew_mem:float):
         """
-        calculates the y_true based on the max reward for the episode and the reward of the chosen action.
+        Calculates the y_true based on the max reward for the episode and the reward of the chosen action.
 
         :param rew_mem: the calculated reward for the chosen action
         :param max_rew_mem: the maximum reward for the episode.
@@ -756,7 +730,7 @@ class Agent(object):
     
     def calculate_PPO_rewards(self, last_rew:float):
         """
-        calculates the rewards for the PPO algorithm following its formula.
+        Calculates the rewards for the PPO algorithm following its formula.
 
         :param last_rew: the last calculated reward before the end of the episode.
 

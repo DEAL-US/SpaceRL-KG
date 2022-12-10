@@ -100,6 +100,10 @@ class KGEnv(gym.Env):
 
         self.reset()
 
+    #######################
+    #    GYM FUCNTIONS    #
+    #######################
+
     def step(self, action:list): # required by openAI.gym
         """
         Performs one environment step, determined by the recieved action.
@@ -107,9 +111,10 @@ class KGEnv(gym.Env):
         :param action: the action in its triple format
 
         :returns:
-        state -> the current state after the step is performed.
-        done -> if the episode is done.
-        info -> empty dict (conforming with gym, but we provide no extra info.)
+        state -> the current state after the step is performed. \n
+        done -> if the episode is done. \n
+        info -> empty dict (conforming with gym, but we provide no extra info.) \n
+
         """
         self.current_node = action[1] # assign the selected action node as the new current node.
         self.state = self.get_encoded_state() # recalculate the state of the environment.
@@ -129,27 +134,6 @@ class KGEnv(gym.Env):
         info = {}
 
         return self.state, self.done, info
-
-    @property
-    def action_space(self): # required by openAI.gym, must return a Spaces type from gym.spaces
-        """
-        Returns the action space of the environment, which is the minimum and maximum values of the embeddings.
-        These do not all represent possible actions, but the scope in which actions can be contained.
-
-        :returns: A boxed state of all possible actions in the current environment.
-        """
-        return spaces.Box(low=np.array([*self.min_rel_emb, *self.min_ent_emb]), high = np.array([*self.max_rel_emb, *self.max_ent_emb]))
-    
-    @property
-    def observation_space(self): # required by openAI.gym
-        """
-        Returns the observation space of the environment, which is the minimum and maximum values of the embeddings.
-        These do not all represent possible observation, but the scope in which observations can be contained.
-
-        :returns: A boxed state of all possible observations in the current environment.
-        """
-        return spaces.Box(low=np.array([*self.min_ent_emb, *self.min_rel_emb, *self.min_ent_emb]),
-        high=np.array([*self.max_ent_emb, *self.max_rel_emb, *self.max_ent_emb]))
 
     def reset(self):
         """
@@ -177,38 +161,39 @@ class KGEnv(gym.Env):
 
         return self.state 
 
-    def select_target(self):
+    @property
+    def action_space(self): # required by openAI.gym, must return a Spaces type from gym.spaces
         """
-        choose a new target triple to find. 
+        Returns the action space of the environment, which is the minimum and maximum values of the embeddings.
+        These do not all represent possible actions, but the scope in which actions can be contained.
 
-        :returns: true if valid triple is found, false otherwise.
+        :returns: A boxed state (gym.spaces) of all possible actions in the current environment.
+        
         """
+        return spaces.Box(low=np.array([*self.min_rel_emb, *self.min_ent_emb]), high = np.array([*self.max_rel_emb, *self.max_ent_emb]))
+    
+    @property
+    def observation_space(self): # required by openAI.gym
+        """
+        Returns the observation space of the environment, which is the minimum and maximum values of the embeddings.
+        These do not all represent possible observation, but the scope in which observations can be contained.
 
-        if(self.use_episodes):
-            self.target_triple = random.choice(self.triples)
-        else:
-            if len(self.queries) == 0: 
-                self.reset_queries()
+        :returns: A boxed space(gym.spaces) of all possible observations in the current environment.
+        """
+        return spaces.Box(low=np.array([*self.min_ent_emb, *self.min_rel_emb, *self.min_ent_emb]),
+        high=np.array([*self.max_ent_emb, *self.max_rel_emb, *self.max_ent_emb]))
 
-            self.target_triple = self.queries.pop(0)
+    #########################
+    #    CACHE FUNCTIONS    #
+    #########################
 
-        neighbors = self.kg.get_neighbors(self.target_triple[0])
-        neighbors = set(chain(*neighbors.values()))
-        if(len(neighbors) == 1):
-            self.utils.verb_print(f"chosen non valid target entity: {self.target_triple}, no valid neighbors: {neighbors}")
-            return False
-        
-        self.current_node = self.target_triple[0]
-        # print(f"Episode triple is: {self.target_triple}")
-
-        return True
-        
     def cache_init(self, dataset:str, is_distance:bool):
         """
         initializes the cache for distance rewards for the selected dataset.
 
         :param dataset: the name of the dataset
         :param is_distance: if true tries to load cache, sets cache to None otherwise.
+        
         """
         if(not is_distance):
             self.distance_cache = None
@@ -226,23 +211,20 @@ class KGEnv(gym.Env):
         :param dataset: the dataset name
         """
         self.dm.save_cache_for_dataset(dataset, self.distance_cache)
-    
-    def reset_queries(self):
-        """
-        resets the queries and randomizes them
-        """
-        self.queries = copy.deepcopy(self.triples)
-        random.shuffle(self.queries)
+
+    #######################################
+    #    STATES, OBSERVATIONS & ACTIONS   #
+    #######################################
 
     def get_current_state(self):
         """
         returns the current state of the environment.
 
         :returns: 
-        self.target_triple[0] -> e1
-        self.target_triple[1] -> r
-        self.target_triple[2] -> e2
-        self.current_node -> et
+        self.target_triple[0] -> e1 \n
+        self.target_triple[1] -> r \n
+        self.target_triple[2] -> e2 \n
+        self.current_node -> et \n
         """
         return self.target_triple[0], self.target_triple[1], self.target_triple[2], self.current_node
 
@@ -270,6 +252,39 @@ class KGEnv(gym.Env):
         et = self.entity_emb[self.current_node]
 
         return [*e1,*r,*et]
+    
+    def select_target(self):
+        """
+        choose a new target triple to find. 
+
+        :returns: true if valid triple is found, false otherwise.
+        """
+
+        if(self.use_episodes):
+            self.target_triple = random.choice(self.triples)
+        else:
+            if len(self.queries) == 0: 
+                self.reset_queries()
+
+            self.target_triple = self.queries.pop(0)
+
+        neighbors = self.kg.get_neighbors(self.target_triple[0])
+        neighbors = set(chain(*neighbors.values()))
+        if(len(neighbors) == 1):
+            self.utils.verb_print(f"chosen non valid target entity: {self.target_triple}, no valid neighbors: {neighbors}")
+            return False
+        
+        self.current_node = self.target_triple[0]
+        # print(f"Episode triple is: {self.target_triple}")
+
+        return True
+        
+    def reset_queries(self):
+        """
+        resets the queries and randomizes them
+        """
+        self.queries = copy.deepcopy(self.triples)
+        random.shuffle(self.queries)
 
     def update_actions(self):
         """
@@ -292,31 +307,11 @@ class KGEnv(gym.Env):
             for dest_entity in list(pair[1]):
                 action = (relation, dest_entity)
                 self.actions.append(action)
-
-    def get_embedding_info(self, evaluated_node:str, end_node:str):
-        """
-        Calculate the embedding rewards for the current node.
-
-        :param evaluated_node: the current node of exploration.
-        :param end_node: the destination node.
-
-        :returns: this is a description of what is returned
-        :raises keyError: raises an exception
-        """
-        a = np.array(self.entity_emb[evaluated_node])
-        b = np.array(self.entity_emb[end_node])
-        
-        #Dot product: max = 655
-        dot = np.dot(a, b)
-
-        #Cosine similarity: range [0-1] 1 is best.
-        cos_sim = dot/(norm(a)*norm(b))
-
-        #Euclidean distance: min = 0
-        euc_dist = norm(a-b)
-
-        return(dot, euc_dist, cos_sim)
     
+    #############################
+    #    REWARDS & EMBEDDINGS   #
+    #############################
+
     def get_distance(self, current_node:str, end_node:str):
         """
         given the current node calculate the minimum distance to the end node.
@@ -453,6 +448,29 @@ class KGEnv(gym.Env):
 
         return mins_ent, mins_rel, maxs_ent, maxs_rel
 
+    def get_embedding_info(self, evaluated_node:str, end_node:str):
+        """
+        Calculate the embedding rewards for the current node.
+
+        :param evaluated_node: the current node of exploration.
+        :param end_node: the destination node.
+
+        :returns: this is a description of what is returned
+        """
+        a = np.array(self.entity_emb[evaluated_node])
+        b = np.array(self.entity_emb[end_node])
+        
+        #Dot product: max = 655
+        dot = np.dot(a, b)
+
+        #Cosine similarity: range [0-1] 1 is best.
+        cos_sim = dot/(norm(a)*norm(b))
+
+        #Euclidean distance: min = 0
+        euc_dist = norm(a-b)
+
+        return(dot, euc_dist, cos_sim)
+   
 class pairdict(dict):
     "Extends the basic python dict to only accept pairs as keys"
     def __init__(self, *args):
@@ -475,11 +493,3 @@ class pairdict(dict):
     def tuple_check(self, key):
         if(type(key) is not tuple or len(key) != 2):
             raise ValueError("given key is not a tuple")
-
-# d = DataManager()
-# cache = pairdict()
-# cache[("a","b")] = "c"
-# d.save_cache_for_dataset("TEST", cache)
-# cache = d.get_cache_for_dataset("TEST")
-# print(cache)
-# cache["t"] = "broken?"

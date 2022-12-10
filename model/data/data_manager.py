@@ -48,42 +48,9 @@ class DataManager(object):
         if(not os.path.isdir(self.test_result_path) and not is_experiment):
             os.mkdir(self.test_result_path)
 
-    def run_integrity_checks(self):
-        """
-        checks for abnormal states in the folder structure and corrects them. 
-
-        :returns: None
-        """
-        print("running integrity checks")
-        subfolders = [f.name for f in os.scandir(self.datasets_path) if f.is_dir()]
-        for s in subfolders:
-            try:
-                embs_path = f"{self.datasets_path}/{s}/embeddings"
-                embs_dir = [f.name for f in os.scandir(embs_path) if f.is_dir()]
-                for e in embs_dir:
-                    emb_dir = f"{embs_path}/{e}"
-                    self.remove_folders(emb_dir, 0) # removes empty folders
-            except:
-                print(f"No embeddings have been generated for {s}")
-
-        subfolders = [f.name for f in os.scandir(self.base_agent_path) if f.is_dir()]
-        for s in subfolders:
-            agent_dir = f"{self.base_agent_path}/{s}"
-            self.remove_folders(agent_dir, 1) # removes folders with only config_used.txt
-        
-    def remove_folders(self, path_abs:str, filecount:int):
-        """
-        helper method to delete incongruent folders
-
-        :param path_abs: path to the folder to check
-        :param filecount: file count for the folder to be deleted.
-
-        :returns: None
-        """
-        files = os.listdir(path_abs)
-        if len(files) == filecount:
-            print(f"removing path {path_abs}")
-            shutil.rmtree(path_abs)
+    #####################
+    # DATASETS & CACHES #
+    #####################
 
     def get_dataset(self, dataset:str, embedding_name:str):
         """
@@ -132,6 +99,37 @@ class DataManager(object):
         self.active_dataset = True
 
         return triples, relations_emb, entities_emb, ent_len
+
+    def get_cache_for_dataset(self, dataset:str):
+        """
+        gets the cache for a given dataset
+
+        :param dataset: the name of the dataset.
+
+        :returns: The reward cache for the specified dataset
+        :raises FileNotFoundException: if not avaliable
+        """
+        filepath = self.caches_path+"/"+dataset+".pkl"
+        with open(filepath, "rb") as f:
+            return pickle.load(f)
+    
+    def save_cache_for_dataset(self, dataset:str, cache:dict):
+        """
+        Saves the given cache for the specified dataset.
+
+        :param dataset: the name of the dataset
+        :cache: the cache to save.
+
+        :returns: None
+        """
+
+        filepath = self.caches_path+"/"+dataset+".pkl"
+        with open(filepath, "wb") as f:
+            pickle.dump(cache, f)
+
+    ##################
+    # AGENT & MODELS #
+    ##################
 
     def save_agent_model(self, name:str, model :Model):
         """
@@ -183,6 +181,25 @@ class DataManager(object):
 
         return actor, critic
 
+    def saveall(self, dataset:str, cache:dict, agent_name:str, model:Model):
+        """
+        Performs every saving operation linked to a dataset
+        
+        :param dataset: the name of the dataset
+        :param cache: the cache to save.
+        :param agent_name: the name of the agent
+        :param model: the keras model to save.
+
+        :returns: None
+        """
+        print("saving data...")
+        self.save_cache_for_dataset(dataset, cache)
+        self.save_agent_model(agent_name, model)
+
+    ################
+    # DEBUG & LOGS #
+    ################
+    
     def write_log(self, content:str):
         """
         writes the content in the corresponding logfile, the logfile is automatically swapped when calling the get_dataset function
@@ -198,48 +215,6 @@ class DataManager(object):
                 f.write(f"[{current_date_formated}] - {content}\n")
         else:
             print("no dataset is loaded, cannot log, call get_dataset before logging.")
-
-    def get_cache_for_dataset(self, dataset:str):
-        """
-        gets the cache for a given dataset
-
-        :param dataset: the name of the dataset.
-
-        :returns: The reward cache for the specified dataset
-        :raises FileNotFoundException: if not avaliable
-        """
-        filepath = self.caches_path+"/"+dataset+".pkl"
-        with open(filepath, "rb") as f:
-            return pickle.load(f)
-    
-    def save_cache_for_dataset(self, dataset:str, cache:dict):
-        """
-        Saves the given cache for the specified dataset.
-
-        :param dataset: the name of the dataset
-        :cache: the cache to save.
-
-        :returns: None
-        """
-
-        filepath = self.caches_path+"/"+dataset+".pkl"
-        with open(filepath, "wb") as f:
-            pickle.dump(cache, f)
-
-    def saveall(self, dataset:str, cache:dict, agent_name:str, model:Model):
-        """
-        Performs every saving operation linked to a dataset
-        
-        :param dataset: the name of the dataset
-        :param cache: the cache to save.
-        :param agent_name: the name of the agent
-        :param model: the keras model to save.
-
-        :returns: None
-        """
-        print("saving data...")
-        self.save_cache_for_dataset(dataset, cache)
-        self.save_agent_model(agent_name, model)
 
     def debug_save(self, name:str):
         """
@@ -285,6 +260,10 @@ class DataManager(object):
 
         print(f"input that triggered this was: {input_arr}")
 
+    #################
+    # MISCELLANEOUS #
+    #################
+
     def update_lastest_input(self, latest_input):
         """
         updates latest input.
@@ -321,6 +300,43 @@ class DataManager(object):
 
         with open(f"{self.agents_path}/config_used.txt", "w") as f:
             f.write(res)
-    
+
+    def run_integrity_checks(self):
+        """
+        checks for abnormal states in the folder structure and corrects them. 
+
+        :returns: None
+        """
+        print("running integrity checks")
+        subfolders = [f.name for f in os.scandir(self.datasets_path) if f.is_dir()]
+        for s in subfolders:
+            try:
+                embs_path = f"{self.datasets_path}/{s}/embeddings"
+                embs_dir = [f.name for f in os.scandir(embs_path) if f.is_dir()]
+                for e in embs_dir:
+                    emb_dir = f"{embs_path}/{e}"
+                    self.remove_folders(emb_dir, 0) # removes empty folders
+            except:
+                print(f"No embeddings have been generated for {s}")
+
+        subfolders = [f.name for f in os.scandir(self.base_agent_path) if f.is_dir()]
+        for s in subfolders:
+            agent_dir = f"{self.base_agent_path}/{s}"
+            self.remove_folders(agent_dir, 1) # removes folders with only config_used.txt
+        
+    def remove_folders(self, path_abs:str, filecount:int):
+        """
+        helper method to delete incongruent folders
+
+        :param path_abs: path to the folder to check
+        :param filecount: file count for the folder to be deleted.
+
+        :returns: None
+        """
+        files = os.listdir(path_abs)
+        if len(files) == filecount:
+            print(f"removing path {path_abs}")
+            shutil.rmtree(path_abs)
+
 if __name__ == "__main__":
     dm = DataManager()

@@ -93,9 +93,19 @@ config = {
 import pathlib
 
 class Experiment():
-    'defines the experiment to run.'
+    """
+    Defines an experiment suite to be carried out, and thus the agents to be created.
+
+    :param experiment_name: the name of the experiment (directory name)
+    :param dataset_name: the dataset to be used.
+    :param embeddings: the embeddings to be used. options -> "TransE_l2", "DistMult", "ComplEx", "TransR"
+    :param laps: agents trained by doing several laps around the dataset in order to minimize randomness, bigger datasets may require more laps but this will in turn increase training time, choose a single relation training in this case.
+    :param single_relation: wether to train for a single relation or the entire graph.
+    :param relation: the name of the relation to train for.
+
+    """
     def __init__(self, experiment_name : str, dataset_name : str, 
-    embeddings, laps : int = 0, single_relation : bool = False, relation : str = ""):
+    embeddings:list, laps : int = 0, single_relation : bool = False, relation : str = ""):
 
         self.name = experiment_name
         self.dataset = dataset_name
@@ -108,11 +118,22 @@ class Experiment():
         else:
             self.relation_to_train = None
 
+
 current_dir = pathlib.Path(__file__).parent.resolve()
 agents_folder = pathlib.Path(f"{current_dir}/data/agents").resolve()
 
 class Test():
-    def __init__(self, test_name:str, agent_name:str, embeddings, episodes : int):
+    """
+    Defines an test suite to be carried out and performs integrity checks.
+    If no agent is found to support the required testing, the created test is discarded.
+
+    :param test_name: the name of the test (directory name)
+    :param agent_name: the agent to be used, if not found, test is discarded
+    :param embeddings: the embeddings to be used. options -> "TransE_l2", "DistMult", "ComplEx", "TransR"
+    :param episodes: the number of paths to evaluate in testing.
+
+    """
+    def __init__(self, test_name: str, agent_name: str, embeddings: list, episodes: int):
         self.name = test_name
         self.agent_name = agent_name
         self.episodes = episodes
@@ -151,7 +172,18 @@ TESTS = [
 
 TESTS = [t for t in TESTS if not t.to_delete]
 
-def get_config(train, only_config = False):
+def get_config(train: bool, only_config: bool = False):
+    """
+    fetchs the configuration and either the experimentation list or the test list.
+
+    :param train: whether to get the training or the tests.
+    :param only_config: if true only the configuration is returned.
+
+    :returns:
+    config -> the configuration dictionary \n
+    EXPERIMENTS (optional) -> the experiment list. \n
+    TESTS (optional) -> the tests list. \n
+    """
     if(only_config):
         return config
     else:
