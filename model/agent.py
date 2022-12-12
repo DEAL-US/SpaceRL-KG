@@ -40,7 +40,7 @@ class Agent(object):
     """
 
     def __init__(self, data_manager: DataManager, environment: KGEnv, gamma:float,
-    learning_rate:float, use_LSTM:bool, activation:str, regularizers:list[str], rew_comp:str, guided_options:list[str], action_pick_policy:str, 
+    learning_rate:float, use_LSTM:bool, activation:str, regularizers:list, rew_comp:str, guided_options:list, action_pick_policy:str, 
     algorithm:str, guided_reward:bool, reward_type:str, alpha:float, restore_agent:bool, verbose:bool = False, debug:bool = False):
         
         # Global params

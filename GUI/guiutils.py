@@ -93,7 +93,7 @@ class ExperimentBanner(object):
         '''
         return self.parent
 
-class AgentInfo:
+class AgentInfo(object):
     '''
     A holder class for agent information
 

@@ -7,3 +7,6 @@ A simple visual application to ease the use of the module to non-advanced users.
    :maxdepth: 3
 
    main
+   config
+   test_train
+   guiutils

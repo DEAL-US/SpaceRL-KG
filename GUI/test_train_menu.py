@@ -5,7 +5,14 @@ from guiutils import AgentInfo, ExperimentBanner, GetDatasets, GetAgents, CheckF
 from guiutils import CheckAgentNameColision, CheckTestCollision, GetExperimentInstance, GetTestInstance
 
 class menu():
-    def __init__(self, root, experiments, tests):
+    ''' 
+    The menu class for the test-train window.
+
+    :param root: the parent frame from where we create the toplevel.
+    :param experiments: a list of experiments to load.
+    :param tests: a list of tests to load.
+    '''
+    def __init__(self, root:ttk.Frame, experiments:list, tests:list):
         self.root = Toplevel(root)
         self.root.title('Setup')
         self.root.resizable(FALSE, FALSE)
@@ -26,6 +33,10 @@ class menu():
         self.add_elements()
 
     def add_elements(self):
+        ''' 
+        Creates the tkinter notebook and parent frames for the test and train subwindows,
+        then, calls the subfuntions for each.
+        '''
         self.n = ttk.Notebook(self.root)
 
         # pages, we grid elements inside them
@@ -40,6 +51,9 @@ class menu():
         self.add_test_elements()
 
     def add_train_elements(self):
+        ''' 
+        add the elements to the train subwindow in the notebook.
+        '''
         # Create a canvas object and a vertical scrollbar for scrolling it.
         self.experiments_frame_scrollbar = ttk.Scrollbar(self.trainframe)
         self.experiment_canvas = Canvas(self.trainframe, bd=2, 
@@ -107,6 +121,9 @@ class menu():
         self.grid_trainframe()
 
     def grid_trainframe(self):
+        ''' 
+        grids all elements in the train subwindow.
+        '''
         #row0
         self.namelabel.grid(row=0, column=0)
         self.name_entry.grid(row=0, column=1)
@@ -151,6 +168,9 @@ class menu():
             banner.grid(row=i, column=0)
     
     def add_test_elements(self):
+        ''' 
+        add the elements to the test subwindow in the notebook.
+        '''
         # Create a canvas object and a vertical scrollbar for scrolling it.
         self.test_frame_scrollbar = ttk.Scrollbar(self.testframe)
         self.test_canvas = Canvas(self.testframe, bd=2, 
@@ -214,6 +234,9 @@ class menu():
         self.grid_testframe()
     
     def grid_testframe(self):
+        ''' 
+        grids all elements in the test subwindow.
+        '''
         #row0
         self.test_sep.grid(row=0, column=2, rowspan=30, sticky="ns")
         self.test_canvas.grid(row=0, column=3, rowspan=30, sticky='ne')
@@ -250,8 +273,15 @@ class menu():
             banner = e_banner.getbanner()
             banner.grid(row=i, column=0)
     
-    # MISC button functions
+    # BUTTON FUNCTIONS
     def add_to_list(self, from_frame:str):
+        ''' 
+        Adds a train or test banner to its respective window, based on the currently selected options in the window.
+        It validates the elements in the desired window before adding them, and displays error messages if neccesary.
+
+        :param from_frame: to which window to add the test/experiment. options -> train, test
+
+        '''
         if(from_frame == "train"):
             error_text = ""
 
@@ -364,15 +394,28 @@ class menu():
                 self.test_index +=1
 
     def remove_from_list(self, from_frame:str):
+        ''' 
+        removes the last element from the selected list.
+
+        :param from_frame: from which window to remove the test/experiment. options -> train, test
+        '''
         if(from_frame == "train"):
             latest_b = self.experiment_banners.pop()
             self.experiments.pop()
             latest_b.destroy()
             self.train_index -= 1
         else:
-            pass
+            latest_b = self.test_banners.pop()
+            self.tests.pop()
+            latest_b.destroy()
+            self.test_index -= 1
 
     def populate_embedding_listbox_test(self, event):
+        ''' 
+        depending on the selected agent it displays which embeddings are generated for it.
+
+        :param event: the tcl event that is bound to the operation.
+        '''
         i = self.agentlistbox.curselection()[0]
         active = self.agentlistbox.get(i)
         embeddings = self.agents[active].get()[1]
@@ -381,23 +424,55 @@ class menu():
             self.t_embedlistbox.insert(i, e)
 
     # MISC SCROLLABLES
-    def _bound_to_mousewheel(self, event, canvas):
+    def _bound_to_mousewheel(self, event, canvas: Canvas):
+        ''' 
+        binds the mousewheel scrolling to the canvas scrolling while the mouse is over.
+
+        :param event: the tcl event that is bound to the operation. Mouseon in this case.
+        :param canvas: the display canvas that hosts the banners.
+        '''
         canvas.bind_all("<MouseWheel>", lambda event: self._on_mousewheel(event, canvas))   
 
-    def _unbound_to_mousewheel(self, event, canvas):
+    def _unbound_to_mousewheel(self, event, canvas: Canvas):
+        ''' 
+        removes the mousewheel bind on mouseoff.
+
+        :param event: the tcl event that is bound to the operation. Mouseoff in this case
+        :param canvas: the display canvas that hosts the banners
+        '''
         canvas.unbind_all("<MouseWheel>") 
 
-    def _on_mousewheel(self, event, canvas):
+    def _on_mousewheel(self, event, canvas:Canvas):
+        ''' 
+        How the canvas scrolls based on the scrollwheels delta.
+
+        :param event: the tcl event that is bound to the operation. In this case the scrollwheel turning.
+        :param canvas: the display canvas that hosts the banners
+        '''
         canvas.yview_scroll(int(-1*(event.delta/120)), "units")  
 
-    def _configure_window(self, event, canvas, frame):
+    def _configure_window(self, event, canvas: Canvas, frame:ttk.Frame):
+        ''' 
+        Sets up the window sizes and prepares it for the elements.
+
+        :param event: the tcl event that is bound to the operation.
+        :param canvas: the canvas object where the elements will display.
+        :param frame: the parent frame that contains the canvas.
+
+        :returns: bar
+        :raises fooException: bar
+        '''
         # update the scrollbars to match the size of the inner frame
         size = (frame.winfo_reqwidth(), frame.winfo_reqheight())
         canvas.config(scrollregion='0 0 %s %s' % size)
 
-    
-    #spinbox only numbers
-    def ValidateRange(self, value):
+    # VALIDATION
+    def ValidateRange(self, value:str):
+        ''' 
+        Recieves a value and checks that is a number
+
+        :param value: the value in the textbox
+        '''
         # disallow anything but numbers
         valid = value.isdigit() or value == ''
         if not valid:
@@ -406,4 +481,7 @@ class menu():
         return valid
     
     def InvalidInput(self):
+        ''' 
+        Error text displays when laps inputs is invalid.
+        '''
         self.error_text_train["text"] = 'laps must be a number.'

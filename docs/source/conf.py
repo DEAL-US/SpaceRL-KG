@@ -3,9 +3,9 @@ import sys, pathlib, os
 
 main_dir = pathlib.Path(".").resolve()
 
-models_dir = pathlib.Path(f"{main_dir}/model".replace("\\docs\\source","")).resolve()
-api_dir = pathlib.Path(f"{main_dir}/API".replace("\\docs\\source","")).resolve()
-gui_dir = pathlib.Path(f"{main_dir}/GUI".replace("\\docs\\source","")).resolve()
+models_dir = pathlib.Path(f"{main_dir}/model".replace("/docs/source","")).resolve()
+api_dir = pathlib.Path(f"{main_dir}/API".replace("/docs/source","")).resolve()
+gui_dir = pathlib.Path(f"{main_dir}/GUI".replace("/docs/source","")).resolve()
 
 sys.path.insert(0, os.path.abspath('../..'))
 sys.path.insert(0, str(api_dir))
