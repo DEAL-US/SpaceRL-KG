@@ -42,7 +42,7 @@ class Trainer(object):
 
         is_distance = "distance" in self.guided_to_compute
         self.set_gpu_config(self.gpu_acceleration)
-        self.dm = DataManager(is_experiment = True, experiment_name=self.name)
+        self.dm = DataManager(is_experiment = True, name=self.name)
 
         self.utils = Utils(self.verbose, self.log_results, self.dm)
 

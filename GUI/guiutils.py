@@ -200,6 +200,44 @@ def GetAgents():
     
     return res
 
+def GetTest():
+    """
+    Gets all generated tests and returns them in a dict format.
+
+    :returns: a list of dict objects containing the tests
+    """
+    res = []
+    agent_list = os.listdir(tests_folder)
+    
+    for a in agent_list:
+        embeddings = []
+        name = a
+        dataset = ""
+        single_rel_pair = []
+
+        p = f"{agents_folder}/{a}"
+
+        with open(f"{p}/config_used.txt") as c:
+            for ln in c:
+                if ln.startswith("dataset: "):
+                    dataset = ln.lstrip('dataset: ').strip()
+
+                if ln.startswith("single_relation_pair: "):
+                    aux = ln.lstrip('single_relation_pair: ')
+                    aux = aux.replace("[", "").replace("]","").replace(" ", "").replace("\'", "").strip().split(",")
+                    single_rel_pair = [aux[0]=="True", None if aux[1] == "None" else aux[1]]
+
+                if ln.startswith("embeddings: "):
+                    aux = ln.lstrip('embeddings: ')
+                    embeddings = aux.replace("[", "").replace("]","").replace(" ", "").replace("\'", "").strip().split(",")
+
+        
+        # print("\n",embeddings, name, dataset, single_rel_pair, "\n")
+
+        res.append(AgentInfo(name, embeddings, dataset, single_rel_pair[0], single_rel_pair[1]))
+    
+    return res
+
 def GetExperimentInstance(name:str, dataset:str, embeddings:list, laps:int, single_rel:bool, single_rel_name:str):
     """
     Create an experiment class object with the given information

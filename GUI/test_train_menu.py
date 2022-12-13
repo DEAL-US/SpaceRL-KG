@@ -386,7 +386,7 @@ class menu():
                 banner = e_banner.getbanner()
                 banner.grid(row=self.test_index,column=0)
 
-                self.experiment_banners.append(banner)
+                self.test_banners.append(banner)
 
                 test = GetTestInstance(agent[0], name, embeddings, runs)
                 self.tests.append(test)

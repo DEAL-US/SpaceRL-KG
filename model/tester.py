@@ -90,7 +90,7 @@ class Tester(object):
         self.update_gui_vars(tot_steps=1, curr_step=0, progtext="Initializing Tester...")
         self.is_ready = False
 
-        self.dm = DataManager(is_experiment=False, experiment_name=self.name, respath=respath)
+        self.dm = DataManager(is_experiment=False, name=self.name, respath=respath)
 
         self.env = KGEnv(self.dm, self.dataset, srp, emb, False, seed, 8, self.path_length,
          False, False, self.gpu_acceleration, True, 0, False)

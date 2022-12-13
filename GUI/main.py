@@ -177,8 +177,8 @@ class mainmenu(object):
 
         elif(menutype == "paths" and not self.paths_is_open):
             self.paths_is_open = True
-            paths_menu = view_paths_menu.menu(self.root, self.tests)
-            setup.root.wm_protocol("WM_DELETE_WINDOW", lambda: self.extract_info_on_close(paths_menu))
+            paths_menu = view_paths_menu.menu(self.root)
+            setup.root.wm_protocol("WM_DELETE_WINDOW", lambda: self.pathmenu_teardown(paths_menu))
 
     def extract_config_on_close(self, config_menu:config_menu.menu):
         """

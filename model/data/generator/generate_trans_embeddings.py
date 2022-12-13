@@ -95,11 +95,10 @@ normalize:bool = False,  add_inverse_path:bool = True, fast_mode:bool = True, av
         else:
             print(f"Selected embedding {model} is already generated for {dataset} dataset, if you want to regenerate use the regenerate boolean option")
 
-        if(regenerate_existing and normalize):
-            process_embeddings(entity_file, relation_file,
-            dataset_dir, dataset, model)
+        process_embeddings(entity_file, relation_file,
+        dataset_dir, dataset, model, regenerate_existing, normalize)
 
-def process_embeddings(entity_file: str, relation_file:str, dataset_dir:str, dataset:str, model:str):
+def process_embeddings(entity_file: str, relation_file:str, dataset_dir:str, dataset:str, model:str, regenerate: bool, normalize:bool):
     """
     Normalizes and processes an embedding, saves them to the apropriate file.
 
@@ -108,6 +107,8 @@ def process_embeddings(entity_file: str, relation_file:str, dataset_dir:str, dat
     :param dataset_dir: The path to the datasets directory
     :param dataset: The name of the desired dataset
     :param model: the embeddings to normalize for that dataset, options are "TransE_l2", "DistMult", "ComplEx", "TransR". If left empty calculates all.
+    :param regenerate: wether to regenerate the embeddings 
+    :param normalize: if regenerate is active normalize the embeddings.
 
     :returns: None
     """

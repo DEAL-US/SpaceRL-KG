@@ -119,9 +119,10 @@ class menu():
         for r in self.config['regularizers']:
             self.regularizer_listbox.select_set(possible_regularizers.index(r))
         CreateToolTip(self.regularizers_label, text="which regularization to apply:\n\
-            Kernel-> \n\
-            Bias-> \n\
-            Activity-> \n")
+            in the regression equation y = Wx + b where x = input, W = weights matrix and b = bias.\
+            Kernel-> Appplies L1 & L2 regularization trying to reduce 'W'\n\
+            Bias-> Applies L1 regularization reduces the bias 'b'\n\
+            Activity-> tries to reduce the layers output 'y', meaning it applies to all elements.\n")
 
 
         self.guided_rew_label = ttk.Label(self.selectors_frame, text='Active Rewards')
@@ -131,9 +132,9 @@ class menu():
         for r in self.config['guided_to_compute']:
             self.rewards_listbox.select_set(possible_rewards.index(r))
         CreateToolTip(self.guided_rew_label, text="which rewards to use:\n\
-            Distance-> \n\
-            Embedding-> \n\
-            Terminal-> \n")
+            Distance-> Calculates a reward value based on the shortest natural path to the end node.\n\
+            Embedding-> calculates a reward value based on the dot product, euclidean distance and cosine similarity of the embeddings\n\
+            Terminal-> 1 if reached end node 0 otherwise. \n")
 
         self.sep2 = ttk.Separator(self.training_tf, orient='horizontal')
 
