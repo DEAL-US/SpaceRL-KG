@@ -200,42 +200,47 @@ def GetAgents():
     
     return res
 
-def GetTest():
+def GetTestsPaths():
     """
-    Gets all generated tests and returns them in a dict format.
+    Gets all generated tests and their paths and returns them in a dict format.
 
     :returns: a list of dict objects containing the tests
     """
     res = []
-    agent_list = os.listdir(tests_folder)
-    
-    for a in agent_list:
-        embeddings = []
-        name = a
-        dataset = ""
-        single_rel_pair = []
 
-        p = f"{agents_folder}/{a}"
+    test_list = os.listdir(tests_folder)
+    test_list.remove(".gitkeep")
 
-        with open(f"{p}/config_used.txt") as c:
-            for ln in c:
-                if ln.startswith("dataset: "):
-                    dataset = ln.lstrip('dataset: ').strip()
+    for test_name in test_list:
+        test_dict = dict()
+        test_dict["name"] = test_name
+        test_dict["pathdicts"] = []
 
-                if ln.startswith("single_relation_pair: "):
-                    aux = ln.lstrip('single_relation_pair: ')
-                    aux = aux.replace("[", "").replace("]","").replace(" ", "").replace("\'", "").strip().split(",")
-                    single_rel_pair = [aux[0]=="True", None if aux[1] == "None" else aux[1]]
+        p = f"{tests_folder}/{test_name}"
 
-                if ln.startswith("embeddings: "):
-                    aux = ln.lstrip('embeddings: ')
-                    embeddings = aux.replace("[", "").replace("]","").replace(" ", "").replace("\'", "").strip().split(",")
+        with open(f"{p}/paths.txt") as pathfile:
+            test_dict["dataset"], test_dict["agent_name"] = [x.strip() for x in pathfile.readline().split(",")]
+            for ln in pathfile.readlines():
+                path_dict = dict()
+                pathpair = eval(ln)
 
+                fullpath = pathpair[0]
+                target = pathpair[1]
+
+                path_dict["target"] = target
+                path = []
+
+                for triple in fullpath:
+                    path.append(triple)
+                    if(triple[2] == target):
+                        break
+            
+                path_dict["path"] = path
+
+                test_dict["pathdicts"].append(path_dict)
+
+        res.append(test_dict)
         
-        # print("\n",embeddings, name, dataset, single_rel_pair, "\n")
-
-        res.append(AgentInfo(name, embeddings, dataset, single_rel_pair[0], single_rel_pair[1]))
-    
     return res
 
 def GetExperimentInstance(name:str, dataset:str, embeddings:list, laps:int, single_rel:bool, single_rel_name:str):

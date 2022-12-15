@@ -7,7 +7,6 @@ from config import get_config
 sys.path.pop(0)
 
 import pickle
-import pprint
 from pathlib import Path
 import numpy as np
 from datetime import datetime

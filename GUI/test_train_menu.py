@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 
+
 from guiutils import AgentInfo, ExperimentBanner, GetDatasets, GetAgents, CheckForRelationInDataset
 from guiutils import CheckAgentNameColision, CheckTestCollision, GetExperimentInstance, GetTestInstance
 
@@ -141,7 +142,13 @@ class menu():
 
         #row3
         self.datasetlistbox.grid(row=3, column=0, padx=(0,20))
-        self.datasets_scrollbar.place(x = 155, y = 88, height=73)
+        self.datasetlistbox.update()
+        l_width = self.datasetlistbox.winfo_width()
+        l_height = self.datasetlistbox.winfo_height()
+        posx = self.datasetlistbox.winfo_x()
+        posy = self.datasetlistbox.winfo_y()
+
+        self.datasets_scrollbar.place(x = posx + l_width - 5, y = posy -5, height=l_height-3)
 
         self.embedlistbox.grid(row=3, column=1,)
         # self.embedding_scrollbar.place(x = 268, y = 65)
@@ -255,7 +262,12 @@ class menu():
 
         #row3
         self.agentlistbox.grid(row=3, column=0, padx=(0,20))
-        self.agents_scrollbar.place(x = 155, y = 88, height=73)
+        self.agentlistbox.update()
+        l_width = self.agentlistbox.winfo_width()
+        l_height = self.agentlistbox.winfo_height()
+        posx = self.agentlistbox.winfo_x()
+        posy = self.agentlistbox.winfo_y()
+        self.agents_scrollbar.place(x = posx + l_width - 5, y = posy -5, height=l_height-3)
 
         self.t_embedlistbox.grid(row=3, column=1)
 

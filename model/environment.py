@@ -116,6 +116,9 @@ class KGEnv(gym.Env):
         info -> empty dict (conforming with gym, but we provide no extra info.) \n
 
         """
+        # add the chosen action to the history.
+        self.path_history.append((self.current_node, *action))
+
         self.current_node = action[1] # assign the selected action node as the new current node.
         self.state = self.get_encoded_state() # recalculate the state of the environment.
         self.update_actions() # update the actions in the new state.
@@ -126,9 +129,6 @@ class KGEnv(gym.Env):
             self.done = True
         else:
             self.done = False
-        
-        # add the chosen action to the history.
-        self.path_history.append((self.current_node, *action))
 
         # extra information relevant to the state.
         info = {}

@@ -93,7 +93,7 @@ class Tester(object):
         self.dm = DataManager(is_experiment=False, name=self.name, respath=respath)
 
         self.env = KGEnv(self.dm, self.dataset, srp, emb, False, seed, 8, self.path_length,
-         False, False, self.gpu_acceleration, True, 0, False)
+        False, False, self.gpu_acceleration, True, 0, False)
 
         self.agent = Agent(self.dm, self.env, 0.99, 1e-4, True, "leaky_relu", [],"max_percent",
         [], app, alg, True, rwt, 0.9, True, verbose = self.verbose, debug = self.debug)
@@ -146,7 +146,7 @@ class Tester(object):
                         break
 
                 if(found_tail):
-                    found_paths.append(self.env.path_history)
+                    found_paths.append((self.env.path_history, self.env.target_triple[2]))
             
             self.generate_MRR_boxplot_and_source(MRR)
             self.generate_found_paths_files(found_paths)
@@ -175,6 +175,7 @@ class Tester(object):
         """
         source_filepath = f"{self.dm.test_result_path}/paths.txt"
         with open(f"{source_filepath}", "w") as f:
+            f.write(f"{self.env.dataset_name}, {self.name}\n")
             for p in found_paths:
                 f.write(f"{p}\n")
 
