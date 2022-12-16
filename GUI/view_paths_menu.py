@@ -1,11 +1,13 @@
 from tkinter import *
 from tkinter import ttk
 
-import sys, pygame, pathlib, os, random
+import sys, pathlib, os, random
 import matplotlib.pyplot as plt
 import networkx as nx
+import pygame as pg
 from guiutils import GetTestsPaths
 from keras.models import load_model
+from keras import Model
 
 from inspect import getsourcefile
 import os.path as path, sys
@@ -79,23 +81,25 @@ class menu():
 
         pathdicts, dataset, agent_name = [(t["pathdicts"], t["dataset"], t["agent_name"]) for t in self.tests if t["name"] == active][0]
 
-        # TODO: get the agent models here to get predictions and setup the triples.
-
-        dm = DataManager(name=agent_name)
         subfolders = [f.name.rstrip(f"_{dataset}_0") for f in os.scandir(f"{self.datasets_dir}/{dataset}/embeddings") if f.is_dir()]
         embedding = random.choice(subfolders)
-        
-        print(dataset, agent_name, embedding, random.choice(pathdicts))
 
+        dm = DataManager(name=agent_name)
         triples, relations_emb, entities_emb, _ = dm.get_dataset(dataset, embedding)
 
-        print(triples[0]) #, list(relations_emb.items())[0], list(entities_emb.items())[0])
+        agent = self.get_agent(agent_name, dataset, embedding)
 
         G = self.create_networkX_graph(triples)
-        nx.draw(G, with_labels=True, font_weight='bold')
-        plt.show()
+        pos = nx.drawing.layout.kamada_kawai_layout(G)
 
-    def create_networkX_graph(self, triples):
+        # THIS DRAWS THE COMLPETE GRAPH
+        # nx.draw_networkx(G, pos, with_labels=True, font_weight='bold')
+        # plt.show()
+        
+        # THIS LAUNCHES OUR VISUALIZER.
+        self.pygame_display(agent, G, pos, pathdicts, relations_emb, entities_emb)
+
+    def create_networkX_graph(self, triples:list):
         G = nx.Graph()
         print(len(triples))
         for t in triples:
@@ -106,37 +110,6 @@ class menu():
         print(f"nodes:{G.number_of_nodes()}, edges:{G.number_of_edges()}")
         return G
 
-    def pygame_display(self):
-        current_dir = pathlib.Path(__file__).parent.resolve()
-        assests_dir = pathlib.Path(f"{current_dir}/assets").resolve()
-
-        pygame.init()
-
-        size = width, height = 720, 540
-        speed = [1, 1]
-        white = 255, 255, 255
-
-        screen = pygame.display.set_mode(size)
-
-        ball = pygame.image.load(f"{assests_dir}/intro_ball.gif")
-        ballrect = ball.get_rect()
-
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT: sys.exit()
-
-            ballrect = ballrect.move(speed)
-
-            if ballrect.left < 0 or ballrect.right > width:
-                speed[0] = -speed[0]
-
-            if ballrect.top < 0 or ballrect.bottom > height:
-                speed[1] = -speed[1]
-
-            screen.fill(white)
-            screen.blit(ball, ballrect) 
-            pygame.display.flip()
-
     def get_agent(self, name:str, dataset:str, embedding:str):
         """
         given the name of the agent, the dataset name and the embedding to use, gets the model for that agent.
@@ -145,7 +118,7 @@ class menu():
         :param dataset: the name of the dataset
         :param embedding: the name of the embedding to use.
 
-        :return: the models for the requested agent.
+        :return: the model for the requested agent.
         """
         agent_path = pathlib.Path(f"{self.maindir}/model/data/agents/{name}").resolve()
         constant_path = f"{agent_path}/{dataset}-{embedding}"
@@ -161,11 +134,69 @@ class menu():
         else:
             if(ppo_exist):
                 actor = load_model(f"{ppo}/actor.h5")
-                critic = load_model(f"{ppo}/critic.h5")
-                agent= [actor, critic]
+                agent= actor
 
             if(base_exist):
                 policy_network = load_model(base)
-                agent = [policy_network]
+                agent= policy_network
 
         return agent
+
+    def pygame_display(self, agent:Model, G: nx.Graph, pos:dict, pathdicts:list, relations_emb:dict, entities_emb:dict):
+        current_dir = pathlib.Path(__file__).parent.resolve()
+        assests_dir = pathlib.Path(f"{current_dir}/assets").resolve()
+
+
+
+        # setup variables
+        size = width, height = 1280, 720
+        white = 255, 255, 255
+        requested_exit = False
+
+        pg.init()
+        screen = pg.display.set_mode(size)
+        pg.display.set_caption("Path Visualization")
+
+        prev_button = Button(100, 360, f"{assests_dir}/leftarrow.png", lambda: print("prev"))
+        next_button = Button(1180, 360, f"{assests_dir}/rightarrow.png", lambda: print("next"))
+       
+        prev_button.render(screen)
+        next_button.render(screen)
+
+        print(pos)
+        
+        while not requested_exit:
+
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    requested_exit = True
+
+            screen.fill(white)
+            prev_button.render(screen)
+            next_button.render(screen)
+
+            
+        
+        pg.quit()
+
+    def pos_to_pygame(self, pos:tuple, w:int, h:int):
+        pass
+
+    
+
+# PYGAME helper classes:
+class Button:
+    def __init__(self, x, y, img_path: str, command):
+        self.img = pg.image.load(img_path).convert_alpha()
+        self.rect = self.img.get_rect()
+        self.rect.topleft = (x,y)
+        self.command = command
+
+    def render(self, screen):
+        screen.blit(self.img, self.rect)
+
+    def get_event(self, event):
+        if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
+            if self.rect.collidepoint(pg.mouse.get_pos()):
+                self.command()
+    
