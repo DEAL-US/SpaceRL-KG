@@ -9,6 +9,8 @@ from guiutils import GetTestsPaths
 from keras.models import load_model
 from keras import Model
 
+import numpy as np
+
 from inspect import getsourcefile
 import os.path as path, sys
 
@@ -32,6 +34,8 @@ class menu():
 
         self.tests = GetTestsPaths()
         self.testnames = [t['name'] for t in self.tests]
+
+        self.MAX_PATHS_TO_DISPLAY = 1000
         
         self.add_elements()
 
@@ -90,14 +94,15 @@ class menu():
         agent = self.get_agent(agent_name, dataset, embedding)
 
         G = self.create_networkX_graph(triples)
+        # dict with key->node names, values->node pos in format array([float, float]) 
         pos = nx.drawing.layout.kamada_kawai_layout(G)
+        
+        # LAUNCHES VISUALIZER.
+        self.pygame_display(agent, G, pos, pathdicts, relations_emb, entities_emb)
 
-        # THIS DRAWS THE COMLPETE GRAPH
+        # DRAWS THE COMLPETE GRAPH with network X
         # nx.draw_networkx(G, pos, with_labels=True, font_weight='bold')
         # plt.show()
-        
-        # THIS LAUNCHES OUR VISUALIZER.
-        self.pygame_display(agent, G, pos, pathdicts, relations_emb, entities_emb)
 
     def create_networkX_graph(self, triples:list):
         G = nx.Graph()
@@ -142,61 +147,202 @@ class menu():
 
         return agent
 
-    def pygame_display(self, agent:Model, G: nx.Graph, pos:dict, pathdicts:list, relations_emb:dict, entities_emb:dict):
+    def pygame_display(self, agent:Model, G: nx.Graph, pos:dict, 
+    pathdicts:list, relations_embs:dict, entities_embs:dict):
+
         current_dir = pathlib.Path(__file__).parent.resolve()
         assests_dir = pathlib.Path(f"{current_dir}/assets").resolve()
 
-
+        is_ppo = False
+        for layer in agent.layers:
+            if layer.name == "Advantage" or layer.name == "Old_Prediction":
+                is_ppo = True
+        
+        print("=== Actor Network ===")
+        print(agent.summary())
 
         # setup variables
         size = width, height = 1280, 720
         white = 255, 255, 255
         requested_exit = False
 
+        node_positions = self.get_node_absolute_pos_pygame(pos, width, height)
+        self.get_weighted_paths_with_representative_neighbors(G, agent, is_ppo, pathdicts, entities_embs, relations_embs)
+        # node_neighbors = self.get_node_representative_neighbors(G, agent, is_ppo, list(node_positions.keys()), entities_embs, relations_embs)
+        # self.get_node_pygame_positions(pos, pathdicts, width, height)
+
         pg.init()
         screen = pg.display.set_mode(size)
         pg.display.set_caption("Path Visualization")
+        font = pg.font.SysFont("dejavuserif", 16)
 
-        prev_button = Button(100, 360, f"{assests_dir}/leftarrow.png", lambda: print("prev"))
-        next_button = Button(1180, 360, f"{assests_dir}/rightarrow.png", lambda: print("next"))
+        # Objects
+        prev_button = Button(30, 360, f"{assests_dir}/leftarrow.png", 0.8, lambda: print("prev"))
+        next_button = Button(1180, 360, f"{assests_dir}/rightarrow.png", 0.8, lambda: print("next"))
+
+        node_colors = [(255,127,80), (240,128,128), (255,160,122), (238,232,170), (173,255,47), (144,238,144),
+        (102,205,170), (0,255,255), (127,255,212), (135,206,235), (106,90,205), (186,85,211), (219,112,147),
+        (255,228,196), (244,164,96), (176,196,222), (169,169,169)]
+
+        nodes = []
+        for name, position in node_positions.items():
+            node = Node(font, random.choice(node_colors), name, position[0], position[1])
+            nodes.append(node)
        
-        prev_button.render(screen)
-        next_button.render(screen)
-
-        print(pos)
-        
         while not requested_exit:
+            screen.fill(white)
+            prev_button.run(screen)
+            next_button.run(screen)
+            
+            for n in nodes:
+                n.run(screen)
 
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     requested_exit = True
-
-            screen.fill(white)
-            prev_button.render(screen)
-            next_button.render(screen)
-
             
-        
+            pg.display.flip()
+
         pg.quit()
 
-    def pos_to_pygame(self, pos:tuple, w:int, h:int):
-        pass
+    def get_node_absolute_pos_pygame(self, pos:dict, w:int, h:int):
+        res = dict()
+
+        min_val_x, max_val_x, min_val_y, max_val_y = 1, -1, 1, -1
+
+        for x,y in pos.values():
+            if x < min_val_x:
+                min_val_x = x
+
+            if y < min_val_y:
+                min_val_y = y
+
+            if x > max_val_x:
+                max_val_x = x
+
+            if y > max_val_y:
+                max_val_y = y
+                
+        for p in pos.items():
+            x, y = p[1][0], p[1][1]
+            
+            x_abs, y_abs = 0, 0
+            if(x <= 0):
+                x_abs = int((1-abs(x))*(w/2))
+            else:
+                x_abs = int((abs(x))*(w/2)+w/2)
+
+            if(y <= 0):
+                y_abs = int((1-abs(y))*(h/2))
+            else:
+                y_abs = int((abs(y))*(h/2)+h/2)
+
+            res[p[0]] = (x_abs, y_abs)
+
+        return res
+    
+    def get_weighted_paths_with_representative_neighbors(self, G:nx.Graph, agent:Model, is_ppo: bool,
+    pathdicts:list, entities_embs:dict, relations_embs:dict, maxnodes:int = 3):
+        # print(pathdicts)
+        # print(entities_embs)
+        # print(relations_embs)
+
+        # netork input
+        # [(*e1,*r),*et] [*relation_embedding, *entity_embedding]
+        
+        res = dict()
+        for t in pathdicts:
+            path = t["path"]
+
+            e_0 = path[0][0]
+            e_final = t["target"]
+            r = G.adj[e_0][e_final]
+
+            for p in path:
+                observation = [entities_embs(e_0)*, relations_embs(r)*]
+
+            # TODO: FINISH THIS SHIT...
+           
+            # inputs_stacked = np.vstack(np.array(s))
+            # if(is_ppo):
+
+            #     self.policy_network([inputs_stacked, 0 , 0 ])
+            # else:
+            #     self.policy_network([inputs_stacked])
+            # res[og]=[t[2]]
+
+    def get_node_pygame_positions(self, pos:dict, pathdicts:list, w:int, h:int):
+        if (len(pathdicts) > self.MAX_PATHS_TO_DISPLAY):
+            pathdicts = pathdicts[0:self.MAX_PATHS_TO_DISPLAY]
+        
+        for p in pathdicts:
+            abs_pos = dict()
+            print(p)
+            for t in p["path"]:
+                abs_pos[t[0]] = pos[t[0]]
+                abs_pos[t[2]] = pos[t[2]]
+
+            print(abs_pos)
+
+            min_val_x, max_val_x, min_val_y, max_val_y = 1, -1, 1, -1
+            for x, y in abs_pos.values():
+
+                if x < min_val_x:
+                    min_val_x = x
+
+                if y < min_val_y:
+                    min_val_y = y
+
+                if x > max_val_x:
+                    max_val_x = x
+
+                if y > max_val_y:
+                    max_val_y = y
+            
 
     
 
 # PYGAME helper classes:
 class Button:
-    def __init__(self, x, y, img_path: str, command):
+    def __init__(self, x:int, y:int, img_path:str, scale:float, command):
         self.img = pg.image.load(img_path).convert_alpha()
+        h = self.img.get_height()
+        w = self.img.get_width()
+        self.img = pg.transform.scale(self.img, (int(w*scale), int(h*scale)))
         self.rect = self.img.get_rect()
         self.rect.topleft = (x,y)
         self.command = command
+        self.clicked = False
 
-    def render(self, screen):
-        screen.blit(self.img, self.rect)
-
-    def get_event(self, event):
-        if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
-            if self.rect.collidepoint(pg.mouse.get_pos()):
+    def run(self, screen):
+        if pg.mouse.get_pressed()[0] == 1:
+            pos = pg.mouse.get_pos()
+            if self.rect.collidepoint(pos) and not self.clicked:
+                self.clicked = True
+                print(f"clicked {self.rect}")
                 self.command()
+        
+        if pg.mouse.get_pressed()[0] == 0:
+            self.clicked = False
+
+        screen.blit(self.img, self.rect)
     
+class Node:
+    def __init__(self, font: pg.font.Font, color:tuple, text:str, x:int , y:int):
+        self.color = color
+        self.text = text
+        self.font = font
+        self.x , self.y = x,y
+
+    def run(self, screen):
+        # render node circle.
+        pg.draw.circle(screen, self.color, (self.x, self.y+40), 40)
+        pg.draw.circle(screen, (0,0,0), (self.x, self.y+40), 40, 4)
+
+
+        # render text
+        text_img = self.font.render(self.text, True, (0,0,0))
+        t_w = text_img.get_width()
+        t_h = text_img.get_height()
+        screen.blit(text_img, (self.x - int(t_w/2), self.y - int(t_h/2)+40))
+

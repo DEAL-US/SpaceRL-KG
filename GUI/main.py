@@ -423,7 +423,7 @@ Wait for it to finish or abort the execution.")
         
     def intercept_close(self):
         """
-        overrides the colsing function of the main window and shows a warning if needed.
+        overrides the closing function of the main window and shows a warning if needed.
         """
         if self.is_running:
             print("asking the user for permission to close.")

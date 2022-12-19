@@ -232,8 +232,6 @@ def GetTestsPaths():
 
                 for triple in fullpath:
                     path.append(triple)
-                    if(triple[2] == target):
-                        break
             
                 path_dict["path"] = path
 
