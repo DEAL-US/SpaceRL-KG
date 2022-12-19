@@ -258,10 +258,10 @@ class menu():
             e_final = t["target"]
             r = G.adj[e_0][e_final]
 
-            for p in path:
-                observation = [entities_embs(e_0)*, relations_embs(r)*]
-
             # TODO: FINISH THIS SHIT...
+            for p in path:
+                observation = [*entities_embs(e_0), *relations_embs(r), ]
+
            
             # inputs_stacked = np.vstack(np.array(s))
             # if(is_ppo):
