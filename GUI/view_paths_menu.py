@@ -105,12 +105,16 @@ class menu():
         # plt.show()
 
     def create_networkX_graph(self, triples:list):
-        G = nx.Graph()
+        G = nx.DiGraph()
         print(len(triples))
         for t in triples:
             G.add_node(t[0])
             G.add_node(t[2])
-            G.add_edge(t[0], t[2], object=t[1])
+            G.add_edge(t[0], t[2], name=t[1])
+            G.add_edge(t[2], t[0], name=f"¬{t[1]}")
+
+        for n in G.nodes():
+            G.add_edge(n, n, name="NO_OP")
 
         print(f"nodes:{G.number_of_nodes()}, edges:{G.number_of_edges()}")
         return G
@@ -244,10 +248,10 @@ class menu():
     def get_weighted_paths_with_representative_neighbors(self, G:nx.Graph, agent:Model, is_ppo: bool,
     pathdicts:list, entities_embs:dict, relations_embs:dict, maxnodes:int = 3):
         # print(pathdicts)
-        # print(entities_embs)
-        # print(relations_embs)
+        # print(entities_embs.keys())
+        # print(relations_embs.keys())
 
-        # netork input
+        # network input
         # [(*e1,*r),*et] [*relation_embedding, *entity_embedding]
         
         res = dict()
@@ -256,20 +260,32 @@ class menu():
 
             e_0 = path[0][0]
             e_final = t["target"]
-            r = G.adj[e_0][e_final]
+            r = G.adj[e_0][e_final]["name"]
 
-            # TODO: FINISH THIS SHIT...
+            inputs = []
             for p in path:
-                observation = [*entities_embs(e_0), *relations_embs(r), ]
+                if[p[1] == "NO_OP"]:
+                    re = list(np.zeros(len(entities_embs[e_0])))
+                else:
+                    re = relations_embs[p[1]]
 
+                observation = [*entities_embs[e_0], *relations_embs[r],
+                *entities_embs[p[0]], *re, *entities_embs[p[2]]]
+
+                inputs.append(observation)
+
+                # get all connected variables to the entity and keep 
+                # {maxnodes} lowest and highest scores.
+                adjacents = G.adj[p[0]]
+                print(f"adjacency in node {p[0]} is:\n {adjacents}\n")
            
-            # inputs_stacked = np.vstack(np.array(s))
-            # if(is_ppo):
+            inputs_stacked = np.vstack(np.array(inputs))
+            if(is_ppo):
+                output = agent([inputs_stacked, 0 , 0 ])
+            else:
+                output = agent([inputs_stacked])
 
-            #     self.policy_network([inputs_stacked, 0 , 0 ])
-            # else:
-            #     self.policy_network([inputs_stacked])
-            # res[og]=[t[2]]
+            print(output)
 
     def get_node_pygame_positions(self, pos:dict, pathdicts:list, w:int, h:int):
         if (len(pathdicts) > self.MAX_PATHS_TO_DISPLAY):
