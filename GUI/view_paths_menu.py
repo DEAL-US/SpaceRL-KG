@@ -8,8 +8,10 @@ import pygame as pg
 from guiutils import GetTestsPaths
 from keras.models import load_model
 from keras import Model
+from tqdm import tqdm
 
 import numpy as np
+import tensorflow as tf
 
 from inspect import getsourcefile
 import os.path as path, sys
@@ -171,7 +173,8 @@ class menu():
         requested_exit = False
 
         node_positions = self.get_node_absolute_pos_pygame(pos, width, height)
-        self.get_weighted_paths_with_representative_neighbors(G, agent, is_ppo, pathdicts, entities_embs, relations_embs)
+        paths_with_neighbors = self.get_weighted_paths_with_neighbors(G, agent, is_ppo, pathdicts, entities_embs, relations_embs)
+        
         # node_neighbors = self.get_node_representative_neighbors(G, agent, is_ppo, list(node_positions.keys()), entities_embs, relations_embs)
         # self.get_node_pygame_positions(pos, pathdicts, width, height)
 
@@ -245,24 +248,26 @@ class menu():
 
         return res
     
-    def get_weighted_paths_with_representative_neighbors(self, G:nx.Graph, agent:Model, is_ppo: bool,
-    pathdicts:list, entities_embs:dict, relations_embs:dict, maxnodes:int = 3):
+    def get_weighted_paths_with_neighbors(self, G:nx.Graph, agent:Model, is_ppo: bool,
+    pathdicts:list, entities_embs:dict, relations_embs:dict):
         # print(pathdicts)
         # print(entities_embs.keys())
         # print(relations_embs.keys())
 
         # network input
         # [(*e1,*r),*et] [*relation_embedding, *entity_embedding]
-        
-        res = dict()
-        for t in pathdicts:
+
+        res = []
+
+        for t in tqdm(pathdicts):
             path = t["path"]
 
             e_0 = path[0][0]
             e_final = t["target"]
             r = G.adj[e_0][e_final]["name"]
 
-            inputs = []
+            inputs, neighbors = [], []
+
             for p in path:
                 if[p[1] == "NO_OP"]:
                     re = list(np.zeros(len(entities_embs[e_0])))
@@ -274,10 +279,26 @@ class menu():
 
                 inputs.append(observation)
 
-                # get all connected variables to the entity and keep 
-                # {maxnodes} lowest and highest scores.
-                adjacents = G.adj[p[0]]
-                print(f"adjacency in node {p[0]} is:\n {adjacents}\n")
+                adjacents = G.adj[p[0]].copy()
+                del adjacents[p[2]]
+                # print(f"adjacency in node {p[0]}->{p[2]} is:\n {adjacents}\n")
+
+                current_node_neighbors = []
+                for node, v in adjacents.items():
+                    rel = v["name"]
+
+                    if[rel == "NO_OP"]:
+                        re = list(np.zeros(len(entities_embs[e_0])))
+                    else:
+                        re = relations_embs[rel]
+                    
+                    observation = [*entities_embs[e_0], *relations_embs[r],
+                    *entities_embs[p[0]], *re, *entities_embs[node]]
+
+                    inputs.append(observation)
+                    current_node_neighbors.append((rel, node))
+                    
+                neighbors.append(current_node_neighbors)
            
             inputs_stacked = np.vstack(np.array(inputs))
             if(is_ppo):
@@ -285,9 +306,34 @@ class menu():
             else:
                 output = agent([inputs_stacked])
 
-            print(output)
+            calculated = tf.get_static_value(output)
 
-    def get_node_pygame_positions(self, pos:dict, pathdicts:list, w:int, h:int):
+            # print(f"output values:\n {calculated}\nneighbors:\n{neighbors}\npathdict:\n{t}")
+
+            res_dict = dict()
+            res_dict['target'] = t['target']
+            cont = 0
+            path_res = []
+            for i, p in enumerate(path):
+                step_dict = dict()
+                step_dict["valid"] = (p[0], (p[1], calculated[cont][0]), p[2])
+                cont += 1
+                neighs = []
+                for n in neighbors[i]:
+                    neighs.append((p[0],(n[0],calculated[cont][0]), n[1]))
+                    cont += 1
+
+                step_dict['neighbors'] = neighs
+                path_res.append(step_dict)
+            
+            res_dict['path'] = path_res
+            res.append(res_dict)
+            # print(cont, len(calculated))
+    
+        return res
+
+    def keep_valuable_nodes_and_recalculate_positions(self, node_positions:dict, path_with_neighbors:list, maxnodes:int = 2, w:int, h:int):
+        
         if (len(pathdicts) > self.MAX_PATHS_TO_DISPLAY):
             pathdicts = pathdicts[0:self.MAX_PATHS_TO_DISPLAY]
         
