@@ -9,6 +9,7 @@ from guiutils import GetTestsPaths
 from keras.models import load_model
 from keras import Model
 from tqdm import tqdm
+from itertools import chain
 
 import numpy as np
 import tensorflow as tf
@@ -87,7 +88,8 @@ class menu():
 
         pathdicts, dataset, agent_name = [(t["pathdicts"], t["dataset"], t["agent_name"]) for t in self.tests if t["name"] == active][0]
 
-        
+        if (len(pathdicts) > self.MAX_PATHS_TO_DISPLAY):
+            pathdicts = pathdicts[0:self.MAX_PATHS_TO_DISPLAY]
 
         subfolders = [f.name.rstrip(f"_{dataset}_0") for f in os.scandir(f"{self.datasets_dir}/{dataset}/embeddings") if f.is_dir()]
         embedding = random.choice(subfolders)
@@ -107,21 +109,6 @@ class menu():
         # DRAWS THE COMLPETE GRAPH with network X
         # nx.draw_networkx(G, pos, with_labels=True, font_weight='bold')
         # plt.show()
-
-    def create_networkX_graph(self, triples:list):
-        G = nx.DiGraph()
-        print(len(triples))
-        for t in triples:
-            G.add_node(t[0])
-            G.add_node(t[2])
-            G.add_edge(t[0], t[2], name=t[1])
-            G.add_edge(t[2], t[0], name=f"¬{t[1]}")
-
-        for n in G.nodes():
-            G.add_edge(n, n, name="NO_OP")
-
-        print(f"nodes:{G.number_of_nodes()}, edges:{G.number_of_edges()}")
-        return G
 
     def get_agent(self, name:str, dataset:str, embedding:str):
         """
@@ -155,6 +142,21 @@ class menu():
 
         return agent
 
+    def create_networkX_graph(self, triples:list):
+        G = nx.DiGraph()
+        print(len(triples))
+        for t in triples:
+            G.add_node(t[0])
+            G.add_node(t[2])
+            G.add_edge(t[0], t[2], name=t[1])
+            G.add_edge(t[2], t[0], name=f"¬{t[1]}")
+
+        for n in G.nodes():
+            G.add_edge(n, n, name="NO_OP")
+
+        print(f"nodes:{G.number_of_nodes()}, edges:{G.number_of_edges()}")
+        return G
+
     def pygame_display(self, agent:Model, G: nx.Graph, pos:dict, 
     pathdicts:list, relations_embs:dict, entities_embs:dict):
 
@@ -176,9 +178,7 @@ class menu():
 
         node_positions = self.get_node_absolute_pos_pygame(pos, width, height)
         paths_with_neighbors = self.get_weighted_paths_with_neighbors(G, agent, is_ppo, pathdicts, entities_embs, relations_embs)
-        
-        # node_neighbors = self.get_node_representative_neighbors(G, agent, is_ppo, list(node_positions.keys()), entities_embs, relations_embs)
-        # self.get_node_pygame_positions(pos, pathdicts, width, height)
+        processed_pathdicts = self.keep_valuable_nodes_and_recalculate_positions(node_positions, paths_with_neighbors, width, height)
 
         pg.init()
         screen = pg.display.set_mode(size)
@@ -193,9 +193,14 @@ class menu():
         (102,205,170), (0,255,255), (127,255,212), (135,206,235), (106,90,205), (186,85,211), (219,112,147),
         (255,228,196), (244,164,96), (176,196,222), (169,169,169)]
 
-        nodes = []
-        for name, position in node_positions.items():
-            node = Node(font, random.choice(node_colors), name, position[0], position[1])
+        nodes, edges = [], []
+
+        current_visualized_path_idx = 0
+        path_to_viz = processed_pathdicts[current_visualized_path_idx]
+
+        for i,n in enumerate(path_to_viz['present_nodes']):
+            position = path_to_viz['node_path_positions'][i]
+            node = Node(font, random.choice(node_colors), n, position[0], position[1])
             nodes.append(node)
        
         while not requested_exit:
@@ -334,37 +339,107 @@ class menu():
     
         return res
 
-    def keep_valuable_nodes_and_recalculate_positions(self, node_positions:dict, path_with_neighbors:list, maxnodes:int = 2, w:int, h:int):
-        
-        if (len(pathdicts) > self.MAX_PATHS_TO_DISPLAY):
-            pathdicts = pathdicts[0:self.MAX_PATHS_TO_DISPLAY]
-        
-        for p in pathdicts:
-            abs_pos = dict()
-            print(p)
-            for t in p["path"]:
-                abs_pos[t[0]] = pos[t[0]]
-                abs_pos[t[2]] = pos[t[2]]
+    def keep_valuable_nodes_and_recalculate_positions(self, node_positions:dict, path_with_neighbors:list, w:int, h:int, maxnodes:int = 2):
+        def get_weakest_idx(node_list:list, weak_type:str):
+            if(weak_type == "min"):
+                weak_val = 999999
+            else:
+                weak_val = -999999
 
-            print(abs_pos)
+            res = 0
+            for i, n in enumerate(node_list):
+                val = n[1][1]
+                if(weak_type == "min" and val < weak_val):
+                    res = i
+                    weak_val = val
 
-            min_val_x, max_val_x, min_val_y, max_val_y = 1, -1, 1, -1
-            for x, y in abs_pos.values():
+                if(weak_type == "max" and val > weak_val):
+                    res = i
+                    weak_val = val
 
-                if x < min_val_x:
-                    min_val_x = x
+            return res
 
-                if y < min_val_y:
-                    min_val_y = y
+        for p in path_with_neighbors:
+            all_nodes_in_path = set()
+            path_with_processed_neighbors = []
 
-                if x > max_val_x:
-                    max_val_x = x
+            for step in p['path']:
+                step_dict = dict()
+                vld = step["valid"]
+                step_dict["valid"] = vld
+                all_nodes_in_path.update([vld[0], vld[2]])
 
-                if y > max_val_y:
-                    max_val_y = y
+                # print(f"\n{step}\n")
+                # Calculate the best and worst neighbors for the path step.
+                worst, best = [], []
+                worst_weakest_idx, best_weakest_idx = 0, 0
+                for n in step['neighbors']:
+
+                    if len(worst) < maxnodes or len(best) < maxnodes:
+                        worst.append(n)
+                        best.append(n)
+                        if(len(worst) == maxnodes or len(best) == maxnodes):
+                            worst_weakest_idx = get_weakest_idx(worst, 'max')
+                            best_weakest_idx = get_weakest_idx(best, 'min')
+
+                    else:
+                        # print(f"\nevaluating node {n}\n before:\nworst:{worst}\nbest:\n{best}\n")
+                        if(n[1][1] < worst[worst_weakest_idx][1][1]):
+                            worst.pop(worst_weakest_idx)
+                            worst.append(n)
+                            worst_weakest_idx = get_weakest_idx(worst, 'max')
+                        
+                        if(n[1][1] > best[best_weakest_idx][1][1]):
+                            best.pop(best_weakest_idx)
+                            best.append(n)
+                            best_weakest_idx = get_weakest_idx(best, 'min')
+
+                step_dict["worst"] = worst
+                step_dict["best"] = best
+
+                all_n = set()
+                for i in range(len(worst)):
+                    all_n.add(worst[i][0])
+                    all_n.add(worst[i][2])
+                    all_n.add(best[i][0])
+                    all_n.add(best[i][2])
+
+                all_nodes_in_path.update(all_n)
+
+                # print(step_dict)
+                path_with_processed_neighbors.append(step_dict)
+
+            p['path'] = path_with_processed_neighbors
+            p['present_nodes'] = all_nodes_in_path
+
+            minvx, maxvx, minvy, maxvy = w,0,h,0
+
+            for node in all_nodes_in_path:
+                x, y = node_positions[node]
+
+                if x < minvx:
+                    minvx = x
+
+                if y < minvy:
+                    minvy = y
+
+                if x > maxvx:
+                    maxvx = x
+
+                if y > maxvy:
+                    maxvy = y
             
+            print(minvx, minvy, maxvx, maxvy)
+            path_node_positions = []
+            conversion_factor_x, conversion_factor_y = w/(maxvx-minvx), h/(maxvy-minvy)
+            for node in all_nodes_in_path:
+                x, y =  int((node_positions[node][0] - minvx) * conversion_factor_x), int((node_positions[node][1] - minvy) * conversion_factor_y)
+                path_node_positions.append((x,y))
+            
+            p['node_path_positions'] = path_node_positions
 
-    
+        return path_with_neighbors
+                
 
 # PYGAME helper classes:
 class Button:
