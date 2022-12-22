@@ -193,23 +193,59 @@ class menu():
         (102,205,170), (0,255,255), (127,255,212), (135,206,235), (106,90,205), (186,85,211), (219,112,147),
         (255,228,196), (244,164,96), (176,196,222), (169,169,169)]
 
-        nodes, edges = [], []
+        self.nodes, self.neighbor_edges, self.path_edges = [], [], []
 
         current_visualized_path_idx = 0
         path_to_viz = processed_pathdicts[current_visualized_path_idx]
 
+        object_step_dicts = []
+
         for i,n in enumerate(path_to_viz['present_nodes']):
             position = path_to_viz['node_path_positions'][i]
-            node = Node(font, random.choice(node_colors), n, position[0], position[1])
-            nodes.append(node)
-       
+            node = Node(font, random.choice(node_colors), n, position[0], position[1], width, height)
+            self.nodes.append(node)
+
+        for step in path_to_viz['path']:
+            o_step_dict = dict()
+
+            valid = step['valid']
+            nodes_in_rel = [n for n in self.nodes if n.text == valid[0] or n.text == valid[2]]
+            e = Edge(font, valid[1][0], valid[1][1], nodes_in_rel[0], nodes_in_rel[1])
+            e.set_active_state(True)
+            e.set_show_edge_info(True)
+            self.path_edges.append(e)
+            
+            o_step_dict["curr_node"] = nodes_in_rel[0]
+            #TODO: add the nodes to the object step dict.
+
+            worst = step['worst']
+            best = step['best']
+
+            for i in range(len(worst)):
+                nodes_in_rel = [n for n in self.nodes if n.text == worst[i][0] or n.text == worst[i][2]]
+                i1, i2 = (0,0)  if len(nodes_in_rel) == 1 else (0,1)
+                e1 = Edge(font, worst[i][1][0], worst[i][1][1], nodes_in_rel[i1], nodes_in_rel[i2])
+
+                nodes_in_rel = [n for n in self.nodes if n.text == best[i][0] or n.text == best[i][2]]
+                i1, i2 = (0,0)  if len(nodes_in_rel) == 1 else (0,1)
+                e2 = Edge(font, best[i][1][0], best[i][1][1], nodes_in_rel[i1], nodes_in_rel[i2])
+
+                self.neighbor_edges.extend((e1,e2))
+
         while not requested_exit:
             screen.fill(white)
             prev_button.run(screen)
             next_button.run(screen)
             
-            for n in nodes:
+            for e in self.path_edges:
+                e.run(screen)
+
+            for e in self.neighbor_edges:
+                e.run(screen)
+
+            for n in self.nodes:
                 n.run(screen)
+
 
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -429,9 +465,8 @@ class menu():
                 if y > maxvy:
                     maxvy = y
             
-            print(minvx, minvy, maxvx, maxvy)
             path_node_positions = []
-            conversion_factor_x, conversion_factor_y = w/(maxvx-minvx), h/(maxvy-minvy)
+            conversion_factor_x, conversion_factor_y = (w)/(maxvx-minvx), (h)/(maxvy-minvy)
             for node in all_nodes_in_path:
                 x, y =  int((node_positions[node][0] - minvx) * conversion_factor_x), int((node_positions[node][1] - minvy) * conversion_factor_y)
                 path_node_positions.append((x,y))
@@ -453,7 +488,7 @@ class Button:
         self.command = command
         self.clicked = False
 
-    def run(self, screen):
+    def run(self, screen:pg.surface.Surface):
         if pg.mouse.get_pressed()[0] == 1:
             pos = pg.mouse.get_pos()
             if self.rect.collidepoint(pos) and not self.clicked:
@@ -467,17 +502,28 @@ class Button:
         screen.blit(self.img, self.rect)
     
 class Node:
-    def __init__(self, font: pg.font.Font, color:tuple, text:str, x:int , y:int):
-        self.color = color
-        self.text = text
-        self.font = font
-        self.x , self.y = x,y
+    def __init__(self, font: pg.font.Font, color:tuple, text:str, x:int , y:int, w:int, h:int):
+        self.color, self.text, self.font = color, text, font
 
-    def run(self, screen):
+        mid_w = w/2
+        if(x < mid_w):
+            x += 160 * (1 - x/mid_w)
+        else:
+            x -= 160 * ((x/w)-0.5)*2
+
+        mid_h = h/2
+        if(y < mid_h):
+            y += 90 * (1 - y/mid_h)
+        else:
+            y -= 90 * ((y/h)-0.5)*2
+
+        self.x , self.y = int(x), int(y)
+
+    def run(self, screen:pg.surface.Surface):
+        
         # render node circle.
         pg.draw.circle(screen, self.color, (self.x, self.y+40), 40)
         pg.draw.circle(screen, (0,0,0), (self.x, self.y+40), 40, 4)
-
 
         # render text
         text_img = self.font.render(self.text, True, (0,0,0))
@@ -485,3 +531,32 @@ class Node:
         t_h = text_img.get_height()
         screen.blit(text_img, (self.x - int(t_w/2), self.y - int(t_h/2)+40))
 
+class Edge:
+    def __init__(self, font:pg.font.Font, relation:str, value:float, a:Node, b:Node):
+        self.is_active, self.show_edge_info = False, False
+        self.active_color, self.base_color = (136, 8, 8), (136, 8, 8)
+
+        self.font, self.rel, self.value, self.a, self.b = font, relation, value, a, b
+
+    def run(self, screen:pg.surface.Surface):
+        origin, dest = (self.a.x, self.a.y+20), (self.b.x, self.b.y+20)
+        color = self.active_color if self.is_active else self.base_color
+
+        if(origin == dest):
+            self.draw_bezier(screen, origin, color)
+        else:
+            pg.draw.line(screen, color, origin, dest, 3)
+
+        # render text
+        if self.show_edge_info:
+            text_img = self.font.render(f"{self.rel}-({self.value:.4f})", True, (0,0,0))
+            screen.blit(text_img, (int((self.a.x + self.b.x)/2), int((self.a.y + self.b.y)/2)))
+
+    def set_active_state(self, s:bool):
+        self.is_active = s
+    
+    def set_show_edge_info(self, s:bool):
+        self.show_edge_info = s
+
+    def draw_bezier(self, screen, point, color):
+        pass
