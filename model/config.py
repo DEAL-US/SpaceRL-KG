@@ -9,8 +9,8 @@ config = {
     ######################
     # GENERAL PARAMETERS #
     ###################### 
-    "available_cores": 6, #number of cpu cores to use when computing the reward
-    "gpu_acceleration": True, # wether to use GPU(S) to perform fast training & embedding generation.
+    "available_cores": 4, #number of cpu cores to use when computing the reward
+    "gpu_acceleration": False, # wether to use GPU(S) to perform fast training & embedding generation.
 
     "verbose": False, # prints detailed information every episode.
     "log_results": False, # Logs the results in the logs folder of episode training.
@@ -21,7 +21,7 @@ config = {
     #####################
     # TRAINING SPECIFIC #
     ##################### 
-    "restore_agent": False, # continues the training from where it left off and loads the agent if possible.
+    "restore_agent": True, # continues the training from where it left off and loads the agent if possible.
     
     "guided_reward": True, # wether to follow a step-based reward or just a reward at the end of the episode.
     # if guided rewards are active, which one(s) to use:
@@ -55,16 +55,19 @@ config = {
     
     # applies L1 and L2 regularization at different stages of training.
     "regularizers":['kernel'], #"kernel", "bias", "activity" 
-
+    
+    # which algorithm to use when learning.
     # PPO uses actor critic networks and BASE is a simple feed-forward network.
     # you can then choose retropropagation of rewards to compute as a REINFORCE model or simple to keep the rewards 
     # based on the results of the episode without adding any aditional computation to the reward.
-    "algorithm": "PPO", #BASE, PPO
+    "algorithm": "BASE", #BASE, PPO
 
+    # which way to feed the rewards to the network.
     # retroprogation causes the rewards closer to the end of the episode have more 
     # influence over the neural network, whereas simple offers a homogenous distibution.
     "reward_type": "simple", # retropropagation, simple
     
+    # how the actions are chosen from the list of possible ones in every step.
     # probability-> action calculation biased by the probability of the network output.
     # max -> pick the highest value offered by the network.
     # probability makes training stochasting while max makes it deterministic.
@@ -90,9 +93,19 @@ config = {
 import pathlib
 
 class Experiment():
-    'defines the experiment to run.'
+    """
+    Defines an experiment suite to be carried out, and thus the agents to be created.
+
+    :param experiment_name: the name of the experiment (directory name)
+    :param dataset_name: the dataset to be used.
+    :param embeddings: the embeddings to be used. options -> "TransE_l2", "DistMult", "ComplEx", "TransR"
+    :param laps: agents trained by doing several laps around the dataset in order to minimize randomness, bigger datasets may require more laps but this will in turn increase training time, choose a single relation training in this case.
+    :param single_relation: wether to train for a single relation or the entire graph.
+    :param relation: the name of the relation to train for.
+
+    """
     def __init__(self, experiment_name : str, dataset_name : str, 
-    embeddings, laps : int = 0, single_relation : bool = False, relation : str = ""):
+    embeddings:list, laps : int = 0, single_relation : bool = False, relation : str = ""):
 
         self.name = experiment_name
         self.dataset = dataset_name
@@ -105,11 +118,22 @@ class Experiment():
         else:
             self.relation_to_train = None
 
+
 current_dir = pathlib.Path(__file__).parent.resolve()
 agents_folder = pathlib.Path(f"{current_dir}/data/agents").resolve()
 
 class Test():
-    def __init__(self, test_name:str, agent_name:str, embeddings, episodes : int):
+    """
+    Defines an test suite to be carried out and performs integrity checks.
+    If no agent is found to support the required testing, the created test is discarded.
+
+    :param test_name: the name of the test (directory name)
+    :param agent_name: the agent to be used, if not found, test is discarded
+    :param embeddings: the embeddings to be used. options -> "TransE_l2", "DistMult", "ComplEx", "TransR"
+    :param episodes: the number of paths to evaluate in testing.
+
+    """
+    def __init__(self, test_name: str, agent_name: str, embeddings: list, episodes: int):
         self.name = test_name
         self.agent_name = agent_name
         self.episodes = episodes
@@ -132,22 +156,34 @@ class Test():
             self.to_delete = True
 
 EXPERIMENTS = [
+    # Experiment("asd1", "COUNTRIES", ["TransE_l2"], 1)
     # Experiment("film_genre_FB_Base_PPO_embedding_22", "FB15K-237", ["TransE_l2"], 22, True, relation = "/film/film/genre"),
-    Experiment("countiesall", "COUNTRIES", ["TransR"], 1) 
+    # Experiment("countiesall", "COUNTRIES", ["TransR"], 1) 
     # Experiment("Umls-distancerew-125laps-PPO", "UMLS", ["TransE_l2"], 10),
     # Experiment("embedding_testing", "NELL-995", ["TransE_l2"], 10, True, relation = "concept:animalpreyson"),
     # Experiment("Countries 500 base", "COUNTRIES", ["TransE_l2"], 500, single_relation=False, relation="neighborOf")
 ]
 
 TESTS = [
-    Test("countries-test", "countries-test", ["TransE_l2", "DistMult"], 10),
-    Test("another-test", "Countries-distancerewonly-250laps-PPO", ["TransE_l2"], 10),
-    Test("good_test", "countiesall", ["TransE_l2", "DistMult", "ComplEx"], 10),
+    # Test("countries-test-name", "countries-1", ["TransE_l2"], 5),
+    # Test("another-test", "Countries-distancerewonly-250laps-PPO", ["TransE_l2"], 10),
+    # Test("good_test", "countiesall", ["TransE_l2", "DistMult", "ComplEx"], 10),
 ]
 
 TESTS = [t for t in TESTS if not t.to_delete]
 
-def get_config(train, only_config = False):
+def get_config(train: bool, only_config: bool = False):
+    """
+    fetchs the configuration and either the experimentation list or the test list.
+
+    :param train: whether to get the training or the tests.
+    :param only_config: if true only the configuration is returned.
+
+    :returns:
+    config -> the configuration dictionary \n
+    EXPERIMENTS (optional) -> the experiment list. \n
+    TESTS (optional) -> the tests list. \n
+    """
     if(only_config):
         return config
     else:

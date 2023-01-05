@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Training and Testing &mdash; RL-KG 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Utils" href="guiutils.html" />
+    <link rel="prev" title="Configuration" href="config.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> RL-KG
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../model/model.html">Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model/data/data.html">Data</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="GUI.html">GUI</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="main.html">Main Menu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Training and Testing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#GUI.test_train_menu.menu.add_elements"><code class="docutils literal notranslate"><span class="pre">add_elements()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GUI.test_train_menu.menu.add_train_elements"><code class="docutils literal notranslate"><span class="pre">add_train_elements()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GUI.test_train_menu.menu.grid_trainframe"><code class="docutils literal notranslate"><span class="pre">grid_trainframe()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GUI.test_train_menu.menu.add_test_elements"><code class="docutils literal notranslate"><span class="pre">add_test_elements()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GUI.test_train_menu.menu.grid_testframe"><code class="docutils literal notranslate"><span class="pre">grid_testframe()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#logic">Logic</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.test_train_menu.menu.add_to_list"><code class="docutils literal notranslate"><span class="pre">add_to_list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.test_train_menu.menu.remove_from_list"><code class="docutils literal notranslate"><span class="pre">remove_from_list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.test_train_menu.menu.populate_embedding_listbox_test"><code class="docutils literal notranslate"><span class="pre">populate_embedding_listbox_test()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#scrollables">Scrollables</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.test_train_menu.menu._bound_to_mousewheel"><code class="docutils literal notranslate"><span class="pre">_bound_to_mousewheel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.test_train_menu.menu._unbound_to_mousewheel"><code class="docutils literal notranslate"><span class="pre">_unbound_to_mousewheel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.test_train_menu.menu._on_mousewheel"><code class="docutils literal notranslate"><span class="pre">_on_mousewheel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.test_train_menu.menu._configure_window"><code class="docutils literal notranslate"><span class="pre">_configure_window()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#validation">Validation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.test_train_menu.menu.ValidateRange"><code class="docutils literal notranslate"><span class="pre">ValidateRange()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.test_train_menu.menu.InvalidInput"><code class="docutils literal notranslate"><span class="pre">InvalidInput()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="guiutils.html">Utils</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">RL-KG</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="GUI.html">GUI</a></li>
+      <li class="breadcrumb-item active">Training and Testing</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/GUI/test_train.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="training-and-testing">
+<h1>Training and Testing<a class="headerlink" href="#training-and-testing" title="Permalink to this heading"></a></h1>
+<p>The training and testing window is a class that is divided into 2 subframes which can be alternated.
+It also sonatains some general functions that are shared between them.</p>
+<p>The menu class holds several functions
+.. autoclass:: GUI.test_train_menu.menu</p>
+<p>A generic entry point</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.test_train_menu.menu.add_elements">
+<span class="sig-prename descclassname"><span class="pre">GUI.test_train_menu.menu.</span></span><span class="sig-name descname"><span class="pre">add_elements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.test_train_menu.menu.add_elements" title="Permalink to this definition"></a></dt>
+<dd><p>Creates the tkinter notebook and parent frames for the test and train subwindows,
+then, calls the subfuntions for each.</p>
+</dd></dl>
+
+<p>which calls the <strong>train specific</strong> builders:</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.test_train_menu.menu.add_train_elements">
+<span class="sig-prename descclassname"><span class="pre">GUI.test_train_menu.menu.</span></span><span class="sig-name descname"><span class="pre">add_train_elements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.test_train_menu.menu.add_train_elements" title="Permalink to this definition"></a></dt>
+<dd><p>add the elements to the train subwindow in the notebook.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.test_train_menu.menu.grid_trainframe">
+<span class="sig-prename descclassname"><span class="pre">GUI.test_train_menu.menu.</span></span><span class="sig-name descname"><span class="pre">grid_trainframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.test_train_menu.menu.grid_trainframe" title="Permalink to this definition"></a></dt>
+<dd><p>grids all elements in the train subwindow.</p>
+</dd></dl>
+
+<p>and the <strong>test specific</strong> builders:</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.test_train_menu.menu.add_test_elements">
+<span class="sig-prename descclassname"><span class="pre">GUI.test_train_menu.menu.</span></span><span class="sig-name descname"><span class="pre">add_test_elements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.test_train_menu.menu.add_test_elements" title="Permalink to this definition"></a></dt>
+<dd><p>add the elements to the test subwindow in the notebook.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.test_train_menu.menu.grid_testframe">
+<span class="sig-prename descclassname"><span class="pre">GUI.test_train_menu.menu.</span></span><span class="sig-name descname"><span class="pre">grid_testframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.test_train_menu.menu.grid_testframe" title="Permalink to this definition"></a></dt>
+<dd><p>grids all elements in the test subwindow.</p>
+</dd></dl>
+
+<section id="logic">
+<h2>Logic<a class="headerlink" href="#logic" title="Permalink to this heading"></a></h2>
+<p>these functions aid with adding and removing test and train elements and fill out dynamic elements.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.test_train_menu.menu.add_to_list">
+<span class="sig-prename descclassname"><span class="pre">GUI.test_train_menu.menu.</span></span><span class="sig-name descname"><span class="pre">add_to_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.test_train_menu.menu.add_to_list" title="Permalink to this definition"></a></dt>
+<dd><p>Adds a train or test banner to its respective window, based on the currently selected options in the window.
+It validates the elements in the desired window before adding them, and displays error messages if neccesary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>from_frame</strong> – to which window to add the test/experiment. options -&gt; train, test</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.test_train_menu.menu.remove_from_list">
+<span class="sig-prename descclassname"><span class="pre">GUI.test_train_menu.menu.</span></span><span class="sig-name descname"><span class="pre">remove_from_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.test_train_menu.menu.remove_from_list" title="Permalink to this definition"></a></dt>
+<dd><p>removes the last element from the selected list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>from_frame</strong> – from which window to remove the test/experiment. options -&gt; train, test</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.test_train_menu.menu.populate_embedding_listbox_test">
+<span class="sig-prename descclassname"><span class="pre">GUI.test_train_menu.menu.</span></span><span class="sig-name descname"><span class="pre">populate_embedding_listbox_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.test_train_menu.menu.populate_embedding_listbox_test" title="Permalink to this definition"></a></dt>
+<dd><p>depending on the selected agent it displays which embeddings are generated for it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>event</strong> – the tcl event that is bound to the operation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="scrollables">
+<h2>Scrollables<a class="headerlink" href="#scrollables" title="Permalink to this heading"></a></h2>
+<p>These functions are meant to create an scrollable menu for the canvas which contains the tests and train elements.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.test_train_menu.menu._bound_to_mousewheel">
+<span class="sig-prename descclassname"><span class="pre">GUI.test_train_menu.menu.</span></span><span class="sig-name descname"><span class="pre">_bound_to_mousewheel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">canvas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Canvas</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.test_train_menu.menu._bound_to_mousewheel" title="Permalink to this definition"></a></dt>
+<dd><p>binds the mousewheel scrolling to the canvas scrolling while the mouse is over.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event</strong> – the tcl event that is bound to the operation. Mouseon in this case.</p></li>
+<li><p><strong>canvas</strong> – the display canvas that hosts the banners.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.test_train_menu.menu._unbound_to_mousewheel">
+<span class="sig-prename descclassname"><span class="pre">GUI.test_train_menu.menu.</span></span><span class="sig-name descname"><span class="pre">_unbound_to_mousewheel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">canvas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Canvas</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.test_train_menu.menu._unbound_to_mousewheel" title="Permalink to this definition"></a></dt>
+<dd><p>removes the mousewheel bind on mouseoff.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event</strong> – the tcl event that is bound to the operation. Mouseoff in this case</p></li>
+<li><p><strong>canvas</strong> – the display canvas that hosts the banners</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.test_train_menu.menu._on_mousewheel">
+<span class="sig-prename descclassname"><span class="pre">GUI.test_train_menu.menu.</span></span><span class="sig-name descname"><span class="pre">_on_mousewheel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">canvas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Canvas</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.test_train_menu.menu._on_mousewheel" title="Permalink to this definition"></a></dt>
+<dd><p>How the canvas scrolls based on the scrollwheels delta.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event</strong> – the tcl event that is bound to the operation. In this case the scrollwheel turning.</p></li>
+<li><p><strong>canvas</strong> – the display canvas that hosts the banners</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.test_train_menu.menu._configure_window">
+<span class="sig-prename descclassname"><span class="pre">GUI.test_train_menu.menu.</span></span><span class="sig-name descname"><span class="pre">_configure_window</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">canvas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Canvas</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.test_train_menu.menu._configure_window" title="Permalink to this definition"></a></dt>
+<dd><p>Sets up the window sizes and prepares it for the elements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event</strong> – the tcl event that is bound to the operation.</p></li>
+<li><p><strong>canvas</strong> – the canvas object where the elements will display.</p></li>
+<li><p><strong>frame</strong> – the parent frame that contains the canvas.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>bar</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>fooException</strong> – bar</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="validation">
+<h2>Validation<a class="headerlink" href="#validation" title="Permalink to this heading"></a></h2>
+<p>Finally some helper validation functions for some of the elements.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.test_train_menu.menu.ValidateRange">
+<span class="sig-prename descclassname"><span class="pre">GUI.test_train_menu.menu.</span></span><span class="sig-name descname"><span class="pre">ValidateRange</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.test_train_menu.menu.ValidateRange" title="Permalink to this definition"></a></dt>
+<dd><p>Recieves a value and checks that is a number</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>value</strong> – the value in the textbox</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.test_train_menu.menu.InvalidInput">
+<span class="sig-prename descclassname"><span class="pre">GUI.test_train_menu.menu.</span></span><span class="sig-name descname"><span class="pre">InvalidInput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.test_train_menu.menu.InvalidInput" title="Permalink to this definition"></a></dt>
+<dd><p>Error text displays when laps inputs is invalid.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="config.html" class="btn btn-neutral float-left" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="guiutils.html" class="btn btn-neutral float-right" title="Utils" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, DEAL.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuration &mdash; RL-KG 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Configuration" href="test_train.html" />
+    <link rel="prev" title="Main Menu" href="main.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> RL-KG
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../model/model.html">Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model/data/data.html">Data</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="GUI.html">GUI</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="main.html">Main Menu</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#GUI.config_menu.menu"><code class="docutils literal notranslate"><span class="pre">menu</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GUI.config_menu.menu.add_elements"><code class="docutils literal notranslate"><span class="pre">add_elements()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GUI.config_menu.menu.grid_elements"><code class="docutils literal notranslate"><span class="pre">grid_elements()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GUI.config_menu.menu.validation"><code class="docutils literal notranslate"><span class="pre">validation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GUI.config_menu.menu.invalid"><code class="docutils literal notranslate"><span class="pre">invalid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GUI.config_menu.menu.save_config"><code class="docutils literal notranslate"><span class="pre">save_config()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="test_train.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guiutils.html">Utils</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">RL-KG</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="GUI.html">GUI</a></li>
+      <li class="breadcrumb-item active">Configuration</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/GUI/config.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading"></a></h1>
+<p>The configuration window, it holds the different values that are available in the config file and allows the user to modify them.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="GUI.config_menu.menu">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GUI.config_menu.</span></span><span class="sig-name descname"><span class="pre">menu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.config_menu.menu" title="Permalink to this definition"></a></dt>
+<dd><p>The config menu.</p>
+</dd></dl>
+
+<p>Its function signatures are</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.config_menu.menu.add_elements">
+<span class="sig-prename descclassname"><span class="pre">GUI.config_menu.menu.</span></span><span class="sig-name descname"><span class="pre">add_elements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.config_menu.menu.add_elements" title="Permalink to this definition"></a></dt>
+<dd><p>Adds all tkinter elements to the config window.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.config_menu.menu.grid_elements">
+<span class="sig-prename descclassname"><span class="pre">GUI.config_menu.menu.</span></span><span class="sig-name descname"><span class="pre">grid_elements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.config_menu.menu.grid_elements" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the position of all tkinter elements in the main window.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.config_menu.menu.validation">
+<span class="sig-prename descclassname"><span class="pre">GUI.config_menu.menu.</span></span><span class="sig-name descname"><span class="pre">validation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.config_menu.menu.validation" title="Permalink to this definition"></a></dt>
+<dd><p>Validates all user defined information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – the value in the text field at the time of validation</p></li>
+<li><p><strong>origin</strong> – the origin of the validation trigger it represents one of the text fields in the window.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.config_menu.menu.invalid">
+<span class="sig-prename descclassname"><span class="pre">GUI.config_menu.menu.</span></span><span class="sig-name descname"><span class="pre">invalid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.config_menu.menu.invalid" title="Permalink to this definition"></a></dt>
+<dd><p>If the validation of the field didn’t pass, what actions to take.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>origin</strong> – the origin of the validation trigger it represents one of the text fields in the window.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GUI.config_menu.menu.save_config">
+<span class="sig-prename descclassname"><span class="pre">GUI.config_menu.menu.</span></span><span class="sig-name descname"><span class="pre">save_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.config_menu.menu.save_config" title="Permalink to this definition"></a></dt>
+<dd><p>Saves the configuration from the elements displayed.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="main.html" class="btn btn-neutral float-left" title="Main Menu" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="test_train.html" class="btn btn-neutral float-right" title="Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, DEAL.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

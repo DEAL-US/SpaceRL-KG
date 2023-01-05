@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Utils &mdash; RL-KG 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Training and Testing" href="test_train.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> RL-KG
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../model/model.html">Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../model/data/data.html">Data</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="GUI.html">GUI</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="main.html">Main Menu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="test_train.html">Training and Testing</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Utils</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#classes">Classes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.guiutils.ToolTip"><code class="docutils literal notranslate"><span class="pre">ToolTip</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.guiutils.ExperimentBanner"><code class="docutils literal notranslate"><span class="pre">ExperimentBanner</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.guiutils.AgentInfo"><code class="docutils literal notranslate"><span class="pre">AgentInfo</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#functions">Functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.guiutils.CreateToolTip"><code class="docutils literal notranslate"><span class="pre">CreateToolTip</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.guiutils.GetConfig"><code class="docutils literal notranslate"><span class="pre">GetConfig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.guiutils.GetDatasets"><code class="docutils literal notranslate"><span class="pre">GetDatasets</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.guiutils.GetAgents"><code class="docutils literal notranslate"><span class="pre">GetAgents</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.guiutils.GetExperimentInstance"><code class="docutils literal notranslate"><span class="pre">GetExperimentInstance</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.guiutils.GetTestInstance"><code class="docutils literal notranslate"><span class="pre">GetTestInstance</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.guiutils.CheckForRelationInDataset"><code class="docutils literal notranslate"><span class="pre">CheckForRelationInDataset</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.guiutils.CheckAgentNameColision"><code class="docutils literal notranslate"><span class="pre">CheckAgentNameColision</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.guiutils.CheckTestCollision"><code class="docutils literal notranslate"><span class="pre">CheckTestCollision</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.guiutils.run_integrity_checks"><code class="docutils literal notranslate"><span class="pre">run_integrity_checks</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GUI.guiutils.remove_folders"><code class="docutils literal notranslate"><span class="pre">remove_folders</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">RL-KG</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="GUI.html">GUI</a></li>
+      <li class="breadcrumb-item active">Utils</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/GUI/guiutils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="utils">
+<h1>Utils<a class="headerlink" href="#utils" title="Permalink to this heading"></a></h1>
+<p>The GUI utilities, its made up of several classes and functions</p>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="GUI.guiutils.ToolTip">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GUI.guiutils.</span></span><span class="sig-name descname"><span class="pre">ToolTip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Widget</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.guiutils.ToolTip" title="Permalink to this definition"></a></dt>
+<dd><p>A class to creat tooltips when hovering on any tkinter element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>widget</strong> – widget that generates the tooltip.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="GUI.guiutils.ExperimentBanner">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GUI.guiutils.</span></span><span class="sig-name descname"><span class="pre">ExperimentBanner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bannertext</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">experiment_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">laps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embeddings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_rel_check</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_rel_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lapstext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'laps'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.guiutils.ExperimentBanner" title="Permalink to this definition"></a></dt>
+<dd><p>A class to create Banners (tkinter labelframes) to add to the setup menu.
+They display information about which tests and experiments are queued to run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frame</strong> – the parent frame to attach the banner to.</p></li>
+<li><p><strong>bannertext</strong> – the text to display on top of the labelframe.</p></li>
+<li><p><strong>experiment_name</strong> – the name of the test or experiment to run.</p></li>
+<li><p><strong>laps</strong> – the number of episodes/laps the experiment/training is goin to run for.</p></li>
+<li><p><strong>dataset</strong> – the dataset which is being relied upon</p></li>
+<li><p><strong>embeddings</strong> – the embeddings that are ging to be used.</p></li>
+<li><p><strong>single_rel_check</strong> – flag for single relation</p></li>
+<li><p><strong>single_rel_name</strong> – name of the relation to test/train.</p></li>
+<li><p><strong>lapstext</strong> – special parameter to indicate if laps should be something else (I.E. “episodes”)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="GUI.guiutils.AgentInfo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GUI.guiutils.</span></span><span class="sig-name descname"><span class="pre">AgentInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embeddings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_single_rel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_rel_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.guiutils.AgentInfo" title="Permalink to this definition"></a></dt>
+<dd><p>A holder class for agent information</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – the name of the test or experiment to run.</p></li>
+<li><p><strong>embeddings</strong> – the embeddings that are ging to be used.</p></li>
+<li><p><strong>dataset</strong> – the dataset which is being relied upon.</p></li>
+<li><p><strong>is_single_rel</strong> – flag for single relation.</p></li>
+<li><p><strong>single_rel_name</strong> – name of the relation to test/train.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="GUI.guiutils.CreateToolTip">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GUI.guiutils.</span></span><span class="sig-name descname"><span class="pre">CreateToolTip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">widget</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Widget</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.guiutils.CreateToolTip" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a tooltip for the selected widget with the specified text.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>widget</strong> – widget that generates the tooltip.</p></li>
+<li><p><strong>text</strong> – text to display in the tooltip.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="GUI.guiutils.GetConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GUI.guiutils.</span></span><span class="sig-name descname"><span class="pre">GetConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_experiments</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.guiutils.GetConfig" title="Permalink to this definition"></a></dt>
+<dd><p>Imports the configuration information and</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>is_experiments</strong> – if we want to retrieve experiments or tests.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the configuration dictionary.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="GUI.guiutils.GetDatasets">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GUI.guiutils.</span></span><span class="sig-name descname"><span class="pre">GetDatasets</span></span><a class="headerlink" href="#GUI.guiutils.GetDatasets" title="Permalink to this definition"></a></dt>
+<dd><p>Gets all available dataset names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>all available datasets.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="GUI.guiutils.GetAgents">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GUI.guiutils.</span></span><span class="sig-name descname"><span class="pre">GetAgents</span></span><a class="headerlink" href="#GUI.guiutils.GetAgents" title="Permalink to this definition"></a></dt>
+<dd><p>Gets all agents that have been created and the config used for them, then encapsulates them in a AgentInfo class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a list of AgentInfo which contains all generated agents and information about them.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="GUI.guiutils.GetExperimentInstance">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GUI.guiutils.</span></span><span class="sig-name descname"><span class="pre">GetExperimentInstance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embeddings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">laps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_rel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_rel_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.guiutils.GetExperimentInstance" title="Permalink to this definition"></a></dt>
+<dd><p>Create an experiment class object with the given information</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – the experiment name</p></li>
+<li><p><strong>dataset</strong> – the dataset which is being relied upon.</p></li>
+<li><p><strong>embeddings</strong> – the embeddings that are ging to be used.</p></li>
+<li><p><strong>laps</strong> – the number of laps to perform</p></li>
+<li><p><strong>single_rel</strong> – flag for single relation.</p></li>
+<li><p><strong>single_rel_name</strong> – name of the relation to test/train.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the created Experiment object instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="GUI.guiutils.GetTestInstance">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GUI.guiutils.</span></span><span class="sig-name descname"><span class="pre">GetTestInstance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">agentname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">testname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embeddings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">episodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.guiutils.GetTestInstance" title="Permalink to this definition"></a></dt>
+<dd><p>Create a Test class object with the given information</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>agentname</strong> – the name of the agent to test.</p></li>
+<li><p><strong>testname</strong> – the test name.</p></li>
+<li><p><strong>embeddings</strong> – the embeddings that are ging to be used.</p></li>
+<li><p><strong>episodes</strong> – the number of episodes to test for.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the created Test object instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="GUI.guiutils.CheckForRelationInDataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GUI.guiutils.</span></span><span class="sig-name descname"><span class="pre">CheckForRelationInDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relation_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.guiutils.CheckForRelationInDataset" title="Permalink to this definition"></a></dt>
+<dd><p>checks for a particular relation in a dataset</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset_name</strong> – the name of the dataset</p></li>
+<li><p><strong>relation_name</strong> – the name of the relation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the relation is in the dataset, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="GUI.guiutils.CheckAgentNameColision">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GUI.guiutils.</span></span><span class="sig-name descname"><span class="pre">CheckAgentNameColision</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.guiutils.CheckAgentNameColision" title="Permalink to this definition"></a></dt>
+<dd><p>checks if an agent with the requested name does already exist.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> – the name of the agent.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the agent exists, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="GUI.guiutils.CheckTestCollision">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GUI.guiutils.</span></span><span class="sig-name descname"><span class="pre">CheckTestCollision</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.guiutils.CheckTestCollision" title="Permalink to this definition"></a></dt>
+<dd><p>checks if a test with the requested name does already exist.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> – the name of the test.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the test exists, False otherwise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="GUI.guiutils.run_integrity_checks">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GUI.guiutils.</span></span><span class="sig-name descname"><span class="pre">run_integrity_checks</span></span><a class="headerlink" href="#GUI.guiutils.run_integrity_checks" title="Permalink to this definition"></a></dt>
+<dd><p>checks for consistency in folders, in case a test/train suite has faield to complete.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="GUI.guiutils.remove_folders">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GUI.guiutils.</span></span><span class="sig-name descname"><span class="pre">remove_folders</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_abs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filecount</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#GUI.guiutils.remove_folders" title="Permalink to this definition"></a></dt>
+<dd><p>deletes a folder with the indicated filecount.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="test_train.html" class="btn btn-neutral float-left" title="Training and Testing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, DEAL.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

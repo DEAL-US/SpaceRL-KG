@@ -21,7 +21,19 @@ RLKG was built and is mantained by [**DEAL research group**](https://deal.us.es/
   * [General](#general-parameters)
   * [Training](#training-specific-parameters)
   * [Shared](#shared-params)
-
+- [Setup](#setup)
+- [Running](#running)
+    * [Format](#format)
+    * [Execution](#execution)
+        + [Manual](#manual-execution)
+        + [GUI](#gui)
+        + [API](#api)
+    * [Results](#results)
+    * [Miscellaneous](#miscellaneous)
+        + [Embeddings preprocess](#embeddings-preprocessing)
+        + [Fake dataset generation](#fake-dataset-generation)
+        + [Plotting](#plotting)
+- [Visualization](#visualization)
 
 
 <br>
@@ -320,4 +332,104 @@ The name of the dataset must be specified as a child directory to `datasets` whi
 
 The software can be executed in 2 separate ways, manually running the testing and training suites or using the GUI.
 
+<<<<<<< HEAD
 You can also deploy an API to allow external users the creationg of these models (WIP).
+=======
+You can also deploy an API to allow external users the creationg of these models (WIP).
+
+### Manual execution
+To run the program manually, you can run the `trainer.py` and `tester.py` files. These files will read the information from `config.py` so, change it accordingly beforehand.
+
+The first will run all the experiments you setup in the **EXPERIMENT** list in the `config.py` file and the second will run every test defined in the **TESTS** list.
+
+### GUI
+To run the GUI run the `main.py` file in the GUI folder, you will see the following:  
+![](imgs/main_window.PNG)  
+
+The top text indicates how many Tests and Experiments are loaded.
+
+The configuration submenu allows for the modification of the information thats is contained in the config.py file. Each button opens another menu that allows for customizing the different parts of this file, the **config** button opens the config menu:
+
+![](imgs/config_window.PNG)  
+
+These are the same options that are contained in the config dict, You can hover over them to see further descriptions of each:
+
+![](imgs/hover_info.png)  
+
+The setup windows contains 2 submenus Train (default) and Test which represent the EXPERIMENT and TESTS lists we previously mentioned.  
+The **train** window contains the following parameters.
+- name: which name to save the agent with.
+- laps: number of times to iterate over the dataset.
+- Dataset: which dataset to create an agent for.
+- Embedding: which embeddings to train with (multiple selection)
+- is_single_relation: wether to create a general purpose agent (entire graph) or a single relation focused agent.
+- relation_name: if the agent is relation based, which one to train for.
+
+![](imgs/setup_train.PNG)  
+
+you can add as many experiments as you want, they will appear in the window of the left as seen in the image above.
+
+The **Test** window contains these parameters.
+- name: the name to save the test with.
+- episodes: number of paths to calculate.
+- Agents: the trained agents you can test.
+- Embeddings: the available embeddings for the selected agent, it changes based on the previous param.
+
+![](imgs/setup_test.PNG)  
+
+when this window is closed the main window text will update to show the loaded tests and experiments defined in the previous windows.
+
+![](imgs/modified_info_text.PNG)  
+
+the train and test buttons then runs the main functions of the respective `trainer.py` and `tester.py` files and links it with the main window to update a progress bar and text.
+
+![](imgs/working.PNG)  
+
+Once finished the progress bar will be filled and a message displaying that the execution is finished will pop up.
+
+### API
+
+WIP
+
+
+## Results
+the trainer will create agents in the `model\data\agents` folder accordingly. Each agent generated contains the following
+- **config_used.txt** which is used in testing, to avoid pulling from the config file which could be modified.
+- \[1-4\] <dataset_name>-<embedding_name>.h5 file(s) or \[1-4\] folder(s) with `actor.h5` and `critic.h5` inside them. Folders are generated if PPO is selected as the algorithm and files are generated otherwise.
+
+The second file will run tests using the generated agents and the specifications in the TESTS lists in the `config.py` file. it will generate a folder for each test in the `model\data\results` folder, each of these will contain 3 files:
+- **metrics.csv** -> it contains the Hits@1,3,5,10 and the Mean Reciprocal Rank for each of the embeddings that were tested for each agent.
+- **paths.txt** -> it contains the paths that have been generated during testing, this information is used for visualization of generated knowledge.
+- res.txt -> the # of tries it took for the agent to reach the tail entity, 0 indicates it didn't reach it.
+
+## Miscellaneous
+### Embeddings preprocessing.
+You can pre-process the generation of embeddings by running `model\data\generator\generate_trans_embeddings.py` directly, modify the list at the bottom of the file to configure what datasets to generate ALL embeddings for and how.
+
+```
+# YOU CAN RUN THIS DIRECTLY TO GENERATE ALL THE POSSIBLE EMBEDDINGS AND AVOID WAITING IN THE FUTURE FOR ANY NEW ONES.
+if __name__ == "__main__":
+    use_gpu, regenerate_existing , fast_mode = True, False, False
+
+    # add or remove the datasets you want to generate embeddings for.
+    datasets = ["COUNTRIES", "FB15K-237", "KINSHIP", "NELL-995", "UMLS", "WN18RR"]
+    for d in datasets:
+        generate_embedding(d, [], use_gpu, regenerate_existing, normalize=True,
+        add_inverse_path=True, fast_mode=fast_mode)
+```
+use_gpu -> wether to use GPU or CPU to generate the embeddings  
+regenerate_existing -> recalculates the embeddings that have already been generated.
+fast_mode -> faster but less accurate embedding generation. (not recommended)
+datasets -> which datasets to generate embeddings for.
+
+### Fake dataset generation
+You can create a fake dataset for testing the setup by running `misc\generate_fake_dataset.py`, this will create a graph.txt file in the same folder that you can use in the datasets folder as explained before.
+
+### Plotting
+WIP.  
+
+<br>
+
+# Visualization
+WIP.
+>>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1

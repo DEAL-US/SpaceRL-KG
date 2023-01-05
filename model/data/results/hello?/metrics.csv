@@ -1,0 +1,6 @@
+,,COUNTRIES
+hits@1,TransE_l2,0.215
+hits@3,TransE_l2,0.55
+hits@5,TransE_l2,0.735
+hits@10,TransE_l2,0.935
+MRR,TransE_l2,0.4263015873015876

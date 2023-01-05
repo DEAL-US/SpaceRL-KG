@@ -7,22 +7,24 @@ import pandas as pd
 import torch
 
 
-def generate_embedding(dataset, models = [], use_gpu = True, regenerate_existing = False,
-normalize = False,  add_inverse_path = True, fast_mode = True):
-    '''
-    Generates several positional embeddings namely: "TransE_l2", "DistMult", "ComplEx", "TransR"\n
-    you can specify any number of them with: models = ["TransE_l2","DistMult"] \n
-    we provide the following dataset raws as folders:  \n
-    "COUNTRIES", "FB15K-237", "KINSHIP", "MOVIES", "NELL-995", "UMLS", "WN18RR" \n
-    they must contain a "graph.txt" file that specifies the graph structure. \n
-    Parameters: \n
-    dataset (str): the name of the folder containing the graph.txt of the dataset. \n
-    models (iter): the embedding models you want to generate, if empty generates all 6.\n
-    use_gpu (bool): wether you want to train with gpu or just with cpu \n
-    regenerate_existing (bool): wether to re-create embeddings for an existing model, use it in case the main dataset changed \n
-    add_inverse_path (bool): wether to add the inverse edge to all relations so if (e1, r, e2) is present, so will be (e2, ¬r, e1) \n
-    fast_mode (bool): dictates if we use a deep embedding training or we use a fast one (number of iterations 6000 or 24000)
-    '''
+def generate_embedding(dataset: str, models = [], use_gpu :bool = True, regenerate_existing:bool = False,
+normalize:bool = False,  add_inverse_path:bool = True, fast_mode:bool = True, available_cores:int = 1):
+    """
+    Generates any number of embeddings for the specified dataset in their relevant folders.
+
+    :param dataset: which dataset to generate embeddings for.  
+    :param models: which embeddings to generate for the specified dataset, options are "TransE_l2", "DistMult", "ComplEx", "TransR". If left empty calculates all.
+    :param use_gpu: whether to use gpu for embedding calculation.
+    :param regenerate_existing: if true recalculates the embeddings for selected options, skip them otherwise.
+    :param normalize: wether to normalize the embedding dimensional space.
+    :param add_inverse_path: wether to add the inverse edge to all relations so if (e1, r, e2) is present, so will be (e2, ¬r, e1)
+    :param fast_mode: dictates if we use a deep embedding training or we use a fast one (number of iterations 6000 vs 24000)
+    :param available_cores: the number of cpu cores to use for calculation, useful if we are not using the gpu. 
+
+    :returns: None
+    :raises FileNotFoundError: if the specified files do not exist.
+    """
+
     local_dir = pathlib.Path(__file__).parent.resolve()
     dataset_dir = str(pathlib.Path(local_dir).parent.parent.parent.absolute()) + "/datasets"
     datafolder = f"{dataset_dir}/{dataset}"
@@ -39,8 +41,7 @@ normalize = False,  add_inverse_path = True, fast_mode = True):
 --data_path \"{local_dir}/raw_data\" --save_path \"{datafolder}/embeddings/\" \
 --dataset {dataset} --data_files {dataset}-raw.txt \
 --format raw_udd_hrt --delimiter , --batch_size 1000 --neg_sample_size 200 --hidden_dim 200 \
---log_interval 100 --batch_size_eval 16 -adv \
---regularization_coef 1.00E-09 --gamma 19.9 --lr 0.25"
+--log_interval 100 --batch_size_eval 16 -adv --regularization_coef 1.00E-09 --gamma 19.9 --lr 0.25"
 
         if(fast_mode):
             command += " --max_step 6000"
@@ -51,7 +52,7 @@ normalize = False,  add_inverse_path = True, fast_mode = True):
         if(use_gpu & torch.cuda.is_available()):
             command += " --gpu 0"
         else:
-            command += " --num_thread 1 --num_proc 8"
+            command += f" --num_thread {available_cores}" #--num_proc {available_cores}
 
         # Structural checks:
         
@@ -95,9 +96,23 @@ normalize = False,  add_inverse_path = True, fast_mode = True):
             print(f"Selected embedding {model} is already generated for {dataset} dataset, if you want to regenerate use the regenerate boolean option")
 
         process_embeddings(entity_file, relation_file,
-        dataset_dir, dataset, model, normalize, regenerate_existing)
+        dataset_dir, dataset, model, regenerate_existing, normalize)
 
-def process_embeddings(entity_file, relation_file, dataset_dir, dataset, model, normalize, regenerate):
+def process_embeddings(entity_file: str, relation_file:str, dataset_dir:str, dataset:str, model:str, regenerate: bool, normalize:bool):
+    """
+    Normalizes and processes an embedding, saves them to the apropriate file.
+
+    :param entity_file: The path to the entities.tsv file for the desired dataset
+    :param relation_file: The path to the relations.tsv file for the desired dataset
+    :param dataset_dir: The path to the datasets directory
+    :param dataset: The name of the desired dataset
+    :param model: the embeddings to normalize for that dataset, options are "TransE_l2", "DistMult", "ComplEx", "TransR". If left empty calculates all.
+    :param regenerate: wether to regenerate the embeddings 
+    :param normalize: if regenerate is active normalize the embeddings.
+
+    :returns: None
+    """
+
     base_folder = f"{dataset_dir}/{dataset}"
 
     # Load files
@@ -165,7 +180,17 @@ def process_embeddings(entity_file, relation_file, dataset_dir, dataset, model, 
     pickle.dump(relations_dict, f)
     f.close()
 
-def generate_raw(dataset, generator_dir, dataset_dir, add_inverse):
+def generate_raw(dataset: str, generator_dir: str, dataset_dir: str, add_inverse: bool):
+    """
+    process the graph.txt and generates some raw files for DGL to use.
+
+    :param dataset: which dataset to use
+    :param generator_dir: path to the generator directory
+    :param dataset_dir: path to the datasets directory.
+    :param add_inverse: wether to add the inverse paths to the dataset.
+
+    :returns: None
+    """
     raw_file = "graph.txt"
 
     file_to_read = open(f"{dataset_dir}/{dataset}/{raw_file}","r")
@@ -184,7 +209,7 @@ def generate_raw(dataset, generator_dir, dataset_dir, add_inverse):
 
 # YOU CAN RUN THIS DIRECTLY TO GENERATE ALL THE POSSIBLE EMBEDDINGS AND AVOID WAITING IN THE FUTURE FOR ANY NEW ONES.
 if __name__ == "__main__":
-    use_gpu, regenerate_existing , fast_mode = True, True, True
+    use_gpu, regenerate_existing , fast_mode = True, False, False
 
     # add or remove the datasets you want to generate embeddings for.
     datasets = ["COUNTRIES", "FB15K-237", "KINSHIP", "NELL-995", "UMLS", "WN18RR"]

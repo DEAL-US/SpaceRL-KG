@@ -1,6 +1,10 @@
 from tkinter import ttk, messagebox
 from tkinter import *
+<<<<<<< HEAD
 from guiutils import GetConfig
+=======
+from guiutils import GetConfig, run_integrity_checks
+>>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
 
 import time, os, sys, pathlib, subprocess, config_menu, test_train_menu, view_paths_menu, threading
 
@@ -15,7 +19,15 @@ from tester import Tester, TesterGUIconnector, main as tst_main, get_gui_values 
 sys.path.pop(0)
 
 class mainmenu(object):
+<<<<<<< HEAD
     def __init__(self):
+=======
+    """
+    Instantiates and runs the main window of the GUI.
+    """
+    def __init__(self):
+        run_integrity_checks()
+>>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         # functionality
         self.config = GetConfig(True)
 
@@ -54,6 +66,7 @@ class mainmenu(object):
 
         self.root.mainloop()
 
+<<<<<<< HEAD
     def update_connectors(self):
         self.tr_conn = TrainerGUIconnector(self.config, self.experiments)
         self.tst_conn = TesterGUIconnector(self.config, self.tests)
@@ -61,6 +74,14 @@ class mainmenu(object):
     # MAIN ELEMENTS
 
     def add_elements(self):
+=======
+    # WINDOW STRUCTURE
+
+    def add_elements(self):
+        """
+        Adds all tkinter elements to the main window.
+        """
+>>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         # infotext
         self.infotext = ttk.Label(self.mainframe, text="0 Experiment(s) Loaded, 0 Test(s) Loaded")
 
@@ -109,6 +130,12 @@ class mainmenu(object):
         self.grid_elements()
 
     def grid_elements(self):
+<<<<<<< HEAD
+=======
+        """
+        Sets the position of all tkinter elements in the main window.
+        """
+>>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         #row0
         self.infotext.grid(row=0, column=0, columnspan=2)
 
@@ -145,6 +172,7 @@ class mainmenu(object):
         self.error_text.grid(row=6, column=0, columnspan=2, pady=3)
 
     def add_styles(self):
+<<<<<<< HEAD
         # self.root.tk.call('lappend', 'auto_path', f"{current_dir}/themes/awdark/")
         # self.root.tk.call('package', 'require', 'awdark')
 
@@ -154,6 +182,22 @@ class mainmenu(object):
 
     # SUBMENU HANDLING
     def open_menu(self, menutype):
+=======
+        """
+        Sets the style from the styles folder for all the application.
+        """
+        self.root.tk.call('source', f"{current_dir}/themes/azure/azure.tcl")
+        self.root.tk.call("set_theme", "light")
+
+    # SUBMENU HANDLING
+
+    def open_menu(self, menutype:str):
+        """
+        rest text
+
+        :param menutype: the type of the menu to open, options -> config, setup, paths
+        """
+>>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         if(menutype == "config" and not self.config_is_open):
             self.config_is_open = True
             c_menu = config_menu.menu(self.root, self.config)
@@ -166,10 +210,22 @@ class mainmenu(object):
 
         elif(menutype == "paths" and not self.paths_is_open):
             self.paths_is_open = True
+<<<<<<< HEAD
             paths_menu = view_paths_menu.menu(self.root, self.tests)
             setup.root.wm_protocol("WM_DELETE_WINDOW", lambda: self.extract_info_on_close(paths_menu))
 
     def extract_config_on_close(self, config_menu):
+=======
+            paths_menu = view_paths_menu.menu(self.root)
+            paths_menu.root.wm_protocol("WM_DELETE_WINDOW", lambda: self.pathmenu_teardown(paths_menu))
+
+    def extract_config_on_close(self, config_menu:config_menu.menu):
+        """
+        Awaits for the configuration menu to be closed and retrieves the information on it.
+
+        :param config_menu: the config menu object that was instantiated.
+        """
+>>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         savebefore = messagebox.askyesnocancel(
             message='Save changes before closing window?',
             icon='warning', title='Closeing warning')
@@ -185,7 +241,16 @@ class mainmenu(object):
 
             self.update_connectors()
 
+<<<<<<< HEAD
     def extract_info_on_close(self, setup_window):
+=======
+    def extract_info_on_close(self, setup_window:test_train_menu.menu):
+        """
+        Awaits for the setup menu to be closed and retrieves the information on it.
+
+        :param setup_window: the setup menu object that was instantiated.
+        """
+>>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         self.experiments, self.tests = setup_window.experiments, setup_window.tests
         self.infotext["text"] = f"{len(self.experiments)} Experiment(s) Loaded, {len(self.tests)} Test(s) Loaded"
         setup_window.root.destroy()
@@ -193,6 +258,7 @@ class mainmenu(object):
 
         self.update_connectors()
 
+<<<<<<< HEAD
     def pathmenu_teardown(self, pathmenu):
         self.paths_is_open = False
         pathmenu.root.destroy()
@@ -236,6 +302,23 @@ class mainmenu(object):
             self.root.destroy()
 
     def run_experimentation(self):
+=======
+    def pathmenu_teardown(self, pathmenu:view_paths_menu.menu):
+        """
+        Runs consistency checks with the pathmenu is closed.
+
+        :param pathmenu: the path menu object that was instantiated.
+        """
+        self.paths_is_open = False
+        pathmenu.root.destroy()
+
+    # EXECUTION
+
+    def run_experimentation(self):
+        """
+        Initializes the experimentation based on the setup window data.
+        """
+>>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         if(len(self.experiments) == 0):
             self.change_error_text("You need to add some EXPERIMENTS \nbefore launching the training session!")
             return
@@ -247,6 +330,12 @@ class mainmenu(object):
             self.showbusyerror()
 
     def run_tests(self):
+<<<<<<< HEAD
+=======
+        """
+        Initializes the testing based on the setup window data.
+        """
+>>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         if(len(self.tests) == 0):
             self.change_error_text("You need to add some TESTS \nbefore launching the training session!")
             return
@@ -257,23 +346,78 @@ class mainmenu(object):
         else:
             self.showbusyerror()
 
+<<<<<<< HEAD
     def launch_updater(self, is_train):
         self.updater_thread = threading.Thread(name="updaterThread",
         target=lambda: self.update_progress(is_train), daemon=True)
         self.updater_thread.start()
 
     def kill_all_threads(self):
+=======
+    # THREADS
+
+    def kill_all_threads(self):
+        """
+        stops all execution threads
+        """
+>>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         for thread in threading.enumerate(): 
             try:
                 thread.daemon = True
             except:
                 print(f"error setting thread {thread.name} as daemon.")
 
+<<<<<<< HEAD
 
     def stop_updater(self):
         self.change_progtext("Execution is finished.")
         
     def update_progress(self, is_train):
+=======
+    def mainthread(self, is_train:bool):
+        """
+        starts the execution of the testing or training modules
+
+        :param is_train: if True it starts the training thread, it starts the testing thread otherwise.
+        """
+        if(is_train):
+            tr_main(False, self.tr_conn)
+        else:
+            tst_main(False, self.tst_conn)
+
+    # ERROR HANDLING
+
+    def showbusyerror(self):
+        """
+        displays a busy error in an error window.
+        """
+        messagebox.showerror(title="Busy Error", message="Something is already running!\n\
+Wait for it to finish or abort the execution.")
+
+    def change_error_text(self, newtext:str):
+        """
+        updates the error text at the bottom of the main window.
+
+        :param newtext: text to diplay.
+        """
+        self.error_text['text'] = newtext
+
+    # UPDATES
+    
+    def update_connectors(self):
+        """
+        Initializes new connectors for the trainer and testing modules based on the config and setup window results.
+        """
+        self.tr_conn = TrainerGUIconnector(self.config, self.experiments)
+        self.tst_conn = TesterGUIconnector(self.config, self.tests)
+
+    def update_progress(self, is_train:bool):
+        """
+        main loop of the progress section, it checks the connector periodically for new information and updates the main window based on the result.
+
+        :param is_train: which of the update loops to run, if True it updates the trainer loop, tester otherwise.
+        """
+>>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         self.runner_thread = threading.Thread(name="runnerThread",
         target=lambda: self.mainthread(is_train), daemon=True)
         self.runner_thread.start()
@@ -281,8 +425,17 @@ class mainmenu(object):
         r = True
         while(r):
             try:
+<<<<<<< HEAD
                 r = not self.tr_conn.active_trainer.is_ready
                 print(f"checking if the trainer is ready {r}")
+=======
+                if(is_train):
+                    r = not self.tr_conn.active_trainer.is_ready
+                    print(f"checking if the trainer is ready {r}")
+                else:
+                    r = not self.tst_conn.active_tester.is_ready
+                    print(f"checking if the tester is ready {r}")
+>>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
             except:pass
             time.sleep(0.5)
 
@@ -296,7 +449,12 @@ class mainmenu(object):
             if(self.is_running):
                 t = f"({curr_it}/{tot_it})-({curr_it_step}/{tot_it_step})-{curr_prog}"
                 self.update_all_progress(curr_it_step, tot_it_step, t)
+<<<<<<< HEAD
          
+=======
+
+            print(f"{curr_it}/{tot_it} and {curr_it_step}/{tot_it_step}")
+>>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
             if(curr_it == tot_it and curr_it_step == tot_it_step):
                 print(f"Exiting runner loop --> {curr_it}/{tot_it} - {curr_it_step}/{tot_it_step}")
                 r = False
@@ -304,6 +462,7 @@ class mainmenu(object):
             
             time.sleep(1)
         
+<<<<<<< HEAD
         self.stop_updater()
     
     def mainthread(self, is_train):
@@ -331,8 +490,107 @@ Wait for it to finish or abort the execution.")
         self.progress_bar['maximum'] = qtty
 
     def update_all_progress(self, curr, tot, text):
+=======
+        self.change_progtext("Execution is finished.")
+    
+    def launch_updater(self, is_train:bool):
+        """
+        Initializes the updater thread and starts it.
+
+        :param is_train: which of the loops to start, Training if True, Testing otherwise.
+        """
+        self.updater_thread = threading.Thread(name="updaterThread",
+        target=lambda: self.update_progress(is_train), daemon=True)
+        self.updater_thread.start()
+
+    def change_progtext(self, newtext:str):
+        """
+        modifies the progress texts in the main window.
+
+        :param newtext: the text to display
+        """
+        self.progress_text['text'] = newtext
+    
+    def set_progbar_value(self, v:int):
+        """
+        modifies the progressbar current internal value in the main window.
+        
+        :param v: the new value.
+        """
+        self.progress_bar['value'] = v
+
+    def change_progbar_max(self, qtty:int):
+        """
+        modifies the progressbar max internal value in the main window.
+        
+        :param qtty: the new value.
+        """
+        self.progress_bar['maximum'] = qtty
+
+    def update_all_progress(self, curr:int, tot:int, text:int):
+        """
+        updates all progress information simultaneously.
+
+        :param curr: the current progess info
+        :param tot: the maximum progress info
+        :param text: the current text progress
+        """
+>>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         self.progress_text['text'] = text
         self.progress_bar['value'] = curr
         self.progress_bar['maximum'] = tot
 
+<<<<<<< HEAD
 mainmenu()
+=======
+    # MISCELLANEOUS
+
+    def open_folder(self, folder:str):
+        """
+        Opens the selected folder for the user, adjusting based on the OS.
+        Should work for Linux, Windows, Mac & WSL.
+
+        :param folder: name of the folder to open, options -> datasets, agents
+        """
+        folder_to_open = datasets_folder if folder == "datasets" else agents_folder
+
+        # x11, win32 or aqua
+        if(self.OSNAME == 'x11'): #linux
+            try:
+                subprocess.run(['xdg-open', os.path.realpath(folder_to_open)])
+            except:
+                # WSL support
+                result = subprocess.run(["wslpath", "-w", folder_to_open], text=True, capture_output=True)
+                windows_path = result.stdout
+                subprocess.run(["explorer.exe", windows_path])
+
+        elif(self.OSNAME == 'win32'): #windows
+            subprocess.run(['explorer', os.path.realpath(folder_to_open)])
+
+        elif(self.OSNAME == 'aqua'): #mac
+            subprocess.run(['open', os.path.realpath(folder_to_open)])
+
+        else:
+            self.change_error_text("This operation is not supported for this Operatig System.")
+        
+    def intercept_close(self):
+        """
+        overrides the closing function of the main window and shows a warning if needed.
+        """
+        if self.is_running:
+            print("asking the user for permission to close.")
+            canclose = messagebox.askyesno(
+            message='There is something running, do you want to close anyway?',
+            icon='warning', title='Interruption alert.')
+
+            if(canclose):
+                self.change_progtext("Execution is finished.")
+                self.kill_all_threads()
+                self.root.destroy()
+                quit()
+        else:
+            self.root.destroy()
+
+if __name__ == "__main__":
+    mainmenu()
+>>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1

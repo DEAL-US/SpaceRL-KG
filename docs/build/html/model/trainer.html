@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trainer &mdash; RL-KG 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Tester" href="tester.html" />
+    <link rel="prev" title="Environment" href="environment.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> RL-KG
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="model.html">Model</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="agent.html">Agent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="environment.html">Environment</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Trainer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#model.trainer.Trainer"><code class="docutils literal notranslate"><span class="pre">Trainer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model.trainer.Trainer.run_prep"><code class="docutils literal notranslate"><span class="pre">run_prep()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model.trainer.Trainer.run"><code class="docutils literal notranslate"><span class="pre">run()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model.trainer.Trainer.episode_misc"><code class="docutils literal notranslate"><span class="pre">episode_misc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model.trainer.Trainer.debug_handle"><code class="docutils literal notranslate"><span class="pre">debug_handle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model.trainer.Trainer.set_gpu_config"><code class="docutils literal notranslate"><span class="pre">set_gpu_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model.trainer.Trainer.run_debug"><code class="docutils literal notranslate"><span class="pre">run_debug()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model.trainer.Trainer.update_gui_vars"><code class="docutils literal notranslate"><span class="pre">update_gui_vars()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model.trainer.TrainerGUIconnector"><code class="docutils literal notranslate"><span class="pre">TrainerGUIconnector</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model.trainer.TrainerGUIconnector.start_connection"><code class="docutils literal notranslate"><span class="pre">start_connection()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model.trainer.TrainerGUIconnector.update_current_trainer"><code class="docutils literal notranslate"><span class="pre">update_current_trainer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model.trainer.TrainerGUIconnector.update_info_variables"><code class="docutils literal notranslate"><span class="pre">update_info_variables()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model.trainer.TrainerGUIconnector.threaded_update"><code class="docutils literal notranslate"><span class="pre">threaded_update()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model.trainer.get_gui_values"><code class="docutils literal notranslate"><span class="pre">get_gui_values()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model.trainer.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tester.html">Tester</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utils</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data/data.html">Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../GUI/GUI.html">GUI</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">RL-KG</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="model.html">Model</a></li>
+      <li class="breadcrumb-item active">Trainer</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/model/trainer.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="trainer">
+<h1>Trainer<a class="headerlink" href="#trainer" title="Permalink to this heading"></a></h1>
+<p>The trainer class is the one responsible for initializing the training cycle, its one of the entry points to working with the module.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="model.trainer.Trainer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.trainer.</span></span><span class="sig-name descname"><span class="pre">Trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">env_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.trainer.Trainer" title="Permalink to this definition"></a></dt>
+<dd><p>Initializes a trainer object to obtain a trained agent with the requested parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>env_config</strong> – the configuration file for this training session.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>The functions for the class are the following.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="model.trainer.Trainer.run_prep">
+<span class="sig-prename descclassname"><span class="pre">model.trainer.Trainer.</span></span><span class="sig-name descname"><span class="pre">run_prep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.trainer.Trainer.run_prep" title="Permalink to this definition"></a></dt>
+<dd><p>calculates and returns the number of episodes to run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>either a tqdm object or a range of episodes to be executed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.trainer.Trainer.run">
+<span class="sig-prename descclassname"><span class="pre">model.trainer.Trainer.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.trainer.Trainer.run" title="Permalink to this definition"></a></dt>
+<dd><p>Runs the trainer suit for the specified agent, dataset and embedding with the configure parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<p>True -&gt; if training finished without any problems.
+False -&gt; if errors were encountered during trianing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.trainer.Trainer.episode_misc">
+<span class="sig-prename descclassname"><span class="pre">model.trainer.Trainer.</span></span><span class="sig-name descname"><span class="pre">episode_misc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">episode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reached_end_node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.trainer.Trainer.episode_misc" title="Permalink to this definition"></a></dt>
+<dd><p>runs miscellaneous checks every episode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>episode</strong> – which episode the trainer is in.</p></li>
+<li><p><strong>score</strong> – the attained reward for this current step.</p></li>
+<li><p><strong>loss</strong> – calculated loss function of actor/policy.</p></li>
+<li><p><strong>last_action</strong> – the last action taken (e1, r, e2).</p></li>
+<li><p><strong>reached_end_node</strong> – if the current node is the target node.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+<p>True -&gt; if no errors were found.
+False -&gt; if debug is active and errors were found.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.trainer.Trainer.debug_handle">
+<span class="sig-prename descclassname"><span class="pre">model.trainer.Trainer.</span></span><span class="sig-name descname"><span class="pre">debug_handle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.trainer.Trainer.debug_handle" title="Permalink to this definition"></a></dt>
+<dd><p>If debug mode is active it checks for inconsistencies in the model layers
+and if it detects any it ends the training session.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<p>True -&gt; If errors were detected
+None -&gt; otherwise.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.trainer.Trainer.set_gpu_config">
+<span class="sig-prename descclassname"><span class="pre">model.trainer.Trainer.</span></span><span class="sig-name descname"><span class="pre">set_gpu_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_gpu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.trainer.Trainer.set_gpu_config" title="Permalink to this definition"></a></dt>
+<dd><p>if GPU is found and is usable by tensorflow, configures it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>use_gpu</strong> – wether to use the GPU or not.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.trainer.Trainer.run_debug">
+<span class="sig-prename descclassname"><span class="pre">model.trainer.Trainer.</span></span><span class="sig-name descname"><span class="pre">run_debug</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.trainer.Trainer.run_debug" title="Permalink to this definition"></a></dt>
+<dd><p>if the training has failed, loads the crash information and prints it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>i</strong> – folder index, represents the agent directory that crashed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.trainer.Trainer.update_gui_vars">
+<span class="sig-prename descclassname"><span class="pre">model.trainer.Trainer.</span></span><span class="sig-name descname"><span class="pre">update_gui_vars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tot_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">curr_step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progtext</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.trainer.Trainer.update_gui_vars" title="Permalink to this definition"></a></dt>
+<dd><p>Auxiliary function to update the GUI parameters for progess updates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tot_steps</strong> – the total training step that are queued.</p></li>
+<li><p><strong>curr_step</strong> – the current training step.</p></li>
+<li><p><strong>progtext</strong> – the text to be displayed as progess info.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<p>The trainer also contains a GUI connector that handles GUI updates.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="model.trainer.TrainerGUIconnector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">model.trainer.</span></span><span class="sig-name descname"><span class="pre">TrainerGUIconnector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">experiments</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.trainer.TrainerGUIconnector" title="Permalink to this definition"></a></dt>
+<dd><p>Connects the GUI and the trainer objects and initializes a new thread to keep track of the progress.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> – a configuration dict.</p></li>
+<li><p><strong>experiments</strong> – the tests to perform.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<p>Which contains the following methods.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="model.trainer.TrainerGUIconnector.start_connection">
+<span class="sig-prename descclassname"><span class="pre">model.trainer.TrainerGUIconnector.</span></span><span class="sig-name descname"><span class="pre">start_connection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.trainer.TrainerGUIconnector.start_connection" title="Permalink to this definition"></a></dt>
+<dd><p>Stats the testing thread and updates the corresponding flag.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.trainer.TrainerGUIconnector.update_current_trainer">
+<span class="sig-prename descclassname"><span class="pre">model.trainer.TrainerGUIconnector.</span></span><span class="sig-name descname"><span class="pre">update_current_trainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#model.trainer.Trainer" title="model.trainer.Trainer"><span class="pre">Trainer</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.trainer.TrainerGUIconnector.update_current_trainer" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the active trainer to the requested one</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>t</strong> – the requested trainer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.trainer.TrainerGUIconnector.update_info_variables">
+<span class="sig-prename descclassname"><span class="pre">model.trainer.TrainerGUIconnector.</span></span><span class="sig-name descname"><span class="pre">update_info_variables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.trainer.TrainerGUIconnector.update_info_variables" title="Permalink to this definition"></a></dt>
+<dd><p>updates the global variables with the current values from the class.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.trainer.TrainerGUIconnector.threaded_update">
+<span class="sig-prename descclassname"><span class="pre">model.trainer.TrainerGUIconnector.</span></span><span class="sig-name descname"><span class="pre">threaded_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.trainer.TrainerGUIconnector.threaded_update" title="Permalink to this definition"></a></dt>
+<dd><p>The testing thread main routine, it updates the info variables every second.</p>
+</dd></dl>
+
+<p>Finally some miscellaneous methods as well as the main method which is the entry point.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="model.trainer.get_gui_values">
+<span class="sig-prename descclassname"><span class="pre">model.trainer.</span></span><span class="sig-name descname"><span class="pre">get_gui_values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#model.trainer.get_gui_values" title="Permalink to this definition"></a></dt>
+<dd><p>returns the GUI values for iterations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+<p>tr_total_iterations -&gt; number of total tests to be performed
+tr_current_iteration -&gt; current test being calculated.
+tr_total_iter_steps -&gt; total steps for current test.
+tr_current_iter_steps -&gt; current step for current test.
+tr_current_progress_text -&gt; brief information for current tesgin episode.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="model.trainer.main">
+<span class="sig-prename descclassname"><span class="pre">model.trainer.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">from_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gui_connector</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#model.trainer.TrainerGUIconnector" title="model.trainer.TrainerGUIconnector"><span class="pre">TrainerGUIconnector</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#model.trainer.main" title="Permalink to this definition"></a></dt>
+<dd><p>Entry function for the trainer module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>from_file</strong> – Indicates if the trainer module is being run with or without GUI capabilities. (with GUI if value is False)</p></li>
+<li><p><strong>gui_connector</strong> – a gui connector instance to use if needed.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="environment.html" class="btn btn-neutral float-left" title="Environment" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tester.html" class="btn btn-neutral float-right" title="Tester" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, DEAL.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
