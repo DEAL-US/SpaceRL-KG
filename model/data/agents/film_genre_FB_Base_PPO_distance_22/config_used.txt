@@ -3,20 +3,19 @@ guided_to_compute: ['terminal', 'distance']
 use_LSTM: True
 use_episodes: False
 episodes: 0
-path_length: 5
 alpha: 0.9
 gamma: 0.99
 learning_rate: 0.001
 activation: leaky_relu
 regularizers: ['kernel']
-algorithm: BASE
+algorithm: PPO
 reward_type: simple
-reward_computation: one_hot_max
 action_picking_policy: probability
-laps: 100
+reward_computation: one_hot_max
+path_length: 5
+laps: 22
 dataset: FB15K-237
 single_relation_pair: [True, '/film/film/genre']
-name: film_genre_FB_Base_simple_distance_22
-embedding_index: 0
-embedding: TransE_l2
+name: film_genre_FB_Base_PPO_distance_22
 embeddings: ['TransE_l2']
+embedding: TransE_l2

@@ -195,7 +195,7 @@ class Agent(object):
             print("=== Build Actor Network ===")
             print(actor.summary())
     
-            critic = self.build_critic_network(input_size, hidden_layer_size, LTSM_layer_size, lr)
+            critic = self.build_critic_network(input_size, hidden_layer_size, LTSM_layer_size)
             optimizer=adam_v2.Adam(learning_rate=lr)
             critic.compile(loss="mean_squared_error", optimizer=optimizer)
 

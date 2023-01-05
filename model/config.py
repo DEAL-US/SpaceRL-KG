@@ -9,8 +9,8 @@ config = {
     ######################
     # GENERAL PARAMETERS #
     ###################### 
-    "available_cores": 4, #number of cpu cores to use when computing the reward
-    "gpu_acceleration": False, # wether to use GPU(S) to perform fast training & embedding generation.
+    "available_cores": 6, #number of cpu cores to use when computing the reward
+    "gpu_acceleration": True, # wether to use GPU(S) to perform fast training & embedding generation.
 
     "verbose": False, # prints detailed information every episode.
     "log_results": False, # Logs the results in the logs folder of episode training.
@@ -28,7 +28,7 @@ config = {
     # distance: computes the distance to the final node and gives a score based on it.
     # embedding: based on the similarity to the end node we reward the agent.
     # terminal: reward if we are on the final node, 0 otherwise.
-    "guided_to_compute":["terminal", "embedding"], #"distance","terminal","embedding"
+    "guided_to_compute":["terminal", "distance"], #"distance","terminal","embedding"
 
     "regenerate_embeddings":False, # if embedding is found and true re-calculates them.
     # if re-calculation is active, normalizes embedding values to be on the center of the N-dim embedding array
@@ -60,7 +60,7 @@ config = {
     # PPO uses actor critic networks and BASE is a simple feed-forward network.
     # you can then choose retropropagation of rewards to compute as a REINFORCE model or simple to keep the rewards 
     # based on the results of the episode without adding any aditional computation to the reward.
-    "algorithm": "BASE", #BASE, PPO
+    "algorithm": "PPO", #BASE, PPO
 
     # which way to feed the rewards to the network.
     # retroprogation causes the rewards closer to the end of the episode have more 
@@ -156,8 +156,8 @@ class Test():
             self.to_delete = True
 
 EXPERIMENTS = [
+    Experiment("film_genre_FB_Base_PPO_distance_22", "FB15K-237", ["TransE_l2"], 22, True, relation = "/film/film/genre"),
     # Experiment("asd1", "COUNTRIES", ["TransE_l2"], 1)
-    # Experiment("film_genre_FB_Base_PPO_embedding_22", "FB15K-237", ["TransE_l2"], 22, True, relation = "/film/film/genre"),
     # Experiment("countiesall", "COUNTRIES", ["TransR"], 1) 
     # Experiment("Umls-distancerew-125laps-PPO", "UMLS", ["TransE_l2"], 10),
     # Experiment("embedding_testing", "NELL-995", ["TransE_l2"], 10, True, relation = "concept:animalpreyson"),

@@ -201,9 +201,13 @@ class KGEnv(gym.Env):
             try:
                 self.utils.verb_print("Loading cached distance for dataset, this may take a while...")
                 self.distance_cache = self.dm.get_cache_for_dataset(dataset)
-            except FileNotFoundError:
+                if(self.distance_cache is None):
+                    self.distance_cache = pairdict()
+            except:
                 self.distance_cache = pairdict()
 
+        print(f"distance cache after init: {self.distance_cache}" )
+        
     def save_current_cache(self, dataset:str):
         """
         saves the dataset cache.

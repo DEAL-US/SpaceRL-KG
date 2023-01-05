@@ -346,7 +346,7 @@ def main(from_file:bool, gui_connector : TrainerGUIconnector = None):
             tr_current_iteration +=1
             
             config["embedding"] = emb
-            m = Trainer(config, from_gui=not from_file, gui_connector=gui_connector)
+            m = Trainer(config)
             
             if gui_connector is not None:
                 gui_connector.update_current_trainer(m)
