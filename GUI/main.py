@@ -1,10 +1,6 @@
 from tkinter import ttk, messagebox
 from tkinter import *
-<<<<<<< HEAD
-from guiutils import GetConfig
-=======
 from guiutils import GetConfig, run_integrity_checks
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
 
 import time, os, sys, pathlib, subprocess, config_menu, test_train_menu, view_paths_menu, threading
 
@@ -19,15 +15,11 @@ from tester import Tester, TesterGUIconnector, main as tst_main, get_gui_values 
 sys.path.pop(0)
 
 class mainmenu(object):
-<<<<<<< HEAD
-    def __init__(self):
-=======
     """
     Instantiates and runs the main window of the GUI.
     """
     def __init__(self):
         run_integrity_checks()
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         # functionality
         self.config = GetConfig(True)
 
@@ -66,7 +58,6 @@ class mainmenu(object):
 
         self.root.mainloop()
 
-<<<<<<< HEAD
     def update_connectors(self):
         self.tr_conn = TrainerGUIconnector(self.config, self.experiments)
         self.tst_conn = TesterGUIconnector(self.config, self.tests)
@@ -74,14 +65,9 @@ class mainmenu(object):
     # MAIN ELEMENTS
 
     def add_elements(self):
-=======
-    # WINDOW STRUCTURE
-
-    def add_elements(self):
         """
         Adds all tkinter elements to the main window.
         """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         # infotext
         self.infotext = ttk.Label(self.mainframe, text="0 Experiment(s) Loaded, 0 Test(s) Loaded")
 
@@ -130,12 +116,9 @@ class mainmenu(object):
         self.grid_elements()
 
     def grid_elements(self):
-<<<<<<< HEAD
-=======
         """
         Sets the position of all tkinter elements in the main window.
         """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         #row0
         self.infotext.grid(row=0, column=0, columnspan=2)
 
@@ -172,17 +155,6 @@ class mainmenu(object):
         self.error_text.grid(row=6, column=0, columnspan=2, pady=3)
 
     def add_styles(self):
-<<<<<<< HEAD
-        # self.root.tk.call('lappend', 'auto_path', f"{current_dir}/themes/awdark/")
-        # self.root.tk.call('package', 'require', 'awdark')
-
-        self.root.tk.call('source', f"{current_dir}/themes/azure/azure.tcl")
-        self.root.tk.call("set_theme", "light")
-
-
-    # SUBMENU HANDLING
-    def open_menu(self, menutype):
-=======
         """
         Sets the style from the styles folder for all the application.
         """
@@ -197,7 +169,6 @@ class mainmenu(object):
 
         :param menutype: the type of the menu to open, options -> config, setup, paths
         """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         if(menutype == "config" and not self.config_is_open):
             self.config_is_open = True
             c_menu = config_menu.menu(self.root, self.config)
@@ -210,12 +181,6 @@ class mainmenu(object):
 
         elif(menutype == "paths" and not self.paths_is_open):
             self.paths_is_open = True
-<<<<<<< HEAD
-            paths_menu = view_paths_menu.menu(self.root, self.tests)
-            setup.root.wm_protocol("WM_DELETE_WINDOW", lambda: self.extract_info_on_close(paths_menu))
-
-    def extract_config_on_close(self, config_menu):
-=======
             paths_menu = view_paths_menu.menu(self.root)
             paths_menu.root.wm_protocol("WM_DELETE_WINDOW", lambda: self.pathmenu_teardown(paths_menu))
 
@@ -225,7 +190,6 @@ class mainmenu(object):
 
         :param config_menu: the config menu object that was instantiated.
         """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         savebefore = messagebox.askyesnocancel(
             message='Save changes before closing window?',
             icon='warning', title='Closeing warning')
@@ -241,16 +205,12 @@ class mainmenu(object):
 
             self.update_connectors()
 
-<<<<<<< HEAD
-    def extract_info_on_close(self, setup_window):
-=======
     def extract_info_on_close(self, setup_window:test_train_menu.menu):
         """
         Awaits for the setup menu to be closed and retrieves the information on it.
 
         :param setup_window: the setup menu object that was instantiated.
         """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         self.experiments, self.tests = setup_window.experiments, setup_window.tests
         self.infotext["text"] = f"{len(self.experiments)} Experiment(s) Loaded, {len(self.tests)} Test(s) Loaded"
         setup_window.root.destroy()
@@ -258,7 +218,6 @@ class mainmenu(object):
 
         self.update_connectors()
 
-<<<<<<< HEAD
     def pathmenu_teardown(self, pathmenu):
         self.paths_is_open = False
         pathmenu.root.destroy()
@@ -301,8 +260,6 @@ class mainmenu(object):
         else:
             self.root.destroy()
 
-    def run_experimentation(self):
-=======
     def pathmenu_teardown(self, pathmenu:view_paths_menu.menu):
         """
         Runs consistency checks with the pathmenu is closed.
@@ -318,7 +275,6 @@ class mainmenu(object):
         """
         Initializes the experimentation based on the setup window data.
         """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         if(len(self.experiments) == 0):
             self.change_error_text("You need to add some EXPERIMENTS \nbefore launching the training session!")
             return
@@ -330,12 +286,9 @@ class mainmenu(object):
             self.showbusyerror()
 
     def run_tests(self):
-<<<<<<< HEAD
-=======
         """
         Initializes the testing based on the setup window data.
         """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         if(len(self.tests) == 0):
             self.change_error_text("You need to add some TESTS \nbefore launching the training session!")
             return
@@ -346,34 +299,21 @@ class mainmenu(object):
         else:
             self.showbusyerror()
 
-<<<<<<< HEAD
-    def launch_updater(self, is_train):
-        self.updater_thread = threading.Thread(name="updaterThread",
-        target=lambda: self.update_progress(is_train), daemon=True)
-        self.updater_thread.start()
-
-    def kill_all_threads(self):
-=======
     # THREADS
 
     def kill_all_threads(self):
         """
         stops all execution threads
         """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         for thread in threading.enumerate(): 
             try:
                 thread.daemon = True
             except:
                 print(f"error setting thread {thread.name} as daemon.")
 
-<<<<<<< HEAD
-
     def stop_updater(self):
         self.change_progtext("Execution is finished.")
         
-    def update_progress(self, is_train):
-=======
     def mainthread(self, is_train:bool):
         """
         starts the execution of the testing or training modules
@@ -417,7 +357,6 @@ Wait for it to finish or abort the execution.")
 
         :param is_train: which of the update loops to run, if True it updates the trainer loop, tester otherwise.
         """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         self.runner_thread = threading.Thread(name="runnerThread",
         target=lambda: self.mainthread(is_train), daemon=True)
         self.runner_thread.start()
@@ -425,17 +364,12 @@ Wait for it to finish or abort the execution.")
         r = True
         while(r):
             try:
-<<<<<<< HEAD
-                r = not self.tr_conn.active_trainer.is_ready
-                print(f"checking if the trainer is ready {r}")
-=======
                 if(is_train):
                     r = not self.tr_conn.active_trainer.is_ready
                     print(f"checking if the trainer is ready {r}")
                 else:
                     r = not self.tst_conn.active_tester.is_ready
                     print(f"checking if the tester is ready {r}")
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
             except:pass
             time.sleep(0.5)
 
@@ -449,12 +383,8 @@ Wait for it to finish or abort the execution.")
             if(self.is_running):
                 t = f"({curr_it}/{tot_it})-({curr_it_step}/{tot_it_step})-{curr_prog}"
                 self.update_all_progress(curr_it_step, tot_it_step, t)
-<<<<<<< HEAD
-         
-=======
 
             print(f"{curr_it}/{tot_it} and {curr_it_step}/{tot_it_step}")
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
             if(curr_it == tot_it and curr_it_step == tot_it_step):
                 print(f"Exiting runner loop --> {curr_it}/{tot_it} - {curr_it_step}/{tot_it_step}")
                 r = False
@@ -462,35 +392,6 @@ Wait for it to finish or abort the execution.")
             
             time.sleep(1)
         
-<<<<<<< HEAD
-        self.stop_updater()
-    
-    def mainthread(self, is_train):
-        if(is_train):
-            tr_main(False, self.tr_conn)
-        else:
-            tst_main(False, self.tst_conn)
-
-    # errors
-    def showbusyerror(self):
-        messagebox.showerror(title="Busy Error", message="Something is already running!\n\
-Wait for it to finish or abort the execution.")
-
-    def change_error_text(self, newtext:str):
-        self.error_text['text'] = newtext
-
-    # progress bar
-    def change_progtext(self, newtext:str):
-        self.progress_text['text'] = newtext
-    
-    def set_progbar_value(self, v:int):
-        self.progress_bar['value'] = v
-
-    def change_progbar_max(self, qtty:int):
-        self.progress_bar['maximum'] = qtty
-
-    def update_all_progress(self, curr, tot, text):
-=======
         self.change_progtext("Execution is finished.")
     
     def launch_updater(self, is_train:bool):
@@ -535,14 +436,10 @@ Wait for it to finish or abort the execution.")
         :param tot: the maximum progress info
         :param text: the current text progress
         """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         self.progress_text['text'] = text
         self.progress_bar['value'] = curr
         self.progress_bar['maximum'] = tot
 
-<<<<<<< HEAD
-mainmenu()
-=======
     # MISCELLANEOUS
 
     def open_folder(self, folder:str):
@@ -593,4 +490,3 @@ mainmenu()
 
 if __name__ == "__main__":
     mainmenu()
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
