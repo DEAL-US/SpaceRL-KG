@@ -332,9 +332,6 @@ The name of the dataset must be specified as a child directory to `datasets` whi
 
 The software can be executed in 2 separate ways, manually running the testing and training suites or using the GUI.
 
-<<<<<<< HEAD
-You can also deploy an API to allow external users the creationg of these models (WIP).
-=======
 You can also deploy an API to allow external users the creationg of these models (WIP).
 
 ### Manual execution
@@ -432,4 +429,3 @@ WIP.
 
 # Visualization
 WIP.
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
