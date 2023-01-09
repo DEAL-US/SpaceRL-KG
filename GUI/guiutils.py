@@ -1,22 +1,13 @@
 from tkinter import *
 from tkinter import ttk
 
-<<<<<<< HEAD
-import sys, pathlib, os
-=======
 import sys, pathlib, os, shutil
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
 
 # using pathlib to help with mac and linux compatibility.
 current_dir = pathlib.Path(__file__).parent.resolve()
 maindir = pathlib.Path(current_dir).parent.resolve()
 datasets_folder = pathlib.Path(f"{maindir}/datasets").resolve()
 agents_folder = pathlib.Path(f"{maindir}/model/data/agents").resolve()
-<<<<<<< HEAD
-
-class ToolTip(object):
-    def __init__(self, widget):
-=======
 tests_folder = pathlib.Path(f"{maindir}/model/data/results").resolve()
 
 
@@ -27,23 +18,17 @@ class ToolTip(object):
     :param widget: widget that generates the tooltip.
     '''
     def __init__(self, widget:ttk.Widget):
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         self.widget = widget
         self.tipwindow = None
         self.id = None
         self.x = self.y = 0
 
-<<<<<<< HEAD
-    def showtip(self, text):
-        "Display text in tooltip window"
-=======
     def showtip(self, text:str):
         """
         Creates the tooltip and displays given text.
 
         :param text: text to display
         """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         self.text = text
         if self.tipwindow or not self.text:
             return
@@ -59,20 +44,13 @@ class ToolTip(object):
         label.pack(ipadx=1)
 
     def hidetip(self):
-<<<<<<< HEAD
-=======
         "destroys the tooltip"
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         tw = self.tipwindow
         self.tipwindow = None
         if tw:
             tw.destroy()
 
 class ExperimentBanner(object):
-<<<<<<< HEAD
-    def __init__(self, frame, bannertext, experiment_name :str, laps : int, 
-     dataset : str, embeddings, single_rel_check:bool, single_rel_name: str, lapstext = "laps"):
-=======
     '''
     A class to create Banners (tkinter labelframes) to add to the setup menu.
     They display information about which tests and experiments are queued to run.
@@ -89,7 +67,6 @@ class ExperimentBanner(object):
     '''
     def __init__(self, frame:ttk.Frame, bannertext:str, experiment_name :str, laps : int, 
      dataset : str, embeddings:list, single_rel_check:bool, single_rel_name: str, lapstext = "laps"):
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         parent = ttk.Labelframe(frame, text=bannertext)
         namelabel = ttk.Label(parent, text=f'name: {experiment_name}')
         datalabel = ttk.Label(parent, text=f'dataset: {dataset}')
@@ -109,12 +86,6 @@ class ExperimentBanner(object):
         self.parent = parent
 
     def getbanner(self):
-<<<<<<< HEAD
-        return self.parent
-
-class AgentInfo:
-    def __init__(self, name, embeddings, dataset, is_single_rel, single_rel_name):
-=======
         '''
         see return
 
@@ -133,7 +104,6 @@ class AgentInfo(object):
     :param single_rel_name: name of the relation to test/train.
     '''
     def __init__(self, name:str, embeddings:list, dataset:str, is_single_rel:bool, single_rel_name:str):
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         self.name = name
         self.embeddings = embeddings
         self.dataset = dataset
@@ -141,11 +111,6 @@ class AgentInfo(object):
         self.single_name = single_rel_name
 
     def get(self):
-<<<<<<< HEAD
-        return self.name, self.embeddings, self.dataset, self.is_single, self.single_name
-
-def CreateToolTip(widget, text):
-=======
         """
         see return
 
@@ -160,7 +125,6 @@ def CreateToolTip(widget:ttk.Widget, text:str):
     :param widget: widget that generates the tooltip.
     :param text: text to display in the tooltip.
     """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
     toolTip = ToolTip(widget)
     def enter(event):
         toolTip.showtip(text)
@@ -169,9 +133,6 @@ def CreateToolTip(widget:ttk.Widget, text:str):
     widget.bind('<Enter>', enter)
     widget.bind('<Leave>', leave)
 
-<<<<<<< HEAD
-def GetConfig(is_experiments):
-=======
 def GetConfig(is_experiments:bool):
     """
     Imports the configuration information and
@@ -180,21 +141,17 @@ def GetConfig(is_experiments:bool):
 
     :returns: the configuration dictionary.
     """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
     sys.path.insert(0, f"{maindir}/model")
     from config import get_config
     sys.path.pop(0)
     return get_config(is_experiments, only_config = True)
 
 def GetDatasets():
-<<<<<<< HEAD
-=======
     """
     Gets all available dataset names.
 
     :returns: all available datasets.
     """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
     res = []
     for name in os.listdir(datasets_folder):
         dirpath = pathlib.Path(f"{datasets_folder}/{name}").resolve()
@@ -204,14 +161,11 @@ def GetDatasets():
     return res
 
 def GetAgents():
-<<<<<<< HEAD
-=======
     """
     Gets all agents that have been created and the config used for them, then encapsulates them in a AgentInfo class
 
     :returns: a list of AgentInfo which contains all generated agents and information about them.
     """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
     res = []
     agent_list = os.listdir(agents_folder)
     agent_list.remove('.gitkeep')
@@ -246,10 +200,6 @@ def GetAgents():
     
     return res
 
-<<<<<<< HEAD
-    
-def GetExperimentInstance(name, dataset, embeddings, laps, single_rel, single_rel_name):
-=======
 def GetTestsPaths():
     """
     Gets all generated tests and their paths and returns them in a dict format.
@@ -304,16 +254,12 @@ def GetExperimentInstance(name:str, dataset:str, embeddings:list, laps:int, sing
 
     :returns: the created Experiment object instance.
     """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
     sys.path.insert(0, f"{maindir}/model")
     from config import Experiment
     sys.path.pop(0)
 
     return Experiment(name, dataset, embeddings, laps, single_rel, relation = single_rel_name)
 
-<<<<<<< HEAD
-def GetTestInstance(agentname, testname, embeddings, episodes):
-=======
 def GetTestInstance(agentname:str, testname:str, embeddings:list, episodes:int):
     """
     Create a Test class object with the given information
@@ -325,16 +271,12 @@ def GetTestInstance(agentname:str, testname:str, embeddings:list, episodes:int):
 
     :returns: the created Test object instance.
     """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
     sys.path.insert(0, f"{maindir}/model")
     from config import Test
     sys.path.pop(0)
     
     return Test(testname, agentname, embeddings, episodes)
 
-<<<<<<< HEAD
-def CheckForRelationInDataset(dataset_name, relation_name):
-=======
 def CheckForRelationInDataset(dataset_name:str, relation_name:str):
     """
     checks for a particular relation in a dataset
@@ -345,7 +287,6 @@ def CheckForRelationInDataset(dataset_name:str, relation_name:str):
     :returns: True if the relation is in the dataset, False otherwise.
     """
 
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
     relation_in_graph = False
     filepath = pathlib.Path(f"{datasets_folder}/{dataset_name}/graph.txt").resolve()
     with open(filepath) as d:
@@ -356,9 +297,6 @@ def CheckForRelationInDataset(dataset_name:str, relation_name:str):
     
     return relation_in_graph
 
-<<<<<<< HEAD
-def CheckAgentNameColision(name):
-=======
 def CheckAgentNameColision(name:str):
     """
     checks if an agent with the requested name does already exist.
@@ -367,30 +305,11 @@ def CheckAgentNameColision(name:str):
 
     :returns: True if the agent exists, False otherwise.
     """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
     subfolders = [ f.name for f in os.scandir(agents_folder) if f.is_dir()]
     subfolders.remove("TRAINED")
     return name in subfolders
 
 def CheckTestCollision(name):
-<<<<<<< HEAD
-    pass
-
-
-# asd = GetAgents()
-# for a in asd:
-#     print(a.get())
-
-# a = CheckAgentNameColision("film_genre_FB_Base_simple_distance_100")
-# b = CheckAgentNameColision("fakename")
-# c = CheckForRelationInDataset("COUNTRIES", "fakename")
-# d = CheckForRelationInDataset("COUNTRIES", "locatedIn")
-
-# print(a,b,c,d)
-
-# asd = GetDatasets()
-# print(asd)
-=======
     """
     checks if a test with the requested name does already exist.
 
@@ -430,4 +349,3 @@ def remove_folders(path_abs:str, filecount:int):
     if len(files) == filecount:
         print(f"removing path {path_abs}")
         shutil.rmtree(path_abs)
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1

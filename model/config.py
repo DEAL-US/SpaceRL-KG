@@ -12,7 +12,7 @@ config = {
     "available_cores": 6, #number of cpu cores to use when computing the reward
     "gpu_acceleration": True, # wether to use GPU(S) to perform fast training & embedding generation.
 
-    "verbose": False, # prints detailed information every episode.
+    "verbose": True, # prints detailed information every episode.
     "log_results": False, # Logs the results in the logs folder of episode training.
 
     "debug": False, # offers information about crashes, runs post-mortem

@@ -7,12 +7,9 @@ import multiprocessing
 import sys
 
 class menu():
-<<<<<<< HEAD
-=======
     """
     The config menu.
     """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
     def __init__(self, root, config):
         self.config = deepcopy(config)
 
@@ -28,12 +25,9 @@ class menu():
         self.add_elements()
 
     def add_elements(self):
-<<<<<<< HEAD
-=======
         """
         Adds all tkinter elements to the config window.
         """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         # LabelFrames:
         self.general_lf = ttk.Labelframe(self.mainframe, text='General')
         self.training_tf = ttk.Labelframe(self.mainframe, text='Training')
@@ -52,22 +46,6 @@ class menu():
         self.cores_entry.delete(0, 'end')
         self.cores_entry.insert(0, self.config["available_cores"])
 
-<<<<<<< HEAD
-        use_gpu = BooleanVar(value=self.config["gpu_acceleration"])
-        self.gpu_check = ttk.Checkbutton(self.general_lf, text='use gpu?', variable=use_gpu)
-        CreateToolTip(self.gpu_check, text="allows for gpu to be \nused when running models.")
-        
-        verbose = BooleanVar(value=self.config["verbose"])
-        self.verb_check = ttk.Checkbutton(self.general_lf, text='vebatim?', variable=verbose)
-        CreateToolTip(self.verb_check, text="prints to the terminal the\n progress of each episode")
-        
-        logs = BooleanVar(value=self.config["log_results"])
-        self.logs_check = ttk.Checkbutton(self.general_lf, text='create logs?', variable=logs)
-        CreateToolTip(self.logs_check, text="generate logs for the training")
-        
-        debug = BooleanVar(value=self.config["debug"])
-        self.debug_check = ttk.Checkbutton(self.general_lf, text='run debug?', variable=debug)
-=======
         self.use_gpu = BooleanVar(value=self.config["gpu_acceleration"])
         self.gpu_check = ttk.Checkbutton(self.general_lf, text='use gpu?', variable=self.use_gpu)
         CreateToolTip(self.gpu_check, text="allows for gpu to be \nused when running models.")
@@ -82,7 +60,6 @@ class menu():
         
         self.debug = BooleanVar(value=self.config["debug"])
         self.debug_check = ttk.Checkbutton(self.general_lf, text='run debug?', variable=self.debug)
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         CreateToolTip(self.debug_check, text="if the program crashes\nit runs postmortem debug.")
 
         # TRAINING
@@ -142,16 +119,10 @@ class menu():
         for r in self.config['regularizers']:
             self.regularizer_listbox.select_set(possible_regularizers.index(r))
         CreateToolTip(self.regularizers_label, text="which regularization to apply:\n\
-<<<<<<< HEAD
-            Kernel-> \n\
-            Bias-> \n\
-            Activity-> \n")
-=======
             in the regression equation y = Wx + b where x = input, W = weights matrix and b = bias.\
             Kernel-> Appplies L1 & L2 regularization trying to reduce 'W'\n\
             Bias-> Applies L1 regularization reduces the bias 'b'\n\
             Activity-> tries to reduce the layers output 'y', meaning it applies to all elements.\n")
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
 
 
         self.guided_rew_label = ttk.Label(self.selectors_frame, text='Active Rewards')
@@ -161,37 +132,15 @@ class menu():
         for r in self.config['guided_to_compute']:
             self.rewards_listbox.select_set(possible_rewards.index(r))
         CreateToolTip(self.guided_rew_label, text="which rewards to use:\n\
-<<<<<<< HEAD
-            Distance-> \n\
-            Embedding-> \n\
-            Terminal-> \n")
-=======
             Distance-> Calculates a reward value based on the shortest natural path to the end node.\n\
             Embedding-> calculates a reward value based on the dot product, euclidean distance and cosine similarity of the embeddings\n\
             Terminal-> 1 if reached end node 0 otherwise. \n")
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
 
         self.sep2 = ttk.Separator(self.training_tf, orient='horizontal')
 
         # CHECKBOXES
         self.checkboxes_frame = ttk.Frame(self.training_tf)
 
-<<<<<<< HEAD
-        guided_rew_var = BooleanVar(value=self.config["guided_reward"])
-        self.guided_rew_check = ttk.Checkbutton(self.checkboxes_frame, text='guided \nrewards', variable=guided_rew_var)
-        CreateToolTip(self.guided_rew_check, text="")
-
-        regen_embs_var = BooleanVar(value=self.config["regenerate_embeddings"])
-        self.regen_embs_check = ttk.Checkbutton(self.checkboxes_frame, text='regenerate \nembeddings', variable=regen_embs_var)
-        CreateToolTip(self.regen_embs_check, text="")
-
-        normal_embs_var = BooleanVar(value=self.config["normalize_embeddings"])
-        self.normal_embs_check = ttk.Checkbutton(self.checkboxes_frame, text='normalize \nembeddings', variable=normal_embs_var)
-        CreateToolTip(self.normal_embs_check, text="")
-
-        use_LSTM_var = BooleanVar(value=self.config["use_LSTM"])
-        self.use_LSTM_check = ttk.Checkbutton(self.checkboxes_frame, text='use LSMT \nlayers', variable=use_LSTM_var)
-=======
         self.guided_rew_var = BooleanVar(value=self.config["guided_reward"])
         self.guided_rew_check = ttk.Checkbutton(self.checkboxes_frame, text='guided \nrewards', variable=self.guided_rew_var)
         CreateToolTip(self.guided_rew_check, text="")
@@ -206,7 +155,6 @@ class menu():
 
         self.use_LSTM_var = BooleanVar(value=self.config["use_LSTM"])
         self.use_LSTM_check = ttk.Checkbutton(self.checkboxes_frame, text='use LSMT \nlayers', variable=self.use_LSTM_var)
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         CreateToolTip(self.use_LSTM_check, text="")
 
         self.sep3 = ttk.Separator(self.training_tf, orient='horizontal')
@@ -257,13 +205,8 @@ class menu():
         self.path_entry.delete(0, 'end')
         self.path_entry.insert(0, self.config["path_length"])
 
-<<<<<<< HEAD
-        random_seed_var = BooleanVar(value=self.config["random_seed"])
-        self.random_seed_check = ttk.Checkbutton(self.shared_tf, text='random seed?', variable=random_seed_var)
-=======
         self.random_seed_var = BooleanVar(value=self.config["random_seed"])
         self.random_seed_check = ttk.Checkbutton(self.shared_tf, text='random seed?', variable=self.random_seed_var)
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         CreateToolTip(self.random_seed_check, text="if set, uses a random seed")
 
 
@@ -283,12 +226,9 @@ class menu():
         self.grid_elements()
 
     def grid_elements(self):
-<<<<<<< HEAD
-=======
         """
         Sets the position of all tkinter elements in the main window.
         """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         #row0:
         self.errors.grid(row=0, column=0)
         
@@ -422,9 +362,6 @@ class menu():
         for child in self.shared_tf.winfo_children():
             child.grid_configure(padx=9, pady=0)
 
-<<<<<<< HEAD
-    def validation(self, value: str, origin):
-=======
     def validation(self, value: str, origin:str):
         """
         Validates all user defined information.
@@ -433,7 +370,6 @@ class menu():
         :param origin: the origin of the validation trigger it represents one of the text fields in the window. 
 
         """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         int_origins, float_origins = ["path", "cpu", "seed"], ["alpha", "gamma", "lr"]
         all_origins = [*int_origins,*float_origins]
         ranges = [(3,10),(1,multiprocessing.cpu_count()),(1,sys.maxsize), (0.9,0.99),(0.8,0.99),(1e-5, 1e-3)]
@@ -459,9 +395,6 @@ class menu():
         else:
             return True
 
-<<<<<<< HEAD
-    def invalid(self, origin):
-=======
     def invalid(self, origin:str):
         """
         If the validation of the field didn't pass, what actions to take.
@@ -469,7 +402,6 @@ class menu():
         :param origin: the origin of the validation trigger it represents one of the text fields in the window. 
 
         """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         print(f"the origin of the validation error is: {origin}")
         if(origin == "seed"):  
             self.seed_entry.delete(0,END)          
@@ -499,33 +431,30 @@ class menu():
             self.errors["text"] = "an unexpected error ocurred"
         
     def save_config(self):
-<<<<<<< HEAD
-=======
         """
         Saves the configuration from the elements displayed.
         """
->>>>>>> 9d99a6b0aa6f7add09e7011beb33160e3bf6c4c1
         print("saving config")
-        self.config["available_cores"] = self.cores_entry.get()
-        self.config["gpu_acceleration"] = self.gpu_check.state()[0] == 'selected'
-        self.config["verbose"] = self.verb_check.state()[0] == 'selected'
-        self.config["log_results"] = self.logs_check.state()[0] == 'selected'
-        self.config["debug"] = self.debug_check.state()[0] == 'selected'
+        self.config["available_cores"] = int(self.cores_entry.get())
+        self.config["gpu_acceleration"] =   False if len(self.gpu_check.state()) == 0 else self.gpu_check.state()[0] == 'selected'
+        self.config["verbose"] = False if len(self.verb_check.state()) == 0 else self.verb_check.state()[0] == 'selected'
+        self.config["log_results"] = False if len(self.logs_check.state()) == 0 else self.logs_check.state()[0] == 'selected'
+        self.config["debug"] = False if len(self.debug_check.state()) == 0 else self.debug_check.state()[0] == 'selected'
         self.config["print_layers"] = False
 
         self.config["restore_agent"] = False
-        self.config["guided_reward"] = self.guided_rew_check.state()[0] == 'selected'
         self.config["guided_to_compute"] = [self.rewards_listbox.get(idx) for idx in self.rewards_listbox.curselection()]
-        self.config["regenerate_embeddings"] = self.regen_embs_check.state()[0] == 'selected'
-        self.config["normalize_embeddings"] = self.normal_embs_check.state()[0] == 'selected'
-        self.config["use_LSTM"] = self.use_LSTM_check.state()[0] == 'selected'
+        self.config["guided_reward"] = False if len(self.guided_rew_check.state()) == 0 else self.guided_rew_check.state()[0] == 'selected'
+        self.config["regenerate_embeddings"] = False if len(self.regen_embs_check.state()) == 0 else self.regen_embs_check.state()[0] == 'selected'
+        self.config["normalize_embeddings"] = False if len(self.normal_embs_check.state()) == 0 else self.normal_embs_check.state()[0] == 'selected'
+        self.config["use_LSTM"] = False if len(self.use_LSTM_check.state()) == 0 else self.use_LSTM_check.state()[0] == 'selected'
 
         self.config["use_episodes"] = False
         self.config["episodes"] = 0
 
-        self.config["alpha"] = self.alpha_entry.get()
-        self.config["gamma"] = self.gamma_entry.get()
-        self.config["learning_rate"] = self.lr_entry.get()
+        self.config["alpha"] = float(self.alpha_entry.get())
+        self.config["gamma"] = float(self.gamma_entry.get())
+        self.config["learning_rate"] = float(self.lr_entry.get())
 
         self.config["activation"] = self.activation_listbox.get(ACTIVE)
         self.config["regularizers"] = [self.regularizer_listbox.get(idx) for idx in self.regularizer_listbox.curselection()]
@@ -535,8 +464,10 @@ class menu():
         self.config["action_picking_policy"] = "probability"
         self.config["reward_computation"] = self.rew_comp_var.get()
 
-        self.config["path_length"] = self.path_entry.get()
-        self.config["random_seed"] = self.random_seed_check.state()[0] == 'selected'
-        self.config["seed"] = self.seed_entry.get()
+        self.config["path_length"] = int(self.path_entry.get())
+        self.config["random_seed"] = False if len(self.random_seed_check.state()) == 0 else self.random_seed_check.state()[0] == 'selected'
+        self.config["seed"] = int(self.seed_entry.get())
 
         self.errors["text"] = "data saved succesfully!"
+
+        print(self.config)
