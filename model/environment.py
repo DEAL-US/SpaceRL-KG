@@ -333,14 +333,15 @@ class KGEnv(gym.Env):
         done_flag = [False]
         to_evaluate.add(current_node)
 
-        try:
+        if (current_node, end_node) in self.distance_cache:
             d = self.distance_cache[(current_node, end_node)]
-            # print("value is cached!")
             return d
-        except:
+
+        else:
+        
             while(not done_flag[0]):
-                to_evaluate_next_step, thread_list = set(), []
                 sublist_size = (len(to_evaluate)//self.threads)
+                to_evaluate_next_step, thread_list = set(), []
 
                 if(len(to_evaluate)<= self.threads):
                     self.dist_func(0, len(to_evaluate), to_evaluate, d, done_flag,
@@ -354,15 +355,16 @@ class KGEnv(gym.Env):
                         x = Process(target=self.dist_func, 
                         args=(init_index, last_index, to_evaluate, d, done_flag,
                         to_evaluate_next_step, visited, current_node, end_node))
+
                         thread_list.append(x)
                         x.start()
                     
                 for t in thread_list:
-                    t.join()
+                    t.join()       
 
                 if(not done_flag[0]):
                     to_evaluate = to_evaluate_next_step-visited
-                    d+=1
+                    d += 1
                     if(d >= self.path_length):
                         self.utils.verb_print("path, to end node is too large...")
                         return None

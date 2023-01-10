@@ -13,3 +13,9 @@ reward_type: simple
 action_picking_policy: probability
 reward_computation: one_hot_max
 path_length: 5
+laps: 1
+dataset: COUNTRIES
+single_relation_pair: [False, None]
+name: dbfvadjs
+embeddings: ['ComplEx']
+embedding: ComplEx

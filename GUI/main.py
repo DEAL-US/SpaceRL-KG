@@ -384,7 +384,7 @@ Wait for it to finish or abort the execution.")
                 t = f"({curr_it}/{tot_it})-({curr_it_step}/{tot_it_step})-{curr_prog}"
                 self.update_all_progress(curr_it_step, tot_it_step, t)
 
-            print(f"{curr_it}/{tot_it} and {curr_it_step}/{tot_it_step}")
+            # print(f"{curr_it}/{tot_it} and {curr_it_step}/{tot_it_step}")
             if(curr_it == tot_it and curr_it_step == tot_it_step):
                 print(f"Exiting runner loop --> {curr_it}/{tot_it} - {curr_it_step}/{tot_it_step}")
                 r = False
