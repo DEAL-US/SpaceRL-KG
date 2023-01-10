@@ -339,11 +339,11 @@ class KGEnv(gym.Env):
 
         else:
         
-            while(not done_flag[0]):
-                sublist_size = (len(to_evaluate)//self.threads)
+            while not done_flag[0]:
                 to_evaluate_next_step, thread_list = set(), []
+                sublist_size = (len(   )//self.threads)
 
-                if(len(to_evaluate)<= self.threads):
+                if len(to_evaluate) <= self.threads:
                     self.dist_func(0, len(to_evaluate), to_evaluate, d, done_flag,
                     to_evaluate_next_step, visited, current_node, end_node)
                 else:
