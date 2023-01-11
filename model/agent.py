@@ -384,6 +384,7 @@ class Agent(object):
             if "distance" in self.guided_options:
                 if(len(self.distance_mem)==0):
                     baseline_dist = self.env.get_distance(origin_node, dest_node)
+                    
                     if(baseline_dist is None):
                         # 99 is an arbitrary number which will always be bigger than a valid path.
                         self.distance_mem.append(99)

@@ -143,7 +143,7 @@ class menu():
         return agent
 
     def create_networkX_graph(self, triples:list):
-        G = nx.DiGraph()
+        G = nx.MultiDiGraph()
         print(len(triples))
         for t in triples:
             G.add_node(t[0])

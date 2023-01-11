@@ -14,8 +14,8 @@ action_picking_policy: probability
 reward_computation: one_hot_max
 path_length: 5
 laps: 1
-dataset: COUNTRIES
+dataset: FB15K-237
 single_relation_pair: [False, None]
-name: dbfvadjs
-embeddings: ['ComplEx']
-embedding: ComplEx
+name: asedfas
+embeddings: ['TransE_l2']
+embedding: TransE_l2

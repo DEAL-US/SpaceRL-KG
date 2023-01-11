@@ -156,8 +156,8 @@ class Test():
             self.to_delete = True
 
 EXPERIMENTS = [
+    Experiment("asd1", "COUNTRIES", ["TransE_l2"], 1),
     Experiment("film_genre_FB_Base_PPO_distance_22", "FB15K-237", ["TransE_l2"], 22, True, relation = "/film/film/genre"),
-    # Experiment("asd1", "COUNTRIES", ["TransE_l2"], 1)
     # Experiment("countiesall", "COUNTRIES", ["TransR"], 1) 
     # Experiment("Umls-distancerew-125laps-PPO", "UMLS", ["TransE_l2"], 10),
     # Experiment("embedding_testing", "NELL-995", ["TransE_l2"], 10, True, relation = "concept:animalpreyson"),

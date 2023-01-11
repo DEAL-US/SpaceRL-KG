@@ -1,13 +1,14 @@
 import numpy as np
+import networkx as nx
 from numpy.linalg import norm
 import logging
 import random
 import copy
+import gym
 
 from multiprocess import Process
 from data.generator.generate_trans_embeddings import generate_embedding
 from data.kg_structure import KnowledgeGraph
-import gym
 from gym import error, spaces
 from data.data_manager import DataManager
 
@@ -86,7 +87,9 @@ class KGEnv(gym.Env):
 
         # instantiate the corresponding KG() from input_dir
         self.kg = KnowledgeGraph(self.triples, directed=True, inverse_triples=True)
-        
+        self.netX_KG = self.create_networkX_graph()
+        quit()
+
         self.single_relation, self.relation_name = single_relation_pair
     
         if(self.single_relation):
@@ -220,6 +223,22 @@ class KGEnv(gym.Env):
     #    STATES, OBSERVATIONS & ACTIONS   #
     #######################################
 
+    def create_networkX_graph(self):
+        G = nx.MultiDiGraph()
+        for t in self.triples:
+            G.add_node(t[0])
+            G.add_node(t[2])
+
+            G.add_edge(t[0], t[2], name = t[1])
+            G.add_edge(t[2], t[0], name = f"¬{t[1]}")
+
+        for n in G.nodes():
+            G.add_edge(n, n, name="NO_OP")
+
+        print(f"triples: {len(self.triples)}, nodes:{G.number_of_nodes()}, edges:{G.number_of_edges()}")
+        print(G[t[0]])
+        return G
+
     def get_current_state(self):
         """
         returns the current state of the environment.
@@ -315,6 +334,25 @@ class KGEnv(gym.Env):
     #############################
     #    REWARDS & EMBEDDINGS   #
     #############################
+    def get_distance_net_x(self, origin_node:str, dest_node:str, excluded_rel:str = None):
+        """
+        computes the minimum distance from the origin node to the end node.
+        A relation can be exculded from the search.
+        Checks the cache for the requested distance and adds it if its not there.
+
+        :param origin_node: the origin node to calculate.
+        :param dest_node: the destination node to reach.
+        :param exculded_rel: the relation to ignore when calculating the distance if it exists between the nodes.
+        
+        :returns: the distance from the origin node to the destination node.
+        """
+        # Remove conections from excluded.
+        if(excluded_rel is not None)
+            self.netX_KG.remove_edge(origin_node, dest_node, name=excluded_rel)
+
+        lengths = nx.single_source_shortest_path_length(self.netX_KG, origin_node, cutoff=self.path_length)
+        
+
 
     def get_distance(self, current_node:str, end_node:str):
         """
@@ -341,7 +379,7 @@ class KGEnv(gym.Env):
         
             while not done_flag[0]:
                 to_evaluate_next_step, thread_list = set(), []
-                sublist_size = (len(   )//self.threads)
+                sublist_size = (len(to_evaluate)//self.threads)
 
                 if len(to_evaluate) <= self.threads:
                     self.dist_func(0, len(to_evaluate), to_evaluate, d, done_flag,
