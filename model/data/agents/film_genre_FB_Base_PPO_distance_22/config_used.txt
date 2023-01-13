@@ -13,9 +13,9 @@ reward_type: simple
 action_picking_policy: probability
 reward_computation: one_hot_max
 path_length: 5
-laps: 1
+laps: 22
 dataset: FB15K-237
-single_relation_pair: [False, None]
-name: asedfas
+single_relation_pair: [True, '/film/film/genre']
+name: film_genre_FB_Base_PPO_distance_22
 embeddings: ['TransE_l2']
 embedding: TransE_l2

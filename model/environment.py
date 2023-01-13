@@ -88,7 +88,6 @@ class KGEnv(gym.Env):
         # instantiate the corresponding KG() from input_dir
         self.kg = KnowledgeGraph(self.triples, directed=True, inverse_triples=True)
         self.netX_KG = self.create_networkX_graph()
-        quit()
 
         self.single_relation, self.relation_name = single_relation_pair
     
@@ -229,14 +228,13 @@ class KGEnv(gym.Env):
             G.add_node(t[0])
             G.add_node(t[2])
 
-            G.add_edge(t[0], t[2], name = t[1])
-            G.add_edge(t[2], t[0], name = f"¬{t[1]}")
+            G.add_edge(t[0], t[2], key = t[1])
+            G.add_edge(t[2], t[0], key = f"¬{t[1]}")
 
         for n in G.nodes():
-            G.add_edge(n, n, name="NO_OP")
+            G.add_edge(n, n, key="NO_OP")
 
         print(f"triples: {len(self.triples)}, nodes:{G.number_of_nodes()}, edges:{G.number_of_edges()}")
-        print(G[t[0]])
         return G
 
     def get_current_state(self):
@@ -346,13 +344,34 @@ class KGEnv(gym.Env):
         
         :returns: the distance from the origin node to the destination node.
         """
+        # check cache for distance.
+        if (origin_node, dest_node) in self.distance_cache:
+            return self.distance_cache[(origin_node, dest_node)]
+
         # Remove conections from excluded.
-        if(excluded_rel is not None)
-            self.netX_KG.remove_edge(origin_node, dest_node, name=excluded_rel)
+        if(excluded_rel is not None):
+            self.netX_KG.remove_edge(origin_node, dest_node, key=excluded_rel)
+            self.netX_KG.remove_edge(dest_node, origin_node, key=f"¬{excluded_rel}")
 
+        # calculate info.
         lengths = nx.single_source_shortest_path_length(self.netX_KG, origin_node, cutoff=self.path_length)
+        l_keys = lengths.keys()
+        l_items = lengths.items()
         
+        # reiuntroduce deleted edges.
+        if(excluded_rel is not None):
+            self.netX_KG.add_edge(origin_node, dest_node, key=excluded_rel)
+            self.netX_KG.add_edge(dest_node, origin_node, key=f"¬{excluded_rel}")
 
+        # if not in cache, add all calcualted nodes to cache.
+        for k, v in l_items:
+            self.distance_cache[origin_node, k] = v
+        
+        # return distance if it exists, None if non connected.
+        if dest_node in l_keys:
+            return lengths[dest_node]
+        else: 
+            return None
 
     def get_distance(self, current_node:str, end_node:str):
         """

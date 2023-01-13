@@ -5,6 +5,7 @@ from keras.models import Model, model_from_json
 from keras.optimizers import adam_v2, rmsprop_v2
 import keras.backend as K
 from tqdm import tqdm
+from multiprocessing import Process
 
 import time, traceback
 
@@ -328,7 +329,7 @@ class Agent(object):
         ent_emb = self.entity_emb[chosen_ent]
         return [*rel_emb, *ent_emb]
         
-    def get_next_state_reward(self, action_taken:tuple):
+    def get_next_state_rewards(self, actions_takens:list):
         """
         Gets the reward for the next state if that action is chosen, its calculated in 3 toggleable steps
 
@@ -336,100 +337,86 @@ class Agent(object):
         - distance -> we reward the agent based on the distance to the tail entity \n
         - embedding -> computes several metrics of embedding similarity and uses them to compute a reward. \n
 
-        :param action_taken: action being evaluated.
-
-        :returns: the reward [0.05 - 1]
-
+        :param action_taken: actions being evaluated.
         """
+        for action_taken in actions_takens:
+            encoded_action = self.encode_action(action_taken[0], action_taken[1])
+            input_arr = [*self.observations, *encoded_action] # [(*e1,*r),*et] [*relation_embedding, *entity_embedding]
+            
+            new_state_node = action_taken[1]
+            dest_node = self.env.target_triple[2]
 
-        new_state_node = action_taken[1]
-        dest_node = self.env.target_triple[2]
-        origin_node = self.env.target_triple[0]
+            ratio_emb, ratio_dist = 0.7, 0.3
+            
+            # self.guided_options -> ["distance","terminal","embedding"]
+            emb_dists, distance = None, None
 
-        ratio_emb, ratio_dist = 0.7, 0.3
-        
-        # self.guided_options -> ["distance","terminal","embedding"]
-        if(self.guided_reward):
+            if(self.guided_reward):
 
-            if "embedding" in self.guided_options:
-                if(len(self.emb_metrics_mem)==0):
-                    baseline_emb_dist = self.env.get_embedding_info(origin_node, dest_node)
-                    self.emb_metrics_mem.append(baseline_emb_dist)
-
-                # we compare the embedding operations to the ones in the previous step
-                # and reward the agent if we are closer to the end node according to the embedding.
-                emb_dists = self.env.get_embedding_info(new_state_node, dest_node)
-                latest = self.emb_metrics_mem[-1]
-                self.step_embeddings.append(emb_dists)
-                
-                # [dot, euc_dist, cos_sim]
-                aux = [0,0,0]
-
-                # dot product is maximization.
-                if emb_dists[0] > latest[0]: 
-                    aux[0] = 1/3
-                elif emb_dists[0] == latest[0]: # if it didn't improve we halve the reward
-                        aux[0] = 1/6
-
-                # cos_sim and euc_dist is minimization
-                for i in range(1,3):
-                    if emb_dists[i] < latest[i]: 
-                        aux[i] = 1/3
-                    elif emb_dists[i] == latest[i]: # if it didn't improve we halve the reward
-                        aux[i] = 1/6
-
-                emb_rew = sum(aux)
-                # self.utils.verb_print(f"prev emb metrics: {latest}, new emb metrics: {emb_dists}")
-
-            if "distance" in self.guided_options:
-                if(len(self.distance_mem)==0):
-                    baseline_dist = self.env.get_distance(origin_node, dest_node)
+                if "embedding" in self.guided_options:
+                    # we compare the embedding operations to the ones in the previous step
+                    # and reward the agent if we are closer to the end node according to the embedding.
+                    emb_dists = self.env.get_embedding_info(new_state_node, dest_node)
+                    latest = self.emb_metrics_mem[-1]
                     
-                    if(baseline_dist is None):
-                        # 99 is an arbitrary number which will always be bigger than a valid path.
-                        self.distance_mem.append(99)
+                    # [dot, euc_dist, cos_sim]
+                    aux = [0,0,0]
+
+                    # dot product is maximization.
+                    if emb_dists[0] > latest[0]: 
+                        aux[0] = 1/3
+                    elif emb_dists[0] == latest[0]: # if it didn't improve we halve the reward
+                            aux[0] = 1/6
+
+                    # cos_sim and euc_dist is minimization
+                    for i in range(1,3):
+                        if emb_dists[i] < latest[i]: 
+                            aux[i] = 1/3
+                        elif emb_dists[i] == latest[i]: # if it didn't improve we halve the reward
+                            aux[i] = 1/6
+
+                    emb_rew = sum(aux)
+
+                if "distance" in self.guided_options:
+                    distance = self.env.get_distance_net_x(new_state_node, dest_node)
+                    latest = self.distance_mem[-1]
+
+                    if distance is None:
+                        distance = 99
+                        dist_rew = 0.005
                     else:
-                        self.distance_mem.append(baseline_dist)
+                        if distance < latest:
+                            dist_rew = 1
+                        elif distance == latest:
+                            dist_rew = 1/3
+                        else:
+                            dist_rew = 0.005 
 
+                if "terminal" in self.guided_options and new_state_node == dest_node:
+                    # with terminal rewards active, if we are in the end node reward is max.
+                    total_rew = 1
+                    
+                # Discourage the NO_OP unless it is to stay on the end node
+                elif action_taken[0]=="NO_OP" and (new_state_node != dest_node):
+                    total_rew = 0.005
 
-                distance = self.env.get_distance(new_state_node, dest_node)
-                latest = self.distance_mem[-1]
-
-                if distance is None:
-                    self.step_distances.append(99)
-                    dist_rew = 0.005
+                elif("embedding" in self.guided_options and "distance" in self.guided_options):
+                    total_rew = dist_rew*ratio_dist + emb_rew*ratio_emb
                 else:
-                    self.step_distances.append(distance)
-                    if distance < latest:
-                        dist_rew = 1
-                    elif distance == latest:
-                        dist_rew = 1/3
-                    else:
-                        dist_rew = 0.005 
-                # self.utils.verb_print(f"prev dist to end node: {latest}, new dist to end node: {distance}")
+                    if("embedding" in self.guided_options):
+                        total_rew = emb_rew
+                    
+                    elif("distance" in self.guided_options):
+                        total_rew = dist_rew
 
-            # if we are in the end node reward is max.
-            if "terminal" in self.guided_options and new_state_node == dest_node:
-                return 1
-                
-            # Discourage the NO_OP unless it is to stay on the end node
-            if action_taken[0]=="NO_OP" and (new_state_node != dest_node):
-                return 0.005
+            else: # Not guided reward, return 1 if in end node.
 
-            if("embedding" in self.guided_options and "distance" in self.guided_options):
-                return dist_rew*ratio_dist + emb_rew*ratio_emb
-            else:
-                if("embedding" in self.guided_options):
-                    return emb_rew
-                
-                if("distance" in self.guided_options):
-                    return dist_rew
+                if new_state_node == dest_node:
+                    total_rew =  1
+                else:
+                    total_rew = 0.05
 
-        else:
-            if new_state_node == dest_node:
-                return 1
-            else:
-                return 0.05
+            self.all_calculations.append([input_arr, total_rew, emb_dists, distance]) 
             
     def get_inputs_and_rewards(self):
         """
@@ -440,25 +427,71 @@ class Agent(object):
         rewards -> the calculated rewards for every action possible. \n
 
         """
-        inputs, rewards = [], []
+        self.inputs, self.state_rewards, self.step_distances, self.step_embeddings = [], [], [], [] 
+        self.observations = self.env.get_encoded_observations()
 
-        observations = self.env.get_encoded_observations()
         # Evaluate actions and build probability & rewards list.
         if(self.verbose):
             it = tqdm(self.env.actions, desc="iterating over actions")
         else:
             it = self.env.actions
 
-        for a in it:
-            encoded_action = self.encode_action(a[0], a[1])
-            input_arr = [*observations, *encoded_action] # [(*e1,*r),*et] [*relation_embedding, *entity_embedding]
-            inputs.append(input_arr)
+        # initialize embedding and distance reward lists.
+        origin_node, target_rel, dest_node = self.env.target_triple
 
-            state_reward = self.get_next_state_reward(a)
-            rewards.append(state_reward)
-            
+        if "embedding" in self.guided_options and len(self.emb_metrics_mem) ==0:
+            baseline_emb_dist = self.env.get_embedding_info(origin_node, dest_node)
+            self.emb_metrics_mem.append(baseline_emb_dist)
 
-        return inputs, rewards
+        if "distance" in self.guided_options and len(self.distance_mem) ==0:
+            # baseline_dist = self.env.get_distance(origin_node, dest_node)
+            baseline_dist = self.env.get_distance_net_x(origin_node, dest_node, target_rel)
+
+            if(baseline_dist is None):
+                # 99 is an arbitrary number which will always be bigger than a valid path.
+                self.distance_mem.append(99)
+            else:
+                self.distance_mem.append(baseline_dist)
+        
+        # intermediate list to store multithreaded calculations and keep the relative order
+        self.all_calculations = [] 
+
+        if len(it) > self.env.threads * 5:
+            print(f"multiprocessing {len(it)} possible actions...")
+            init_time = time.time()
+
+            thread_list = []
+            sublist_size = len(it)//self.env.threads
+
+            for i in range(self.env.threads):
+                init_index = (sublist_size*i)
+                last_index = len(it) if self.env.threads == i+1 else sublist_size*(i+1)-1
+
+                x = Process(target = self.get_next_state_rewards, args = [it[init_index:last_index]])
+
+                thread_list.append(x)
+                x.start()
+
+            for t in thread_list:
+                t.join()
+
+            print(f"took {time.time() - init_time} to process")
+        else:
+            print(f"single processing {len(it)} possible actions...")
+            init_time = time.time()
+
+            self.get_next_state_rewards(it)
+
+            print(f"took {time.time() - init_time} to process")
+
+        self.all_calculations = list(map(list, zip(*self.all_calculations)))
+
+        self.inputs.extend(self.all_calculations[0]) 
+        self.state_rewards.extend(self.all_calculations[1]) 
+        self.step_embeddings.extend(self.all_calculations[2]) 
+        self.step_distances.extend(self.all_calculations[3])
+
+        return self.inputs, self.state_rewards
 
     def get_network_outputs(self, num_actions:int, inputs:list):
         """
@@ -549,8 +582,6 @@ class Agent(object):
         max(rewards) -> the best reward in the episode. \n
 
         """
-        if(self.guided_reward):
-            self.step_distances, self.step_embeddings = [], []
 
         inputs, rewards = self.get_inputs_and_rewards()
         outputs = self.get_network_outputs(len(self.env.actions), inputs)
