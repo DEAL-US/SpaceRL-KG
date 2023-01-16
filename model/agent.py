@@ -5,7 +5,7 @@ from keras.models import Model, model_from_json
 from keras.optimizers import adam_v2, rmsprop_v2
 import keras.backend as K
 from tqdm import tqdm
-from multiprocessing import Process
+from multiprocessing import Process, Queue, Manager
 
 import time, traceback
 
@@ -329,7 +329,7 @@ class Agent(object):
         ent_emb = self.entity_emb[chosen_ent]
         return [*rel_emb, *ent_emb]
         
-    def get_next_state_rewards(self, actions_takens:list):
+    def get_next_state_rewards(self, actions_takens:list, q:Queue = None):
         """
         Gets the reward for the next state if that action is chosen, its calculated in 3 toggleable steps
 
@@ -339,6 +339,9 @@ class Agent(object):
 
         :param action_taken: actions being evaluated.
         """
+        if q is not None:
+            local_cache = dict()
+
         for action_taken in actions_takens:
             encoded_action = self.encode_action(action_taken[0], action_taken[1])
             input_arr = [*self.observations, *encoded_action] # [(*e1,*r),*et] [*relation_embedding, *entity_embedding]
@@ -378,7 +381,7 @@ class Agent(object):
                     emb_rew = sum(aux)
 
                 if "distance" in self.guided_options:
-                    distance = self.env.get_distance_net_x(new_state_node, dest_node)
+                    distance, local_cache_update_action = self.env.get_distance_net_x(new_state_node, dest_node, q is not None)
                     latest = self.distance_mem[-1]
 
                     if distance is None:
@@ -415,8 +418,13 @@ class Agent(object):
                     total_rew =  1
                 else:
                     total_rew = 0.05
-
-            self.all_calculations.append([input_arr, total_rew, emb_dists, distance]) 
+            
+            if(q is not None):
+                # print(f"writing into queue, from action {action_taken}")
+                q.put([action_taken, input_arr, total_rew, emb_dists, distance], block=False)
+            else:
+                self.all_calculations.append([action_taken, input_arr, total_rew, emb_dists, distance])
+            
             
     def get_inputs_and_rewards(self):
         """
@@ -445,7 +453,7 @@ class Agent(object):
 
         if "distance" in self.guided_options and len(self.distance_mem) ==0:
             # baseline_dist = self.env.get_distance(origin_node, dest_node)
-            baseline_dist = self.env.get_distance_net_x(origin_node, dest_node, target_rel)
+            baseline_dist = self.env.get_distance_net_x(origin_node, dest_node, excluded_rel = target_rel)
 
             if(baseline_dist is None):
                 # 99 is an arbitrary number which will always be bigger than a valid path.
@@ -455,26 +463,36 @@ class Agent(object):
         
         # intermediate list to store multithreaded calculations and keep the relative order
         self.all_calculations = [] 
+        
+
+        def chunks(l, n):
+            return [l[i:i+n] for i in range(0, len(l), n)]
 
         if len(it) > self.env.threads * 5:
             print(f"multiprocessing {len(it)} possible actions...")
             init_time = time.time()
 
-            thread_list = []
-            sublist_size = len(it)//self.env.threads
+            queue = Queue()
+            manager = Manager() # multithread manager object.
+            multithread_cache = manager.dict()
+            chunk_size = len(it)//self.env.threads
+            slices = chunks(it, chunk_size)
+            jobs = []
 
-            for i in range(self.env.threads):
-                init_index = (sublist_size*i)
-                last_index = len(it) if self.env.threads == i+1 else sublist_size*(i+1)-1
-
-                x = Process(target = self.get_next_state_rewards, args = [it[init_index:last_index]])
-
-                thread_list.append(x)
+            for _, s in enumerate(slices):
+                x = Process(target = self.get_next_state_rewards, args = (s, queue, multithread_cache))
+                jobs.append(x)
                 x.start()
 
-            for t in thread_list:
-                t.join()
+            count = 0
+            while count < len(it):
+                try:
+                    self.all_calculations.append(queue.get_nowait())
+                    count += 1
+                except Exception as e:
+                    pass
 
+            self.env.distance_cache.update(multithread_cache)
             print(f"took {time.time() - init_time} to process")
         else:
             print(f"single processing {len(it)} possible actions...")
@@ -486,10 +504,10 @@ class Agent(object):
 
         self.all_calculations = list(map(list, zip(*self.all_calculations)))
 
-        self.inputs.extend(self.all_calculations[0]) 
-        self.state_rewards.extend(self.all_calculations[1]) 
-        self.step_embeddings.extend(self.all_calculations[2]) 
-        self.step_distances.extend(self.all_calculations[3])
+        self.inputs.extend(self.all_calculations[1]) 
+        self.state_rewards.extend(self.all_calculations[2]) 
+        self.step_embeddings.extend(self.all_calculations[3]) 
+        self.step_distances.extend(self.all_calculations[4])
 
         return self.inputs, self.state_rewards
 

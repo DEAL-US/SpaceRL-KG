@@ -6,7 +6,7 @@ import random
 import copy
 import gym
 
-from multiprocess import Process
+from multiprocessing import Process
 from data.generator.generate_trans_embeddings import generate_embedding
 from data.kg_structure import KnowledgeGraph
 from gym import error, spaces
@@ -332,7 +332,7 @@ class KGEnv(gym.Env):
     #############################
     #    REWARDS & EMBEDDINGS   #
     #############################
-    def get_distance_net_x(self, origin_node:str, dest_node:str, excluded_rel:str = None):
+    def get_distance_net_x(self, origin_node:str, dest_node:str, excluded_rel:str = None, multiprocessed:bool = False):
         """
         computes the minimum distance from the origin node to the end node.
         A relation can be exculded from the search.
@@ -363,15 +363,20 @@ class KGEnv(gym.Env):
             self.netX_KG.add_edge(origin_node, dest_node, key=excluded_rel)
             self.netX_KG.add_edge(dest_node, origin_node, key=f"¬{excluded_rel}")
 
-        # if not in cache, add all calcualted nodes to cache.
-        for k, v in l_items:
-            self.distance_cache[origin_node, k] = v
-        
+        # if not in cache, add all calcualted nodes to cache.ç
+        if multiprocessed:
+            local_cache = dict()
+            for k, v in l_items:
+                local_cache[origin_node, k] = v
+        else:
+            for k, v in l_items:
+                self.distance_cache[origin_node, k] = v
+            
         # return distance if it exists, None if non connected.
         if dest_node in l_keys:
-            return lengths[dest_node]
+            return lengths[dest_node], None if not multiprocessed else lengths[dest_node], local_cache
         else: 
-            return None
+            return None, None if not multiprocessed else None, local_cache
 
     def get_distance(self, current_node:str, end_node:str):
         """
