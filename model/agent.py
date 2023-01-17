@@ -329,7 +329,7 @@ class Agent(object):
         ent_emb = self.entity_emb[chosen_ent]
         return [*rel_emb, *ent_emb]
         
-    def get_next_state_rewards(self, actions_takens:list, q:Queue = None):
+    def get_next_state_rewards(self, actions_takens:list, q:Queue = None, multithreaded_cache = None):
         """
         Gets the reward for the next state if that action is chosen, its calculated in 3 toggleable steps
 
@@ -339,7 +339,7 @@ class Agent(object):
 
         :param action_taken: actions being evaluated.
         """
-        if q is not None:
+        if q is not None and "distance" in self.guided_options:
             local_cache = dict()
 
         for action_taken in actions_takens:
@@ -394,6 +394,9 @@ class Agent(object):
                             dist_rew = 1/3
                         else:
                             dist_rew = 0.005 
+                    
+                    if local_cache_update_action is not None:
+                        local_cache.update(local_cache_update_action)
 
                 if "terminal" in self.guided_options and new_state_node == dest_node:
                     # with terminal rewards active, if we are in the end node reward is max.
@@ -421,11 +424,13 @@ class Agent(object):
             
             if(q is not None):
                 # print(f"writing into queue, from action {action_taken}")
-                q.put([action_taken, input_arr, total_rew, emb_dists, distance], block=False)
+                q.put([action_taken, input_arr, total_rew, emb_dists, distance], block=False)    
             else:
                 self.all_calculations.append([action_taken, input_arr, total_rew, emb_dists, distance])
             
-            
+            if q is not None and "distance" in self.guided_options:
+                multithreaded_cache.update(local_cache)
+
     def get_inputs_and_rewards(self):
         """
         Based on the current environment state, gets the rewards to all actions in the current state.
@@ -493,6 +498,7 @@ class Agent(object):
                     pass
 
             self.env.distance_cache.update(multithread_cache)
+
             print(f"took {time.time() - init_time} to process")
         else:
             print(f"single processing {len(it)} possible actions...")
