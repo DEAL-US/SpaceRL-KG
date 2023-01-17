@@ -40,7 +40,7 @@ class Agent(object):
     :returns: None
     """
 
-    def __init__(self, data_manager: DataManager, environment: KGEnv, gamma:float,
+    def __init__(self, data_manager: DataManager, environment: KGEnv, gamma:float, multiprocessed_distance_reward:bool,
     learning_rate:float, use_LSTM:bool, activation:str, regularizers:list, rew_comp:str, guided_options:list, action_pick_policy:str, 
     algorithm:str, guided_reward:bool, reward_type:str, alpha:float, restore_agent:bool, verbose:bool = False, debug:bool = False):
         
@@ -59,6 +59,8 @@ class Agent(object):
         self.reward_type = reward_type
         self.guided_options = guided_options
         self.action_pick_policy = action_pick_policy
+
+        self.mdr = multiprocessed_distance_reward
 
         self.advantages = np.zeros((self.env.path_length,1))
         self.old_pred = np.zeros((self.env.path_length,1))
@@ -339,7 +341,7 @@ class Agent(object):
 
         :param action_taken: actions being evaluated.
         """
-        if q is not None and "distance" in self.guided_options:
+        if q is not None and "distance" in self.guided_options and self.mdr:
             local_cache = dict()
 
         for action_taken in actions_takens:
@@ -381,7 +383,7 @@ class Agent(object):
                     emb_rew = sum(aux)
 
                 if "distance" in self.guided_options:
-                    distance, local_cache_update_action = self.env.get_distance_net_x(new_state_node, dest_node, q is not None)
+                    distance, local_cache_update_action = self.env.get_distance_net_x(new_state_node, dest_node, multiprocessed = q is not None and self.mdr)
                     latest = self.distance_mem[-1]
 
                     if distance is None:
@@ -422,13 +424,13 @@ class Agent(object):
                 else:
                     total_rew = 0.05
             
-            if(q is not None):
+            if(q is not None and self.mdr):
                 # print(f"writing into queue, from action {action_taken}")
                 q.put([action_taken, input_arr, total_rew, emb_dists, distance], block=False)    
             else:
                 self.all_calculations.append([action_taken, input_arr, total_rew, emb_dists, distance])
             
-            if q is not None and "distance" in self.guided_options:
+            if q is not None and "distance" in self.guided_options and self.mdr:
                 multithreaded_cache.update(local_cache)
 
     def get_inputs_and_rewards(self):
@@ -458,7 +460,7 @@ class Agent(object):
 
         if "distance" in self.guided_options and len(self.distance_mem) ==0:
             # baseline_dist = self.env.get_distance(origin_node, dest_node)
-            baseline_dist = self.env.get_distance_net_x(origin_node, dest_node, excluded_rel = target_rel)
+            baseline_dist, _ = self.env.get_distance_net_x(origin_node, dest_node, excluded_rel = target_rel)
 
             if(baseline_dist is None):
                 # 99 is an arbitrary number which will always be bigger than a valid path.
@@ -473,13 +475,14 @@ class Agent(object):
         def chunks(l, n):
             return [l[i:i+n] for i in range(0, len(l), n)]
 
-        if len(it) > self.env.threads * 5:
+        if len(it) > self.env.threads * 20:
             print(f"multiprocessing {len(it)} possible actions...")
             init_time = time.time()
 
             queue = Queue()
             manager = Manager() # multithread manager object.
             multithread_cache = manager.dict()
+
             chunk_size = len(it)//self.env.threads
             slices = chunks(it, chunk_size)
             jobs = []
@@ -606,9 +609,14 @@ class Agent(object):
         max(rewards) -> the best reward in the episode. \n
 
         """
-
+        init_time = time.time()
         inputs, rewards = self.get_inputs_and_rewards()
+        print(f"inputs and rewards time: {time.time() - init_time} s")
+
+        init_time = time.time()
         outputs = self.get_network_outputs(len(self.env.actions), inputs)
+        print(f"get network outputs time: {time.time() - init_time} s")
+
         chosen_action, chosen_action_index = self.pick_action_from_outputs(outputs)
    
         self.utils.verb_print(f"predicted output from network:\n {outputs}\nrewards:\n {rewards} \nchosen action for step was: {chosen_action}")

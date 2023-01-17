@@ -46,15 +46,15 @@ class Trainer(object):
 
         self.utils = Utils(self.verbose, self.log_results, self.dm)
 
-        self.env = KGEnv(self.dm, self.dataset, self.single_relation_pair,  
+        self.env = KGEnv(self.dm, self.dataset, self.single_relation_pair, self.multithreaded_dist_reward,
         self.embedding, is_distance, seed, self.available_cores, self.path_length, 
         self.regenerate_embeddings, self.normalize_embeddings, self.gpu_acceleration,
         self.use_episodes, self.laps, verbose = self.verbose)
 
-        self.agent = Agent(self.dm, self.env, self.gamma, self.learning_rate, self.use_LSTM, 
-        self.activation, self.regularizers, self.reward_computation, self.guided_to_compute, 
-        self.action_picking_policy, self.algorithm, self.guided_reward, self.reward_type,
-        self.alpha, self.restore_agent, debug = self.debug, verbose = self.verbose)
+        self.agent = Agent(self.dm, self.env, self.gamma, self.multithreaded_dist_reward, self.learning_rate,
+        self.use_LSTM, self.activation, self.regularizers, self.reward_computation, self.guided_to_compute, 
+        self.action_picking_policy, self.algorithm, self.guided_reward, self.reward_type, self.alpha, 
+        self.restore_agent, debug = self.debug, verbose = self.verbose)
 
         self.utils.write_log(f"START LOG FOR DATASET \"{self.dataset}\" \
         USE_LSTM: {self.use_LSTM} \

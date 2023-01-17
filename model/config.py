@@ -9,8 +9,11 @@ config = {
     ######################
     # GENERAL PARAMETERS #
     ###################### 
-    "available_cores": 10, #number of cpu cores to use when computing the reward
+    "available_cores": 6, #number of cpu cores to use when computing the reward
     "gpu_acceleration": True, # wether to use GPU(S) to perform fast training & embedding generation.
+    # calculates the distance reward in the datasets by splitting the load into several
+    # subprocesses, has a high overhead so its only recommended for large datasets.
+    "multithreaded_dist_reward": True, 
 
     "verbose": False, # prints detailed information every episode.
     "log_results": False, # Logs the results in the logs folder of episode training.

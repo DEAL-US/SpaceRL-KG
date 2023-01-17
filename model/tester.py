@@ -92,10 +92,10 @@ class Tester(object):
 
         self.dm = DataManager(is_experiment=False, name=self.name, respath=respath)
 
-        self.env = KGEnv(self.dm, self.dataset, srp, emb, False, seed, 8, self.path_length,
+        self.env = KGEnv(self.dm, self.dataset, srp, False, emb, False, seed, 8, self.path_length,
         False, False, self.gpu_acceleration, True, 0, False)
 
-        self.agent = Agent(self.dm, self.env, 0.99, 1e-4, True, "leaky_relu", [],"max_percent",
+        self.agent = Agent(self.dm, self.env, 0.99, False, 1e-4, True, "leaky_relu", [],"max_percent",
         [], app, alg, True, rwt, 0.9, True, verbose = self.verbose, debug = self.debug)
 
         if(len(agent_models) == 1):

@@ -55,7 +55,7 @@ class KGEnv(gym.Env):
     :param verbose: wether to print detailed information every episode.
 
     """
-    def __init__(self, data_manager: DataManager, dataset:str, single_relation_pair:tuple, embedding:str, is_distance:bool, seed:int, threads:int,
+    def __init__(self, data_manager: DataManager, dataset:str, single_relation_pair:tuple, multithreaded_dist_reward:bool, embedding:str, is_distance:bool, seed:int, threads:int,
     path_length:int, regenerate_embeddings:bool, normalize_embeddings:bool, gpu_accel:bool, use_episodes:bool, laps:int, verbose:bool):
         self.dataset_name = dataset 
         
@@ -69,6 +69,7 @@ class KGEnv(gym.Env):
         self.remaining_laps = laps
         self.use_episodes = use_episodes
         self.dm = data_manager
+        self.mtr = multithreaded_dist_reward
 
         # for repetitions sake.
         random.seed(seed)
@@ -208,7 +209,7 @@ class KGEnv(gym.Env):
             except:
                 self.distance_cache = pairdict()
 
-        print(f"distance cache after init: {self.distance_cache}" )
+        print(f"distance cache after init: {len(self.distance_cache)}" )
         
     def save_current_cache(self, dataset:str):
         """
@@ -346,7 +347,7 @@ class KGEnv(gym.Env):
         """
         # check cache for distance.
         if (origin_node, dest_node) in self.distance_cache:
-            return self.distance_cache[(origin_node, dest_node)]
+            return self.distance_cache[(origin_node, dest_node)], None
 
         # Remove conections from excluded.
         if(excluded_rel is not None):
@@ -364,7 +365,7 @@ class KGEnv(gym.Env):
             self.netX_KG.add_edge(dest_node, origin_node, key=f"¬{excluded_rel}")
 
         # if not in cache, add all calcualted nodes to cache.ç
-        if multiprocessed:
+        if multiprocessed and self.mtr:
             local_cache = dict()
             for k, v in l_items:
                 local_cache[origin_node, k] = v
@@ -374,9 +375,15 @@ class KGEnv(gym.Env):
             
         # return distance if it exists, None if non connected.
         if dest_node in l_keys:
-            return lengths[dest_node], None if not multiprocessed else lengths[dest_node], local_cache
+            if multiprocessed and self.mtr:
+                return lengths[dest_node], local_cache
+            else:
+                return lengths[dest_node], None 
         else: 
-            return None, None if not multiprocessed else None, local_cache
+            if multiprocessed:
+                return None, local_cache
+            else:
+                return None, None 
 
     def get_distance(self, current_node:str, end_node:str):
         """
