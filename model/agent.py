@@ -344,7 +344,7 @@ class Agent(object):
         if q is not None and "distance" in self.guided_options and self.mdr:
             local_cache = dict()
 
-        for action_taken in actions_takens:
+        for action_taken in tqdm(actions_takens):
             encoded_action = self.encode_action(action_taken[0], action_taken[1])
             input_arr = [*self.observations, *encoded_action] # [(*e1,*r),*et] [*relation_embedding, *entity_embedding]
             
@@ -430,8 +430,8 @@ class Agent(object):
             else:
                 self.all_calculations.append([action_taken, input_arr, total_rew, emb_dists, distance])
             
-            if q is not None and "distance" in self.guided_options and self.mdr:
-                multithreaded_cache.update(local_cache)
+        if q is not None and "distance" in self.guided_options and self.mdr:
+            multithreaded_cache.update(local_cache)
 
     def get_inputs_and_rewards(self):
         """
@@ -470,12 +470,11 @@ class Agent(object):
         
         # intermediate list to store multithreaded calculations and keep the relative order
         self.all_calculations = [] 
-        
 
         def chunks(l, n):
             return [l[i:i+n] for i in range(0, len(l), n)]
 
-        if len(it) > self.env.threads * 20:
+        if len(it) > self.env.threads * 15:
             print(f"multiprocessing {len(it)} possible actions...")
             init_time = time.time()
 
@@ -487,7 +486,7 @@ class Agent(object):
             slices = chunks(it, chunk_size)
             jobs = []
 
-            for _, s in enumerate(slices):
+            for s in slices:
                 x = Process(target = self.get_next_state_rewards, args = (s, queue, multithread_cache))
                 jobs.append(x)
                 x.start()
@@ -497,10 +496,12 @@ class Agent(object):
                 try:
                     self.all_calculations.append(queue.get_nowait())
                     count += 1
-                except Exception as e:
+                except Exception:
                     pass
+            
+            print(f"multithreaded cache size after calculated actions: {len(multithread_cache)}")
 
-            self.env.distance_cache.update(multithread_cache)
+            # self.env.distance_cache.update(multithread_cache)
 
             print(f"took {time.time() - init_time} to process")
         else:
@@ -750,7 +751,7 @@ class Agent(object):
             else:
                 rew = rew_mem
             
-            values = self.critic([state_mem])
+            values = self.critic([state_mem, self.advantages, self.old_pred])
             values = np.hstack(values)
 
             # Compute advantages
@@ -766,7 +767,7 @@ class Agent(object):
             # TRAINING PPO
             loss = self.policy_network.train_on_batch([state_mem, self.advantages, self.old_pred], y_true)
             rew = np.vstack(np.array(rew))
-            self.critic.train_on_batch([state_mem], rew)
+            self.critic.train_on_batch([state_mem, self.advantages, self.old_pred], rew)
             self.update_target_network()
 
         # reset memories after learning
