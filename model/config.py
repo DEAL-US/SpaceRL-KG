@@ -13,7 +13,8 @@ config = {
     "gpu_acceleration": True, # wether to use GPU(S) to perform fast training & embedding generation.
     # calculates the distance reward in the datasets by splitting the load into several
     # subprocesses, has a high overhead so its only recommended for large datasets.
-    "multithreaded_dist_reward": True, 
+    # if you precomputed the distance caches for the dataset its recommended to leave it false.
+    "multithreaded_dist_reward": False, 
 
     "verbose": False, # prints detailed information every episode.
     "log_results": False, # Logs the results in the logs folder of episode training.

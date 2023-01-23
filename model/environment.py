@@ -88,8 +88,7 @@ class KGEnv(gym.Env):
 
         # instantiate the corresponding KG() from input_dir
         self.kg = KnowledgeGraph(self.triples, directed=True, inverse_triples=True)
-        self.netX_KG = self.create_networkX_graph()
-        
+        self.netX_KG = self.create_networkX_graph()       
 
         self.single_relation, self.relation_name = single_relation_pair
     
@@ -145,15 +144,11 @@ class KGEnv(gym.Env):
 
         :returns: the state after the reset.
         """
-        if(not is_first):
-            self.reintroduce_missing_edges_netX()
 
         valid = False
         # updates the target_triple variable.
         while(not valid):
             valid = self.select_target()
-
-        self.remove_connector_netX()
 
         # The embedding representation of the state.
         self.state = self.get_encoded_state()
@@ -169,20 +164,6 @@ class KGEnv(gym.Env):
         self.done = False
 
         return self.state 
-
-    def remove_connector_netX(self):
-        origin_node, excluded_rel, dest_node = self.target_triple
-
-        # Remove conections from excluded.
-        self.netX_KG.remove_edge(origin_node, dest_node, key=excluded_rel)
-        self.netX_KG.remove_edge(dest_node, origin_node, key=f"¬{excluded_rel}")
-
-    def reintroduce_missing_edges_netX(self):
-        origin_node, excluded_rel, dest_node = self.target_triple
-
-        # reintroduce deleted edges.
-        self.netX_KG.add_edge(origin_node, dest_node, key=excluded_rel)
-        self.netX_KG.add_edge(dest_node, origin_node, key=f"¬{excluded_rel}")
 
     @property
     def action_space(self): # required by openAI.gym, must return a Spaces type from gym.spaces
@@ -225,9 +206,9 @@ class KGEnv(gym.Env):
                 self.utils.verb_print("Loading cached distance for dataset, this may take a while...")
                 self.distance_cache = self.dm.get_cache_for_dataset(dataset)
                 if(self.distance_cache is None):
-                    self.distance_cache = pairdict()
+                    self.distance_cache = dict()
             except:
-                self.distance_cache = pairdict()
+                self.distance_cache = dict()
 
         print(f"distance cache after init: {len(self.distance_cache)}" )
         
@@ -353,7 +334,7 @@ class KGEnv(gym.Env):
     #############################
     #    REWARDS & EMBEDDINGS   #
     #############################
-    def get_distance_net_x(self, origin_node:str, dest_node:str, excluded_rel:str = None, multiprocessed:bool = False):
+    def get_distance_net_x(self, origin_node:str, dest_node:str, exclude_rel:str = None):
         """
         computes the minimum distance from the origin node to the end node.
         A relation can be exculded from the search.
@@ -361,135 +342,40 @@ class KGEnv(gym.Env):
 
         :param origin_node: the origin node to calculate.
         :param dest_node: the destination node to reach.
-        :param exculded_rel: the relation to ignore when calculating the distance if it exists between the nodes.
+        :param exculde_rel: the relation to ignore when calculating the distance if it exists between the nodes.
         
         :returns: the distance from the origin node to the destination node.
         """
         # check cache for distance.
-        if (origin_node, dest_node) in self.distance_cache:
-            return self.distance_cache[(origin_node, dest_node)], None
+        if dest_node in self.distance_cache[origin_node] and not exclude_rel:
+            return self.distance_cache[origin_node][dest_node], None
+
+        if(exclude_rel is not None):
+            self.netX_KG.remove_edge(origin_node, dest_node, key=exclude_rel)
+            self.netX_KG.remove_edge(dest_node, origin_node, key=f"¬{exclude_rel}")
 
         # calculate info.
         lengths = nx.single_source_shortest_path_length(self.netX_KG, origin_node, cutoff=self.path_length)
-        
-        # if not in cache, add all calcualted nodes to cache.ç
-        if multiprocessed and self.mtr:
-            local_cache = dict(lengths)
-        else:
-            self.distance_cache.update(lengths)
+
+        if(exclude_rel is not None):
+            # reintroduce deleted edges.
+            self.netX_KG.add_edge(origin_node, dest_node, key=exclude_rel)
+            self.netX_KG.add_edge(dest_node, origin_node, key=f"¬{exclude_rel}")
+            
+            try:
+                return lengths[dest_node]
+            except:
+                return None
+
+        # if not in cache, add all calculted nodes to cache.
+        self.distance_cache[origin_node].update(lengths)
             
         # return distance if it exists, None if non connected.
         if dest_node in lengths:
-            if multiprocessed and self.mtr:
-                return lengths[dest_node], local_cache
-            else:
-                return lengths[dest_node], None 
-        else: 
-            if multiprocessed:
-                return None, local_cache
-            else:
-                return None, None 
-
-    def get_distance(self, current_node:str, end_node:str):
-        """
-        given the current node calculate the minimum distance to the end node.
-
-        :param current_node: the current node in the environment
-        :param end_node: the target node.
-
-        :returns: the distance to the end node from the current node.
-        """
-        if(current_node == end_node):
-            return 0
-
-        d = 1
-        to_evaluate , visited = set(), set()
-        done_flag = [False]
-        to_evaluate.add(current_node)
-
-        if (current_node, end_node) in self.distance_cache:
-            d = self.distance_cache[(current_node, end_node)]
-            return d
-
+            return lengths[dest_node] 
         else:
-        
-            while not done_flag[0]:
-                to_evaluate_next_step, thread_list = set(), []
-                sublist_size = (len(to_evaluate)//self.threads)
-
-                if len(to_evaluate) <= self.threads:
-                    self.dist_func(0, len(to_evaluate), to_evaluate, d, done_flag,
-                    to_evaluate_next_step, visited, current_node, end_node)
-                else:
-                    for i in range(self.threads):
-                        init_index = (sublist_size*i)
-                        last_index = len(to_evaluate) if self.threads == i+1 else sublist_size*(i+1)-1
-                        # print(f"({init_index},{last_index})")
-
-                        x = Process(target=self.dist_func, 
-                        args=(init_index, last_index, to_evaluate, d, done_flag,
-                        to_evaluate_next_step, visited, current_node, end_node))
-
-                        thread_list.append(x)
-                        x.start()
-                    
-                for t in thread_list:
-                    t.join()       
-
-                if(not done_flag[0]):
-                    to_evaluate = to_evaluate_next_step-visited
-                    d += 1
-                    if(d >= self.path_length):
-                        self.utils.verb_print("path, to end node is too large...")
-                        return None
-
-                if(len(to_evaluate)==0):
-                    self.utils.verb_print("no paths connecting to the end node")
-                    return None
-
-            return d
-
-    def dist_func(self, init_index:int, last_index:int, to_evaluate:list,
-    d:int, done_flag: bool, to_evaluate_next_step: list, visited:list, current_node:str, end_node:str):
-        """
-        helper function to calculate the distance to the end node.
-        
-        :param init_index: starting point in list of nodes to evaluate.
-        :param last_index: end point in list of nodes to evaluate
-        :param to_evaluate: the current list of nodes to get the neighbors to.
-        :param d: current distance from starting node.
-        :param done_flag: true if we reached the last node.
-        :param to_evaluate_next_step: the next iteration list of nodes to evaluate.
-        :param visited: the list of visited nodes.
-        :param current_node: the current node of exploration
-        :param end_node: the destination node.
-
-        """
-        for node in list(to_evaluate)[init_index:last_index]:
-            visited.add(node)
-            neighbors = copy.deepcopy(self.kg.get_neighbors(node))
-
-            if(node == self.target_triple[0]):
-                # remove the direct relation to the end node.
-                neighbors[self.target_triple[1]].remove(self.target_triple[2])
-                # if the relation is now disconnected eliminate it completely.
-                if(len(neighbors[self.target_triple[1]]) == 0):
-                    del neighbors[self.target_triple[1]]
-
-                self.distance_cache[(current_node, self.target_triple[2])] = 1
-
-            neighbors = set(chain(*neighbors.values()))
-
-            for n in neighbors: 
-                self.distance_cache[(node, n)] = 1
-                self.distance_cache[(current_node, n)] = d
-
-            to_evaluate_next_step.update(neighbors)
-
-            if(end_node in neighbors):
-                done_flag[0] = True
-                break
-        
+            return None
+  
     def calculate_embedding_min_max(self):
         """
         Iterates over the embedding representations of the entities and relations and computes the minimum and maximum values to be used in a gym.Spaces.Box()
@@ -550,26 +436,3 @@ class KGEnv(gym.Env):
         euc_dist = norm(a-b)
 
         return(dot, euc_dist, cos_sim)
-   
-class pairdict(dict):
-    "Extends the basic python dict to only accept pairs as keys"
-    def __init__(self, *args):
-        super().__init__(self, *args)
-
-    def __getitem__(self, key):
-        self.tuple_check(key)
-        a, b = key
-        if b < a:
-            key = (b, a)
-        return super().__getitem__(key)
-
-    def __setitem__(self, key, val):
-        self.tuple_check(key)
-        a, b = key
-        if b < a:
-            key = (b, a)
-        super().__setitem__(key, val)
-
-    def tuple_check(self, key):
-        if(type(key) is not tuple or len(key) != 2):
-            raise ValueError("given key is not a tuple")

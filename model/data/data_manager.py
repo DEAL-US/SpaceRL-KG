@@ -108,7 +108,7 @@ class DataManager(object):
         :returns: The reward cache for the specified dataset
         :raises FileNotFoundException: if not avaliable
         """
-        filepath = self.caches_path+"/"+dataset+".pkl"
+        filepath = f"{self.caches_path}/{dataset}.pkl"
         with open(filepath, "rb") as f:
             return pickle.load(f)
     
