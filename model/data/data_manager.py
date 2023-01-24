@@ -12,8 +12,7 @@ import numpy as np
 from datetime import datetime
 from keras import Model
 from keras.models import load_model
-import os
-import shutil
+import os, shutil, time
 
 class DataManager(object):
     """
@@ -108,10 +107,14 @@ class DataManager(object):
         :returns: The reward cache for the specified dataset
         :raises FileNotFoundException: if not avaliable
         """
+        initial = time.time()
+        print("Restoring dataset distance cache, this may take a while...")
         filepath = f"{self.caches_path}/{dataset}.pkl"
         with open(filepath, "rb") as f:
-            return pickle.load(f)
-    
+            res = pickle.load(f)
+        print(f"Cache restored in {time.time() - initial}")
+        return res
+
     def save_cache_for_dataset(self, dataset:str, cache:dict):
         """
         Saves the given cache for the specified dataset.
@@ -121,10 +124,12 @@ class DataManager(object):
 
         :returns: None
         """
-
+        initial = time.time()
+        print("Saving cache for dataset")
         filepath = self.caches_path+"/"+dataset+".pkl"
         with open(filepath, "wb") as f:
             pickle.dump(cache, f)
+        print(f"Cache saved in {time.time() - initial}")
 
     ##################
     # AGENT & MODELS #
@@ -139,6 +144,9 @@ class DataManager(object):
     
         :returns: None
         """
+        initial = time.time()
+        print("Saving agent model")
+
         if len(model) == 1:
             saved_agent_dir = f"{self.agents_path}/{name}.h5"
             model[0].save(saved_agent_dir, save_format="h5")
@@ -148,6 +156,8 @@ class DataManager(object):
                 os.mkdir(folder_agent_dir)
             model[0].save(f"{folder_agent_dir}/actor.h5", save_format="h5")
             model[1].save(f"{folder_agent_dir}/critic.h5", save_format="h5")
+
+        print(f"Model saved in {time.time() - initial}")
 
     def restore_saved_agent(self, name:str):
         """

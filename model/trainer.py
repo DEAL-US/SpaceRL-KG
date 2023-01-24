@@ -118,7 +118,7 @@ class Trainer(object):
             if(end):
                 return False
         
-        if(((episode+1)%500 == 0 and episode != 0) or episode+1 == self.episodes):
+        if(((episode+1)%2500 == 0 and episode != 0) or episode+1 == self.episodes):
             if(self.algorithm == "PPO"):
                 model_to_save = [self.agent.policy_network, self.agent.critic]
             else:

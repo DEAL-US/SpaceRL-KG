@@ -348,7 +348,7 @@ class KGEnv(gym.Env):
         """
         # check cache for distance.
         if dest_node in self.distance_cache[origin_node] and not exclude_rel:
-            return self.distance_cache[origin_node][dest_node], None
+            return self.distance_cache[origin_node][dest_node]
 
         if(exclude_rel is not None):
             self.netX_KG.remove_edge(origin_node, dest_node, key=exclude_rel)

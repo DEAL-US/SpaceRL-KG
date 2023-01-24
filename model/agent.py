@@ -341,7 +341,7 @@ class Agent(object):
 
         :param action_taken: actions being evaluated.
         """
-        for action_taken in tqdm(actions_takens):
+        for action_taken in actions_takens:
             encoded_action = self.encode_action(action_taken[0], action_taken[1])
             input_arr = [*self.observations, *encoded_action] # [(*e1,*r),*et] [*relation_embedding, *entity_embedding]
             
@@ -559,14 +559,8 @@ class Agent(object):
         max(rewards) -> the best reward in the episode. \n
 
         """
-        init_time = time.time()
         inputs, rewards = self.get_inputs_and_rewards()
-        print(f"inputs and rewards time: {time.time() - init_time} s")
-
-        init_time = time.time()
         outputs = self.get_network_outputs(len(self.env.actions), inputs)
-        print(f"get network outputs time: {time.time() - init_time} s")
-
         chosen_action, chosen_action_index = self.pick_action_from_outputs(outputs)
    
         self.utils.verb_print(f"predicted output from network:\n {outputs}\nrewards:\n {rewards} \nchosen action for step was: {chosen_action}")
