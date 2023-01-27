@@ -5,7 +5,7 @@ import sys, pathlib, os, random
 import matplotlib.pyplot as plt
 import networkx as nx
 import pygame as pg
-from guiutils import GetTestsPaths
+from guiutils import GetTestsPaths, remove_prefix, remove_suffix, remove_prefix_suffix
 from keras.models import load_model
 from keras import Model
 from tqdm import tqdm
@@ -44,6 +44,8 @@ class menu():
 
         self.maindir = pathlib.Path(__file__).parent.parent.resolve()
         self.datasets_dir = pathlib.Path(f"{self.maindir}/datasets")
+        self.agents_dir = pathlib.Path(f"{self.maindir}/model/data/agents/")
+
         
     def add_elements(self):
         self.testselect_label = ttk.Label(self.mainframe, text='Select test')
@@ -89,9 +91,11 @@ class menu():
         pathdicts, dataset, agent_name = [(t["pathdicts"], t["dataset"], t["agent_name"]) for t in self.tests if t["name"] == active][0]
 
         if (len(pathdicts) > self.MAX_PATHS_TO_DISPLAY):
+            print("paths exceed limit, displaying the first 1000.")
             pathdicts = pathdicts[0:self.MAX_PATHS_TO_DISPLAY]
 
-        subfolders = [f.name.rstrip(f"_{dataset}_0") for f in os.scandir(f"{self.datasets_dir}/{dataset}/embeddings") if f.is_dir()]
+        subfolders = [remove_prefix_suffix(f.name, f"{dataset}-", ".h5") for f in os.scandir(f"{self.agents_dir}/{agent_name}")]
+        subfolders.remove("config_used.txt")
         embedding = random.choice(subfolders)
 
         dm = DataManager(name=agent_name)
@@ -134,11 +138,11 @@ class menu():
         else:
             if(ppo_exist):
                 actor = load_model(f"{ppo}/actor.h5")
-                agent= actor
+                agent = actor
 
             if(base_exist):
                 policy_network = load_model(base)
-                agent= policy_network
+                agent = policy_network
 
         return agent
 
@@ -307,7 +311,7 @@ class menu():
 
             e_0 = path[0][0]
             e_final = t["target"]
-            r = G.adj[e_0][e_final]["name"]
+            r = G.adj[e_0][e_final][0]["name"]
 
             inputs, neighbors = [], []
 

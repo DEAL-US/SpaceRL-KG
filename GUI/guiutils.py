@@ -182,15 +182,15 @@ def GetAgents():
         with open(f"{p}/config_used.txt") as c:
             for ln in c:
                 if ln.startswith("dataset: "):
-                    dataset = ln.lstrip('dataset: ').strip()
+                    dataset = remove_prefix(ln, 'dataset: ').strip()
 
                 if ln.startswith("single_relation_pair: "):
-                    aux = ln.lstrip('single_relation_pair: ')
+                    aux = remove_prefix(ln, 'single_relation_pair: ')
                     aux = aux.replace("[", "").replace("]","").replace(" ", "").replace("\'", "").strip().split(",")
                     single_rel_pair = [aux[0]=="True", None if aux[1] == "None" else aux[1]]
 
                 if ln.startswith("embeddings: "):
-                    aux = ln.lstrip('embeddings: ')
+                    aux = remove_prefix(ln, 'embeddings: ')
                     embeddings = aux.replace("[", "").replace("]","").replace(" ", "").replace("\'", "").strip().split(",")
 
         
@@ -211,30 +211,29 @@ def GetTestsPaths():
     test_list = os.listdir(tests_folder)
     test_list.remove(".gitkeep")
 
-    for test_name in test_list:
-        test_dict = dict()
-        test_dict["name"] = test_name
-        test_dict["pathdicts"] = []
+    agent_list = os.listdir(agents_folder)
+    agent_list.remove(".gitkeep")
 
+    for test_name in test_list:
         p = f"{tests_folder}/{test_name}"
 
         with open(f"{p}/paths.txt") as pathfile:
-            test_dict["dataset"], test_dict["agent_name"] = [x.strip() for x in pathfile.readline().split(",")]
+            dataset, agent_name = [x.strip() for x in pathfile.readline().split(",")]
+            if(agent_name not in agent_list):
+                print(f"agent not present for test results with name: {test_name}, trying next one")
+                continue
+
+            test_dict = dict()
+            test_dict["dataset"] = dataset
+            test_dict["agent_name"] = agent_name
+            test_dict["name"] = test_name
+            test_dict["pathdicts"] = []
+
             for ln in pathfile.readlines():
                 path_dict = dict()
                 pathpair = eval(ln)
-
-                fullpath = pathpair[0]
-                target = pathpair[1]
-
-                path_dict["target"] = target
-                path = []
-
-                for triple in fullpath:
-                    path.append(triple)
-            
-                path_dict["path"] = path
-
+                path_dict["target"] = pathpair[1]
+                path_dict["path"] = pathpair[0]
                 test_dict["pathdicts"].append(path_dict)
 
         res.append(test_dict)
@@ -349,3 +348,18 @@ def remove_folders(path_abs:str, filecount:int):
     if len(files) == filecount:
         print(f"removing path {path_abs}")
         shutil.rmtree(path_abs)
+
+def remove_prefix(text:str, prefix):
+    if text.startswith(prefix):
+        return text[len(prefix):]
+    return text
+
+def remove_suffix(text:str, suffix):
+    if text.endswith(suffix):
+        return text[:len(suffix)]
+    return text
+
+def remove_prefix_suffix(text:str, prefix, suffix):
+    res = remove_prefix(text, prefix)
+    res = remove_suffix(res, suffix)
+    return res
