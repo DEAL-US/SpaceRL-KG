@@ -79,7 +79,7 @@ class KGEnv(gym.Env):
         # if embedding does not exist we generate it.
         generate_embedding(dataset, models = [self.selected_embedding_name],
         add_inverse_path=True, regenerate_existing=regenerate_embeddings, 
-        normalize = normalize_embeddings, use_gpu = gpu_accel)
+        normalize = normalize_embeddings, use_gpu = gpu_accel, fast_mode=False)
 
         # get the selected dataset triples
         self.triples, self.relation_emb, self.entity_emb, self.embedding_len = self.dm.get_dataset(dataset, self.selected_embedding_name)
@@ -210,7 +210,7 @@ class KGEnv(gym.Env):
             except:
                 self.distance_cache = dict()
 
-        print(f"distance cache after init: {len(self.distance_cache)}" )
+            print(f"distance cache after init: {len(self.distance_cache)}" )
         
     def save_current_cache(self, dataset:str):
         """
