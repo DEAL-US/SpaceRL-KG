@@ -34,7 +34,7 @@ config = {
     # terminal: reward if we are on the final node, 0 otherwise.
     "guided_to_compute":["terminal", "embedding"], #"distance","terminal","embedding"
 
-    "regenerate_embeddings":True, # if embedding is found and true re-calculates them.
+    "regenerate_embeddings":False, # if embedding is found and true re-calculates them.
     # if re-calculation is active, normalizes embedding values to be on the center of the N-dim embedding array
     # as well as normalizing its stdev based on the whole dataset embedding values.
     "normalize_embeddings":True,
@@ -64,7 +64,7 @@ config = {
     # PPO uses actor critic networks and BASE is a simple feed-forward network.
     # you can then choose retropropagation of rewards to compute as a REINFORCE model or simple to keep the rewards 
     # based on the results of the episode without adding any aditional computation to the reward.
-    "algorithm": "BASE", #BASE, PPO
+    "algorithm": "PPO", #BASE, PPO
 
     # which way to feed the rewards to the network.
     # retroprogation causes the rewards closer to the end of the episode have more 
@@ -160,9 +160,9 @@ class Test():
             self.to_delete = True
 
 EXPERIMENTS = [
-    Experiment("is_taller_NELL_base_simple_embedding_250", "NELL-995", ["TransE_l2"], 250, True, relation = "concept:istallerthan"),
-    Experiment("music_artist_genre_NELL_base_simple_embedding_150", "NELL-995", ["TransE_l2"], 150, True, relation = "concept:musicartistgenre"),
-    Experiment("has_color_NELL_base_simple_embedding_250", "NELL-995", ["TransE_l2"], 250, True, relation = "concept:thinghascolor"),
+    Experiment("is_taller_NELL_PPO_simple_embedding_250", "NELL-995", ["TransE_l2"], 250, True, relation = "concept:istallerthan"),
+    Experiment("music_artist_genre_NELL_PPO_simple_embedding_150", "NELL-995", ["TransE_l2"], 150, True, relation = "concept:musicartistgenre"),
+    Experiment("has_color_NELL_base_PPO_embedding_250", "NELL-995", ["TransE_l2"], 250, True, relation = "concept:thinghascolor"),
     # Experiment("asd1", "COUNTRIES", ["TransE_l2"], 1),
     # Experiment("countiesall", "COUNTRIES", ["TransR"], 1) 
     # Experiment("Umls-distancerew-125laps-PPO", "UMLS", ["TransE_l2"], 10),

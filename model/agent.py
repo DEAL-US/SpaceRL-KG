@@ -252,7 +252,14 @@ class Agent(object):
 
         q = Dense(1, activation="sigmoid", name="critic_output_layer")(dense3)
 
-        critic_network = Model(inputs=state, outputs=q)
+        # the advantages given by the critic
+        advantage = Input(batch_shape = (self.env.path_length, 1), name="Advantage")
+
+        # Generally recieves the action taken as one-hot encoded,
+        # we pass the prediciton for that action instead.
+        old_pred = Input(batch_shape = (self.env.path_length, 1), name="Old_Prediction")
+
+        critic_network = Model(inputs=[state, advantage, old_pred], outputs=q)
 
         return critic_network
 
@@ -693,12 +700,17 @@ class Agent(object):
                 _, rew = self.calculate_PPO_rewards(self.rewards_mem[-1])
             else:
                 rew = rew_mem
-            
-            values = self.critic([state_mem, self.advantages, self.old_pred])
+
+            try:
+                values = self.critic([state_mem, self.advantages, self.old_pred])
+            except:
+                values = self.critic([state_mem])
+
             values = np.hstack(values)
 
             # Compute advantages
             self.old_pred = self.old_policy_network([state_mem, self.advantages, self.old_pred])
+            self.old_pred = np.hstack(self.old_pred)
             self.advantages = rew - values
 
             self.utils.verb_print(f"\
@@ -710,7 +722,12 @@ class Agent(object):
             # TRAINING PPO
             loss = self.policy_network.train_on_batch([state_mem, self.advantages, self.old_pred], y_true)
             rew = np.vstack(np.array(rew))
-            self.critic.train_on_batch([state_mem, self.advantages, self.old_pred], rew)
+            try:
+                self.critic.train_on_batch([state_mem, self.advantages, self.old_pred], rew)
+            except:
+                print("AAAAAA")
+                self.critic.train_on_batch([state_mem], rew)
+
             self.update_target_network()
 
         # reset memories after learning
