@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 
-import sys, pathlib, os, random
+import sys, pathlib, os, random, time
 import matplotlib.pyplot as plt
 import networkx as nx
 import pygame as pg
@@ -10,6 +10,7 @@ from keras.models import load_model
 from keras import Model
 from tqdm import tqdm
 from itertools import chain
+
 
 import numpy as np
 import tensorflow as tf
@@ -105,10 +106,9 @@ class menu():
 
         G = self.create_networkX_graph(triples)
         # dict with key->node names, values->node pos in format array([float, float]) 
-        pos = nx.drawing.layout.kamada_kawai_layout(G)
         
         # LAUNCHES VISUALIZER.
-        self.pygame_display(agent, G, pos, pathdicts, relations_emb, entities_emb)
+        self.pygame_display(agent, G, pathdicts, relations_emb, entities_emb)
 
         # DRAWS THE COMLPETE GRAPH with network X
         # nx.draw_networkx(G, pos, with_labels=True, font_weight='bold')
@@ -161,7 +161,7 @@ class menu():
         print(f"nodes:{G.number_of_nodes()}, edges:{G.number_of_edges()}")
         return G
 
-    def pygame_display(self, agent:Model, G: nx.Graph, pos:dict, 
+    def pygame_display(self, agent:Model, G: nx.Graph, 
     pathdicts:list, relations_embs:dict, entities_embs:dict):
 
         current_dir = pathlib.Path(__file__).parent.resolve()
@@ -176,65 +176,35 @@ class menu():
         print(agent.summary())
 
         # setup variables
-        size = width, height = 1280, 720
+        size = self.width, self.height = 1280, 720
         white = 255, 255, 255
         requested_exit = False
 
-        node_positions = self.get_node_absolute_pos_pygame(pos, width, height)
         paths_with_neighbors = self.get_weighted_paths_with_neighbors(G, agent, is_ppo, pathdicts, entities_embs, relations_embs)
-        processed_pathdicts = self.keep_valuable_nodes_and_recalculate_positions(node_positions, paths_with_neighbors, width, height)
+        self.processed_pathdicts = self.keep_valuable_nodes_and_recalculate_positions(paths_with_neighbors, self.width, self.height)
 
         pg.init()
         screen = pg.display.set_mode(size)
         pg.display.set_caption("Path Visualization")
-        font = pg.font.SysFont("dejavuserif", 16)
+        self.font = pg.font.SysFont("dejavuserif", 16)
 
         # Objects
         prev_button = Button(30, 360, f"{assests_dir}/leftarrow.png", 0.8, lambda: print("prev"))
         next_button = Button(1180, 360, f"{assests_dir}/rightarrow.png", 0.8, lambda: print("next"))
 
-        node_colors = [(255,127,80), (240,128,128), (255,160,122), (238,232,170), (173,255,47), (144,238,144),
+        self.node_colors = [(255,127,80), (240,128,128), (255,160,122), (238,232,170), (173,255,47), (144,238,144),
         (102,205,170), (0,255,255), (127,255,212), (135,206,235), (106,90,205), (186,85,211), (219,112,147),
         (255,228,196), (244,164,96), (176,196,222), (169,169,169)]
 
         self.nodes, self.neighbor_edges, self.path_edges = [], [], []
 
-        current_visualized_path_idx = 0
-        path_to_viz = processed_pathdicts[current_visualized_path_idx]
+        # get initial path.
+        self.current_visualized_path_idx = 0
+        self.currently_visualized_path = self.processed_pathdicts[self.current_visualized_path_idx]
 
-        object_step_dicts = []
+        self.init_visualized_path()
 
-        for i,n in enumerate(path_to_viz['present_nodes']):
-            position = path_to_viz['node_path_positions'][i]
-            node = Node(font, random.choice(node_colors), n, position[0], position[1], width, height)
-            self.nodes.append(node)
-
-        for step in path_to_viz['path']:
-            o_step_dict = dict()
-
-            valid = step['valid']
-            nodes_in_rel = [n for n in self.nodes if n.text == valid[0] or n.text == valid[2]]
-            e = Edge(font, valid[1][0], valid[1][1], nodes_in_rel[0], nodes_in_rel[1])
-            e.set_active_state(True)
-            e.set_show_edge_info(True)
-            self.path_edges.append(e)
-            
-            o_step_dict["curr_node"] = nodes_in_rel[0]
-            #TODO: add the nodes to the object step dict.
-
-            worst = step['worst']
-            best = step['best']
-
-            for i in range(len(worst)):
-                nodes_in_rel = [n for n in self.nodes if n.text == worst[i][0] or n.text == worst[i][2]]
-                i1, i2 = (0,0)  if len(nodes_in_rel) == 1 else (0,1)
-                e1 = Edge(font, worst[i][1][0], worst[i][1][1], nodes_in_rel[i1], nodes_in_rel[i2])
-
-                nodes_in_rel = [n for n in self.nodes if n.text == best[i][0] or n.text == best[i][2]]
-                i1, i2 = (0,0)  if len(nodes_in_rel) == 1 else (0,1)
-                e2 = Edge(font, best[i][1][0], best[i][1][1], nodes_in_rel[i1], nodes_in_rel[i2])
-
-                self.neighbor_edges.extend((e1,e2))
+        self.start_time = time.time()
 
         while not requested_exit:
             screen.fill(white)
@@ -249,8 +219,7 @@ class menu():
 
             for n in self.nodes:
                 n.run(screen)
-
-
+                
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     requested_exit = True
@@ -258,6 +227,58 @@ class menu():
             pg.display.flip()
 
         pg.quit()
+
+    def change_visualized_path(self, change:int):
+        """
+        change to a new path to visualize
+        """
+        if(change == -1 and self.current_visualized_path_idx == 0) or (change == 1 and self.current_visualized_path_idx == len(self.processed_pathdicts)-1):
+            print("tried to go over range...")
+            return 
+        
+        self.current_visualized_path_idx += 1
+        self.init_visualized_path()
+
+    def init_visualized_path(self):
+        """
+        creates all edge, node, and text objects that are going to be renderer by pygame
+        """
+        object_step_dicts = []
+
+        for i,n in enumerate(self.currently_visualized_path['present_nodes']):
+            position = self.currently_visualized_path['node_path_positions'][i]
+            node = Node(self.font, random.choice(self.node_colors), n, position[0], position[1], self.width, self.height)
+            self.nodes.append(node)
+
+        for step in self.currently_visualized_path['path']:
+            o_step_dict = dict()
+
+            valid = step['valid']
+            nodes_in_rel = [n for n in self.nodes if n.text == valid[0] or n.text == valid[2]]
+            e = Edge(self.font, valid[1][0], valid[1][1], nodes_in_rel[0], nodes_in_rel[1])
+            e.set_active_state(True)
+            e.set_show_edge_info(True)
+            self.path_edges.append(e)
+            
+            o_step_dict["curr_node"] = nodes_in_rel[0]
+            #TODO: add the nodes to the object step dict.
+
+            worst = step['worst']
+            best = step['best']
+
+            for i in range(len(worst)):
+                nodes_in_rel = [n for n in self.nodes if n.text == worst[i][0] or n.text == worst[i][2]]
+                i1, i2 = (0,0)  if len(nodes_in_rel) == 1 else (0,1)
+                e1 = Edge(self.font, worst[i][1][0], worst[i][1][1], nodes_in_rel[i1], nodes_in_rel[i2])
+
+                nodes_in_rel = [n for n in self.nodes if n.text == best[i][0] or n.text == best[i][2]]
+                i1, i2 = (0,0)  if len(nodes_in_rel) == 1 else (0,1)
+                e2 = Edge(self.font, best[i][1][0], best[i][1][1], nodes_in_rel[i1], nodes_in_rel[i2])
+
+                self.neighbor_edges.extend((e1,e2))
+
+    def udpate_visualized_path(self):
+        pass
 
     def get_node_absolute_pos_pygame(self, pos:dict, w:int, h:int):
         res = dict()
@@ -332,18 +353,19 @@ class menu():
 
                 current_node_neighbors = []
                 for node, v in adjacents.items():
-                    rel = v["name"]
+                    for relpair in v.values():
+                        rel = relpair["name"]
 
-                    if[rel == "NO_OP"]:
-                        re = list(np.zeros(len(entities_embs[e_0])))
-                    else:
-                        re = relations_embs[rel]
-                    
-                    observation = [*entities_embs[e_0], *relations_embs[r],
-                    *entities_embs[p[0]], *re, *entities_embs[node]]
+                        if[rel == "NO_OP"]:
+                            re = list(np.zeros(len(entities_embs[e_0])))
+                        else:
+                            re = relations_embs[rel]
+                        
+                        observation = [*entities_embs[e_0], *relations_embs[r],
+                        *entities_embs[p[0]], *re, *entities_embs[node]]
 
-                    inputs.append(observation)
-                    current_node_neighbors.append((rel, node))
+                        inputs.append(observation)
+                        current_node_neighbors.append((rel, node))
                     
                 neighbors.append(current_node_neighbors)
            
@@ -379,7 +401,7 @@ class menu():
     
         return res
 
-    def keep_valuable_nodes_and_recalculate_positions(self, node_positions:dict, path_with_neighbors:list, w:int, h:int, maxnodes:int = 2):
+    def keep_valuable_nodes_and_recalculate_positions(self, path_with_neighbors:list, w:int, h:int, maxnodes:int = 2):
         def get_weakest_idx(node_list:list, weak_type:str):
             if(weak_type == "min"):
                 weak_val = 999999
@@ -399,7 +421,7 @@ class menu():
 
             return res
 
-        for p in path_with_neighbors:
+        for p in tqdm(path_with_neighbors, ""):
             all_nodes_in_path = set()
             path_with_processed_neighbors = []
 
@@ -452,29 +474,30 @@ class menu():
             p['path'] = path_with_processed_neighbors
             p['present_nodes'] = all_nodes_in_path
 
-            minvx, maxvx, minvy, maxvy = w,0,h,0
-
-            for node in all_nodes_in_path:
-                x, y = node_positions[node]
-
-                if x < minvx:
-                    minvx = x
-
-                if y < minvy:
-                    minvy = y
-
-                if x > maxvx:
-                    maxvx = x
-
-                if y > maxvy:
-                    maxvy = y
+            localG = nx.MultiDiGraph()
             
+            localG.add_nodes_from(p["present_nodes"])
+            for aux in p["path"]:
+                v_t = aux['valid']
+                worst = aux['worst']
+                best = aux['best']
+
+                localG.add_edge(v_t[0], v_t[1][0], v_t[2])
+
+                for wrst in worst:
+                    localG.add_edge(wrst[0], wrst[1][0], wrst[2])
+
+                for bst in best:
+                    localG.add_edge(bst[0], bst[1][0], bst[2])
+
+            pos = nx.drawing.layout.kamada_kawai_layout(localG)
+
+            res = self.get_node_absolute_pos_pygame(pos, w, h)
+
             path_node_positions = []
-            conversion_factor_x, conversion_factor_y = (w)/(maxvx-minvx), (h)/(maxvy-minvy)
-            for node in all_nodes_in_path:
-                x, y =  int((node_positions[node][0] - minvx) * conversion_factor_x), int((node_positions[node][1] - minvy) * conversion_factor_y)
-                path_node_positions.append((x,y))
-            
+            for p_node in p["present_nodes"]:
+                path_node_positions.append(res[p_node])
+
             p['node_path_positions'] = path_node_positions
 
         return path_with_neighbors
