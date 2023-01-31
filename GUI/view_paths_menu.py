@@ -189,27 +189,28 @@ class menu():
         self.font = pg.font.SysFont("dejavuserif", 16)
 
         # Objects
-        prev_button = Button(30, 360, f"{assests_dir}/leftarrow.png", 0.8, lambda: print("prev"))
-        next_button = Button(1180, 360, f"{assests_dir}/rightarrow.png", 0.8, lambda: print("next"))
+        prev_button = Button(30, 360, f"{assests_dir}/leftarrow.png", 0.8, lambda: self.change_visualized_path(-1))
+        next_button = Button(1180, 360, f"{assests_dir}/rightarrow.png", 0.8, lambda: self.change_visualized_path(1))
 
         self.node_colors = [(255,127,80), (240,128,128), (255,160,122), (238,232,170), (173,255,47), (144,238,144),
         (102,205,170), (0,255,255), (127,255,212), (135,206,235), (106,90,205), (186,85,211), (219,112,147),
         (255,228,196), (244,164,96), (176,196,222), (169,169,169)]
 
-        self.nodes, self.neighbor_edges, self.path_edges = [], [], []
-
         # get initial path.
-        self.current_visualized_path_idx = 0
+        self.current_visualized_path_idx, self.total_path_count = 0, len(self.processed_pathdicts)
         self.currently_visualized_path = self.processed_pathdicts[self.current_visualized_path_idx]
 
         self.init_visualized_path()
-
         self.start_time = time.time()
-
+        
         while not requested_exit:
             screen.fill(white)
             prev_button.run(screen)
             next_button.run(screen)
+
+            self.numpath_displayed.run(screen)
+            self.literal_path.run(screen)
+
             
             for e in self.path_edges:
                 e.run(screen)
@@ -236,33 +237,53 @@ class menu():
             print("tried to go over range...")
             return 
         
-        self.current_visualized_path_idx += 1
+        self.current_visualized_path_idx += change
+        self.currently_visualized_path = self.processed_pathdicts[self.current_visualized_path_idx]
         self.init_visualized_path()
 
     def init_visualized_path(self):
         """
         creates all edge, node, and text objects that are going to be renderer by pygame
         """
-        object_step_dicts = []
 
+        self.nodes, self.neighbor_edges, self.path_edges = [], [], []
+
+        # Text objects init
+        self.numpath_displayed = SimpleText(f"{self.current_visualized_path_idx+1}/{self.total_path_count}", self.width/2, 40, (0,0,0))
+        textual_path = ""
+        
         for i,n in enumerate(self.currently_visualized_path['present_nodes']):
             position = self.currently_visualized_path['node_path_positions'][i]
             node = Node(self.font, random.choice(self.node_colors), n, position[0], position[1], self.width, self.height)
             self.nodes.append(node)
 
+        is_first = True
         for step in self.currently_visualized_path['path']:
             o_step_dict = dict()
 
             valid = step['valid']
+            if(is_first):
+                textual_path += f" Inferred Path: {valid[0]} -> {valid[1][0]} -> {valid[2]} -> "
+                is_first = False
+            else:
+                textual_path += f"{valid[1][0]} -> {valid[2]} -> "
+
             nodes_in_rel = [n for n in self.nodes if n.text == valid[0] or n.text == valid[2]]
-            e = Edge(self.font, valid[1][0], valid[1][1], nodes_in_rel[0], nodes_in_rel[1])
+            
+            try:
+                e = Edge(self.font, valid[1][0], valid[1][1], nodes_in_rel[0], nodes_in_rel[1])
+            except:
+                # node to itself.
+                e = Edge(self.font, valid[1][0], valid[1][1], nodes_in_rel[0], nodes_in_rel[0])
+
+                print(valid)
+                print(nodes_in_rel)
+
             e.set_active_state(True)
             e.set_show_edge_info(True)
             self.path_edges.append(e)
             
             o_step_dict["curr_node"] = nodes_in_rel[0]
-            #TODO: add the nodes to the object step dict.
-
             worst = step['worst']
             best = step['best']
 
@@ -276,6 +297,9 @@ class menu():
                 e2 = Edge(self.font, best[i][1][0], best[i][1][1], nodes_in_rel[i1], nodes_in_rel[i2])
 
                 self.neighbor_edges.extend((e1,e2))
+
+
+        self.literal_path = SimpleText(textual_path[:-3], 10, 10, (0,0,0))
 
     def udpate_visualized_path(self):
         pass
@@ -318,13 +342,6 @@ class menu():
     
     def get_weighted_paths_with_neighbors(self, G:nx.Graph, agent:Model, is_ppo: bool,
     pathdicts:list, entities_embs:dict, relations_embs:dict):
-        # print(pathdicts)
-        # print(entities_embs.keys())
-        # print(relations_embs.keys())
-
-        # network input
-        # [(*e1,*r),*et] [*relation_embedding, *entity_embedding]
-
         res = []
 
         for t in tqdm(pathdicts):
@@ -482,15 +499,15 @@ class menu():
                 worst = aux['worst']
                 best = aux['best']
 
-                localG.add_edge(v_t[0], v_t[1][0], v_t[2])
+                localG.add_edge(v_t[0], v_t[2], name = v_t[1][0])
 
                 for wrst in worst:
-                    localG.add_edge(wrst[0], wrst[1][0], wrst[2])
+                    localG.add_edge(wrst[0], wrst[2], name = wrst[1][0])
 
                 for bst in best:
-                    localG.add_edge(bst[0], bst[1][0], bst[2])
+                    localG.add_edge(bst[0], bst[2], name = bst[1][0])
 
-            pos = nx.drawing.layout.kamada_kawai_layout(localG)
+            pos = nx.drawing.layout.spring_layout(localG)
 
             res = self.get_node_absolute_pos_pygame(pos, w, h)
 
@@ -587,3 +604,15 @@ class Edge:
 
     def draw_bezier(self, screen, point, color):
         pass
+
+class SimpleText:
+    def __init__(self, text:str, x:int, y:int, color: tuple):
+        # Tophead text.
+        self.x, self.y = x, y
+        self.text, self.local_font = text, pg.font.SysFont("dejavuserif", 14)
+        self.color = color
+        
+    def run(self, screen:pg.surface.Surface):
+        txt_obj = self.local_font.render(self.text, True, self.color)
+        screen.blit(txt_obj, (self.x, self.y))
+    
