@@ -5,15 +5,16 @@ import sys, pathlib, os, random, time
 import matplotlib.pyplot as plt
 import networkx as nx
 import pygame as pg
-from guiutils import GetTestsPaths, remove_prefix, remove_suffix, remove_prefix_suffix
+from guiutils import GetTestsPaths, remove_prefix_suffix
 from keras.models import load_model
 from keras import Model
 from tqdm import tqdm
 from itertools import chain
 
-
+import forcelayout as fl
 import numpy as np
 import tensorflow as tf
+import matplotlib.pyplot as plt
 
 from inspect import getsourcefile
 import os.path as path, sys
@@ -307,7 +308,7 @@ class menu():
     def get_node_absolute_pos_pygame(self, pos:dict, w:int, h:int):
         res = dict()
 
-        min_val_x, max_val_x, min_val_y, max_val_y = 1, -1, 1, -1
+        min_val_x, max_val_x, min_val_y, max_val_y = 9999, -9999, 9999, -9999
 
         for x,y in pos.values():
             if x < min_val_x:
@@ -321,7 +322,27 @@ class menu():
 
             if y > max_val_y:
                 max_val_y = y
-                
+            
+        # calculate cluster center.
+        x_dist = max_val_x - min_val_x
+        y_dist = max_val_y - min_val_y
+        current_cluster_center = (max_val_x-(x_dist/2), max_val_y-(y_dist/2))
+
+        max_val_x -= current_cluster_center[0]
+        min_val_x -= current_cluster_center[0]
+        max_val_y -= current_cluster_center[1]
+        min_val_y -= current_cluster_center[1]
+
+        # shift all elements in dict to 0,0
+        for k, v in pos.items():
+            x, y = v[0], v[1]
+
+            x_pos = (x-current_cluster_center[0])/max_val_x
+            y_pos = (y-current_cluster_center[1])/max_val_y
+            
+            pos[k] = (x_pos,y_pos)
+
+
         for p in pos.items():
             x, y = p[1][0], p[1][1]
             
@@ -419,6 +440,7 @@ class menu():
         return res
 
     def keep_valuable_nodes_and_recalculate_positions(self, path_with_neighbors:list, w:int, h:int, maxnodes:int = 2):
+        
         def get_weakest_idx(node_list:list, weak_type:str):
             if(weak_type == "min"):
                 weak_val = 999999
@@ -507,7 +529,12 @@ class menu():
                 for bst in best:
                     localG.add_edge(bst[0], bst[2], name = bst[1][0])
 
-            pos = nx.drawing.layout.spring_layout(localG)
+
+            # NetworkX direct drawing config, hardcoded values.
+            # pos = nx.drawing.layout.spring_layout(localG) 
+
+            # Graphviz as intermediary.
+            pos = nx.drawing.nx_agraph.graphviz_layout(localG, prog="neato", args=" -s=125")
 
             res = self.get_node_absolute_pos_pygame(pos, w, h)
 
@@ -566,8 +593,8 @@ class Node:
     def run(self, screen:pg.surface.Surface):
         
         # render node circle.
-        pg.draw.circle(screen, self.color, (self.x, self.y+40), 40)
-        pg.draw.circle(screen, (0,0,0), (self.x, self.y+40), 40, 4)
+        pg.draw.circle(screen, self.color, (self.x, self.y+40), 10)
+        pg.draw.circle(screen, (0,0,0), (self.x, self.y+40), 10, 1)
 
         # render text
         text_img = self.font.render(self.text, True, (0,0,0))
