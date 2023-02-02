@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 
-import sys, pathlib, os, random, time
+import sys, pathlib, os, random, time, math
 import matplotlib.pyplot as plt
 import networkx as nx
 import pygame as pg
@@ -11,7 +11,6 @@ from keras import Model
 from tqdm import tqdm
 from itertools import chain
 
-import forcelayout as fl
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
@@ -185,7 +184,7 @@ class menu():
         self.processed_pathdicts = self.keep_valuable_nodes_and_recalculate_positions(paths_with_neighbors, self.width, self.height)
 
         pg.init()
-        screen = pg.display.set_mode(size)
+        screen = pg.display.set_mode(size, pg.SRCALPHA)
         pg.display.set_caption("Path Visualization")
         self.font = pg.font.SysFont("dejavuserif", 16)
 
@@ -574,7 +573,10 @@ class Button:
     
 class Node:
     def __init__(self, font: pg.font.Font, color:tuple, text:str, x:int , y:int, w:int, h:int):
+        
         self.color, self.text, self.font = color, text, font
+
+        self.set_active(True)
 
         mid_w = w/2
         if(x < mid_w):
@@ -590,38 +592,48 @@ class Node:
 
         self.x , self.y = int(x), int(y)
 
+    def set_active(self, v: bool):
+        self.is_active = v
+
     def run(self, screen:pg.surface.Surface):
         
         # render node circle.
-        pg.draw.circle(screen, self.color, (self.x, self.y+40), 10)
-        pg.draw.circle(screen, (0,0,0), (self.x, self.y+40), 10, 1)
+        if(self.is_active):
+            maincolor = self.color
+            bordercolor = (0,0,0)
+        else:
+            maincolor = self.color + (50,)
+            bordercolor = (0,0,0,50)
+
+        pg.draw.circle(screen, maincolor, (self.x, self.y+5), 15)
+        pg.draw.circle(screen, bordercolor, (self.x, self.y+5), 15, 1)
 
         # render text
         text_img = self.font.render(self.text, True, (0,0,0))
         t_w = text_img.get_width()
         t_h = text_img.get_height()
-        screen.blit(text_img, (self.x - int(t_w/2), self.y - int(t_h/2)+40))
+        screen.blit(text_img, (self.x - int(t_w/2) + 20, self.y - int(t_h/2)+30))
 
 class Edge:
     def __init__(self, font:pg.font.Font, relation:str, value:float, a:Node, b:Node):
         self.is_active, self.show_edge_info = False, False
-        self.active_color, self.base_color = (136, 8, 8), (136, 8, 8)
+        self.active_color, self.base_color = (136, 8, 8), (0, 0, 0)
 
         self.font, self.rel, self.value, self.a, self.b = font, relation, value, a, b
 
     def run(self, screen:pg.surface.Surface):
-        origin, dest = (self.a.x, self.a.y+20), (self.b.x, self.b.y+20)
+        origin, dest = (self.a.x, self.a.y+5), (self.b.x, self.b.y+5)
         color = self.active_color if self.is_active else self.base_color
 
         if(origin == dest):
-            self.draw_bezier(screen, origin, color)
+            self.draw_self(screen, origin, color)
         else:
             pg.draw.line(screen, color, origin, dest, 3)
 
         # render text
         if self.show_edge_info:
             text_img = self.font.render(f"{self.rel}-({self.value:.4f})", True, (0,0,0))
-            screen.blit(text_img, (int((self.a.x + self.b.x)/2), int((self.a.y + self.b.y)/2)))
+            screen.blit(text_img, (int((self.a.x + self.b.x)/2) - 80, int((self.a.y + self.b.y)/2)))
 
     def set_active_state(self, s:bool):
         self.is_active = s
@@ -629,8 +641,22 @@ class Edge:
     def set_show_edge_info(self, s:bool):
         self.show_edge_info = s
 
-    def draw_bezier(self, screen, point, color):
-        pass
+    def draw_self(self, screen:pg.surface.Surface, point, color):
+        w = screen.get_width()
+        h = screen.get_height()
+
+        x, y = point
+        if(x < w/2 and y < w/2):
+
+        elif(x < w/2 and y < w/2):
+
+        elif(x < w/2 and y < w/2):
+            
+        elif(x < w/2 and y < w/2):
+
+
+
+        pg.draw.arc(screen, color, [100,100,100,100], math.pi, math.pi/3, 3)
 
 class SimpleText:
     def __init__(self, text:str, x:int, y:int, color: tuple):
