@@ -110,7 +110,7 @@ class menu():
         # LAUNCHES VISUALIZER.
         self.pygame_display(agent, G, pathdicts, relations_emb, entities_emb)
 
-        # DRAWS THE COMLPETE GRAPH with network X
+        # DRAWS THE COMLPETE GRAPH with network X WARNING! SLOW!!
         # nx.draw_networkx(G, pos, with_labels=True, font_weight='bold')
         # plt.show()
 
@@ -201,9 +201,9 @@ class menu():
         self.currently_visualized_path = self.processed_pathdicts[self.current_visualized_path_idx]
 
         self.init_visualized_path()
-        self.start_time = time.time()
         
         while not requested_exit:
+            self.udpate_visualized_path()
             screen.fill(white)
             prev_button.run(screen)
             next_button.run(screen)
@@ -211,7 +211,10 @@ class menu():
             self.numpath_displayed.run(screen)
             self.literal_path.run(screen)
 
-            
+            # nodes must run first as adges rely on them.
+            for n in self.nodes:
+                n.run(screen)
+
             for e in self.path_edges:
                 e.run(screen)
 
@@ -220,7 +223,7 @@ class menu():
 
             for n in self.nodes:
                 n.run(screen)
-                
+
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     requested_exit = True
@@ -245,6 +248,7 @@ class menu():
         """
         creates all edge, node, and text objects that are going to be renderer by pygame
         """
+        self.start_time = time.time()
 
         self.nodes, self.neighbor_edges, self.path_edges = [], [], []
 
@@ -258,7 +262,7 @@ class menu():
             self.nodes.append(node)
 
         is_first = True
-        for step in self.currently_visualized_path['path']:
+        for i, step in enumerate(self.currently_visualized_path['path']):
             o_step_dict = dict()
 
             valid = step['valid']
@@ -573,18 +577,18 @@ class Button:
     
 class Node:
     def __init__(self, font: pg.font.Font, color:tuple, text:str, x:int , y:int, w:int, h:int):
+        self.main_node_in_step, self.active_in_step = [], []
         
         self.color, self.text, self.font = color, text, font
-
         self.set_active(True)
+        mid_w, mid_h = w/2, h/2
 
-        mid_w = w/2
         if(x < mid_w):
             x += 160 * (1 - x/mid_w)
         else:
             x -= 160 * ((x/w)-0.5)*2
 
-        mid_h = h/2
+        
         if(y < mid_h):
             y += 90 * (1 - y/mid_h)
         else:
@@ -595,8 +599,31 @@ class Node:
     def set_active(self, v: bool):
         self.is_active = v
 
-    def run(self, screen:pg.surface.Surface):
+    def write_text(self, screen):
+        text_img = self.font.render(self.text, True, (0,0,0))
+        t_x = self.x - int(text_img.get_width()/2)
+        t_y = self.y - int(text_img.get_height()/2)
+        w = screen.get_width()
+        h = screen.get_height()
+
+        if(self.x < w/2 and self.y > h/2): # bottom left
+            loc = (t_x -30 , t_y +30)
+
+        elif(self.x > w/2 and self.y > h/2): # bottom right
+            loc = (t_x +30, t_y +30)
+
+        elif(self.x > w/2 and self.y < h/2): # top right
+            loc = (t_x +30, t_y -30)
+            
+        elif(self.x < w/2 and self.y < h/2): # top left
+            loc = (t_x -30, t_y -30)
+           
+        else: # centered
+            loc = (t_x , t_y -30)
+           
+        screen.blit(text_img, loc)
         
+    def run(self, screen:pg.surface.Surface):
         # render node circle.
         if(self.is_active):
             maincolor = self.color
@@ -605,17 +632,13 @@ class Node:
             maincolor = self.color + (50,)
             bordercolor = (0,0,0,50)
 
-        pg.draw.circle(screen, maincolor, (self.x, self.y+5), 15)
+        self.circle_rect = pg.draw.circle(screen, maincolor, (self.x, self.y+5), 15)
         pg.draw.circle(screen, bordercolor, (self.x, self.y+5), 15, 1)
-
-        # render text
-        text_img = self.font.render(self.text, True, (0,0,0))
-        t_w = text_img.get_width()
-        t_h = text_img.get_height()
-        screen.blit(text_img, (self.x - int(t_w/2) + 20, self.y - int(t_h/2)+30))
+        self.write_text(screen)
 
 class Edge:
     def __init__(self, font:pg.font.Font, relation:str, value:float, a:Node, b:Node):
+        self.active_in_step = []
         self.is_active, self.show_edge_info = False, False
         self.active_color, self.base_color = (136, 8, 8), (0, 0, 0)
 
@@ -629,34 +652,51 @@ class Edge:
             self.draw_self(screen, origin, color)
         else:
             pg.draw.line(screen, color, origin, dest, 3)
-
-        # render text
-        if self.show_edge_info:
-            text_img = self.font.render(f"{self.rel}-({self.value:.4f})", True, (0,0,0))
-            screen.blit(text_img, (int((self.a.x + self.b.x)/2) - 80, int((self.a.y + self.b.y)/2)))
+            if self.show_edge_info:
+                text_img = self.font.render(f"{self.rel}-({self.value:.4f})", True, (0,0,0))
+                screen.blit(text_img, 
+                (int((self.a.x + self.b.x)/2) - text_img.get_width()/2, # adjust depending on rel name width.
+                int((self.a.y + self.b.y)/2)))
 
     def set_active_state(self, s:bool):
         self.is_active = s
     
     def set_show_edge_info(self, s:bool):
-        self.show_edge_info = s
+        self.show_edge_info = s        
 
     def draw_self(self, screen:pg.surface.Surface, point, color):
         w = screen.get_width()
         h = screen.get_height()
 
-        x, y = point
-        if(x < w/2 and y < w/2):
+        x, y = self.a.circle_rect.centerx, self.a.circle_rect.centery
+        r = self.a.circle_rect.copy()
 
-        elif(x < w/2 and y < w/2):
+        if(x < w/2 and y > h/2): # bottom left
+            r.move_ip((-15,15))
+            start_angle, end_angle = 90, 0
 
-        elif(x < w/2 and y < w/2):
+        elif(x > w/2 and y > h/2): # bottom right
+            r.move_ip((15,15))
+            start_angle, end_angle = 180, 90
+
+        elif(x > w/2 and y < h/2): # top right
+            r.move_ip((15,-15))
+            start_angle, end_angle = 270, 180
             
-        elif(x < w/2 and y < w/2):
+        elif(x < w/2 and y < h/2): # top left
+            r.move_ip((-15,-15))
+            start_angle, end_angle = 0, 270
 
+        else: # centered 
+            r.move_ip((-0, -15))
+            start_angle, end_angle = 300, 240
 
+        pg.draw.arc(screen, color, r ,math.radians(start_angle), math.radians(end_angle), 3)
 
-        pg.draw.arc(screen, color, [100,100,100,100], math.pi, math.pi/3, 3)
+        if(self.show_edge_info):
+            text_img = self.font.render(f"{self.rel}-({self.value:.4f})", True, (0,0,0))
+            screen.blit(text_img, r.center)
+
 
 class SimpleText:
     def __init__(self, text:str, x:int, y:int, color: tuple):
