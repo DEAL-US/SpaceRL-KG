@@ -638,7 +638,7 @@ class Node:
 
 class Edge:
     def __init__(self, font:pg.font.Font, relation:str, value:float, a:Node, b:Node):
-        self.active_in_step = []
+        self.active_in_step, self.main_in_step = [], []
         self.is_active, self.show_edge_info = False, False
         self.active_color, self.base_color = (136, 8, 8), (0, 0, 0)
 
