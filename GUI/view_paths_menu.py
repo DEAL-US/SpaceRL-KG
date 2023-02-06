@@ -209,10 +209,11 @@ class menu():
         # Initialize clock and paths
         self.clock = pg.time.Clock()
         self.init_visualized_path()
-        self.cycle = 0
+        self.cycle, self.ticks = 0, 0
         
         while not requested_exit:
             screen.fill(white)
+            node_surface.fill(pg.Color(0,0,0,0)) 
 
             # run buttons
             prev_button.run(screen)
@@ -239,16 +240,36 @@ class menu():
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     requested_exit = True
+                
+                # Arrow key scroll:
+
+                if event.type == pg.KEYDOWN and self.ticks > 10:
+                    if event.key == pg.K_LEFT:
+                        self.cycle -= 1
+                        if (self.cycle < 0):
+                            self.cycle = self.path_length -1
+
+                    if event.key == pg.K_RIGHT:
+                        self.cycle += 1
+                        if (self.cycle > self.path_length-1):
+                            self.cycle = 0
+                    
+                    self.ticks = 0
             
             screen.blit(node_surface, (0,0))
 
             pg.display.flip()
-            self.clock.tick(1) # 1 frame per second cuz why not.
-            self.cycle += 1 
-            print(self.cycle)
 
-            if(self.cycle == self.path_length):
-                self.cycle = 0
+            self.clock.tick(120)
+            self.ticks += 1
+
+            # Auto scroll of nodes:
+            # if self.ticks == 240:
+            #     self.ticks = 0
+            #     self.cycle +=1
+
+            # if(self.cycle == self.path_length):
+            #     self.cycle = 0
 
         pg.quit()
 
@@ -677,13 +698,13 @@ class Node:
             self.write_text(screen)
 
         elif(self.is_active):
-            maincolor = self.color + (128,)
+            maincolor = self.color + (190,)
             bordercolor = (0,0,0,128)
             self.write_text(screen)
 
-        else: # render as invisible and don't draw node text if invis.
-            maincolor = (0,0,0,0)
-            bordercolor = (0,0,0,0)
+        else: # render as very light and don't draw node text if invis.
+            maincolor = self.color + (75,)
+            bordercolor = (0,0,0,75)
 
         pg.draw.circle(node_surface, maincolor, self.center, NODERADIUS)
         pg.draw.circle(node_surface, bordercolor, self.center, NODERADIUS, 1)
@@ -705,9 +726,9 @@ class Edge:
         origin, dest = (self.ax, self.ay), (self.bx, self.by)
         color = self.active_color if self.is_main else self.base_color
         
-        if self.is_main: linewidth = 5
-        elif self.is_active: linewidth = 2 
-        else: linewidth = 0
+        if self.is_main: linewidth = 6
+        elif self.is_active: linewidth = 3 
+        else: linewidth = 1
 
         if(origin == dest):
             self.draw_self(screen, color, linewidth)
