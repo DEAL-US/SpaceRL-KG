@@ -25,6 +25,8 @@ from model.data.data_manager import DataManager
 sys.path.pop(0)
 
 
+NODERADIUS = 15
+
 class menu():
     def __init__(self, root):
         self.root = Toplevel(root)
@@ -92,7 +94,7 @@ class menu():
         pathdicts, dataset, agent_name = [(t["pathdicts"], t["dataset"], t["agent_name"]) for t in self.tests if t["name"] == active][0]
 
         if (len(pathdicts) > self.MAX_PATHS_TO_DISPLAY):
-            print("paths exceed limit, displaying the first 1000.")
+            print(f"paths exceed limit, displaying the first {self.MAX_PATHS_TO_DISPLAY}.")
             pathdicts = pathdicts[0:self.MAX_PATHS_TO_DISPLAY]
 
         subfolders = [remove_prefix_suffix(f.name, f"{dataset}-", ".h5") for f in os.scandir(f"{self.agents_dir}/{agent_name}")]
@@ -163,6 +165,8 @@ class menu():
 
     def pygame_display(self, agent:Model, G: nx.Graph, 
     pathdicts:list, relations_embs:dict, entities_embs:dict):
+        
+        self.path_length = len(pathdicts[0]["path"])
 
         current_dir = pathlib.Path(__file__).parent.resolve()
         assests_dir = pathlib.Path(f"{current_dir}/assets").resolve()
@@ -184,9 +188,11 @@ class menu():
         self.processed_pathdicts = self.keep_valuable_nodes_and_recalculate_positions(paths_with_neighbors, self.width, self.height)
 
         pg.init()
-        screen = pg.display.set_mode(size, pg.SRCALPHA)
         pg.display.set_caption("Path Visualization")
         self.font = pg.font.SysFont("dejavuserif", 16)
+
+        screen = pg.display.set_mode(size)
+        node_surface = pg.Surface(size, pg.SRCALPHA)
 
         # Objects
         prev_button = Button(30, 360, f"{assests_dir}/leftarrow.png", 0.8, lambda: self.change_visualized_path(-1))
@@ -200,35 +206,49 @@ class menu():
         self.current_visualized_path_idx, self.total_path_count = 0, len(self.processed_pathdicts)
         self.currently_visualized_path = self.processed_pathdicts[self.current_visualized_path_idx]
 
+        # Initialize clock and paths
+        self.clock = pg.time.Clock()
         self.init_visualized_path()
+        self.cycle = 0
         
         while not requested_exit:
-            self.udpate_visualized_path()
             screen.fill(white)
+
+            # run buttons
             prev_button.run(screen)
             next_button.run(screen)
 
+            # run displayed texts
             self.numpath_displayed.run(screen)
             self.literal_path.run(screen)
 
             # nodes must run first as adges rely on them.
+            # but we need to redraw them later as they have to be on top
             for n in self.nodes:
-                n.run(screen)
+                n.run(self.cycle, screen, node_surface)
 
             for e in self.path_edges:
-                e.run(screen)
+                e.run(self.cycle, screen)
 
             for e in self.neighbor_edges:
-                e.run(screen)
+                e.run(self.cycle, screen)
 
             for n in self.nodes:
-                n.run(screen)
+                n.run(self.cycle, screen, node_surface)
 
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     requested_exit = True
             
+            screen.blit(node_surface, (0,0))
+
             pg.display.flip()
+            self.clock.tick(1) # 1 frame per second cuz why not.
+            self.cycle += 1 
+            print(self.cycle)
+
+            if(self.cycle == self.path_length):
+                self.cycle = 0
 
         pg.quit()
 
@@ -240,6 +260,7 @@ class menu():
             print("tried to go over range...")
             return 
         
+        self.cycle = 0
         self.current_visualized_path_idx += change
         self.currently_visualized_path = self.processed_pathdicts[self.current_visualized_path_idx]
         self.init_visualized_path()
@@ -248,19 +269,19 @@ class menu():
         """
         creates all edge, node, and text objects that are going to be renderer by pygame
         """
-        self.start_time = time.time()
-
         self.nodes, self.neighbor_edges, self.path_edges = [], [], []
 
         # Text objects init
         self.numpath_displayed = SimpleText(f"{self.current_visualized_path_idx+1}/{self.total_path_count}", self.width/2, 40, (0,0,0))
         textual_path = ""
         
+        # add nodes to node list.
         for i,n in enumerate(self.currently_visualized_path['present_nodes']):
             position = self.currently_visualized_path['node_path_positions'][i]
             node = Node(self.font, random.choice(self.node_colors), n, position[0], position[1], self.width, self.height)
             self.nodes.append(node)
 
+        # add edges to edge list.
         is_first = True
         for i, step in enumerate(self.currently_visualized_path['path']):
             o_step_dict = dict()
@@ -274,39 +295,55 @@ class menu():
 
             nodes_in_rel = [n for n in self.nodes if n.text == valid[0] or n.text == valid[2]]
             
+            for n in nodes_in_rel:
+                if(n.text == valid[0]):
+                    n.main_in_step.add(i)
+                else:
+                    n.active_in_step.add(i)
+
             try:
                 e = Edge(self.font, valid[1][0], valid[1][1], nodes_in_rel[0], nodes_in_rel[1])
             except:
                 # node to itself.
                 e = Edge(self.font, valid[1][0], valid[1][1], nodes_in_rel[0], nodes_in_rel[0])
 
-                print(valid)
-                print(nodes_in_rel)
-
-            e.set_active_state(True)
-            e.set_show_edge_info(True)
+            e.main_in_step.add(i)
             self.path_edges.append(e)
             
             o_step_dict["curr_node"] = nodes_in_rel[0]
             worst = step['worst']
             best = step['best']
 
-            for i in range(len(worst)):
-                nodes_in_rel = [n for n in self.nodes if n.text == worst[i][0] or n.text == worst[i][2]]
-                i1, i2 = (0,0)  if len(nodes_in_rel) == 1 else (0,1)
-                e1 = Edge(self.font, worst[i][1][0], worst[i][1][1], nodes_in_rel[i1], nodes_in_rel[i2])
+            active = set()
+            for x in range(len(worst)):
+                w = [n for n in self.nodes if n.text == worst[x][0] or n.text == worst[x][2]]
+                b = [n for n in self.nodes if n.text == best[x][0] or n.text == best[x][2]]
 
-                nodes_in_rel = [n for n in self.nodes if n.text == best[i][0] or n.text == best[i][2]]
+                for a in b:
+                    active.add(a)
+                
+                for a in w:
+                    active.add(a)
+            
+                for a in active:
+                    a.active_in_step.add(i)
+
+            for j in range(len(worst)):
+                nodes_in_rel = [n for n in self.nodes if n.text == worst[j][0] or n.text == worst[j][2]]
                 i1, i2 = (0,0)  if len(nodes_in_rel) == 1 else (0,1)
-                e2 = Edge(self.font, best[i][1][0], best[i][1][1], nodes_in_rel[i1], nodes_in_rel[i2])
+                e1 = Edge(self.font, worst[j][1][0], worst[j][1][1], nodes_in_rel[i1], nodes_in_rel[i2])
+                
+                e1.active_in_step.add(i)
+                
+                nodes_in_rel = [n for n in self.nodes if n.text == best[j][0] or n.text == best[j][2]]
+                i1, i2 = (0,0)  if len(nodes_in_rel) == 1 else (0,1)
+                e2 = Edge(self.font, best[j][1][0], best[j][1][1], nodes_in_rel[i1], nodes_in_rel[i2])
+
+                e2.active_in_step.add(i)
 
                 self.neighbor_edges.extend((e1,e2))
 
-
         self.literal_path = SimpleText(textual_path[:-3], 10, 10, (0,0,0))
-
-    def udpate_visualized_path(self):
-        pass
 
     def get_node_absolute_pos_pygame(self, pos:dict, w:int, h:int):
         res = dict()
@@ -577,29 +614,36 @@ class Button:
     
 class Node:
     def __init__(self, font: pg.font.Font, color:tuple, text:str, x:int , y:int, w:int, h:int):
-        self.main_node_in_step, self.active_in_step = [], []
-        
+        self.main_in_step, self.active_in_step = set(), set()
         self.color, self.text, self.font = color, text, font
-        self.set_active(True)
+        self.is_active, self.is_main = False, False
+
         mid_w, mid_h = w/2, h/2
 
+        # Hardcoded for aspect ratio 16/9
         if(x < mid_w):
             x += 160 * (1 - x/mid_w)
         else:
             x -= 160 * ((x/w)-0.5)*2
 
-        
         if(y < mid_h):
             y += 90 * (1 - y/mid_h)
         else:
             y -= 90 * ((y/h)-0.5)*2
 
         self.x , self.y = int(x), int(y)
+        self.center = (self.x, self.y)
+        self.circle_rect = pg.Rect(self.center, (0, 0)).inflate((NODERADIUS *2, NODERADIUS *2))
 
-    def set_active(self, v: bool):
-        self.is_active = v
+    def set_active(self, cycle:int):
+        self.is_main, self.is_active = False, False
 
-    def write_text(self, screen):
+        if(cycle in self.main_in_step):
+            self.is_main = True
+        elif(cycle in self.active_in_step):
+            self.is_active = True
+
+    def write_text(self, screen: pg.surface.Surface):
         text_img = self.font.render(self.text, True, (0,0,0))
         t_x = self.x - int(text_img.get_width()/2)
         t_y = self.y - int(text_img.get_height()/2)
@@ -623,48 +667,73 @@ class Node:
            
         screen.blit(text_img, loc)
         
-    def run(self, screen:pg.surface.Surface):
+    def run(self, cycle: int, screen:pg.surface.Surface, node_surface: pg.surface.Surface):
         # render node circle.
-        if(self.is_active):
-            maincolor = self.color
-            bordercolor = (0,0,0)
-        else:
-            maincolor = self.color + (50,)
-            bordercolor = (0,0,0,50)
+        self.set_active(cycle)
 
-        self.circle_rect = pg.draw.circle(screen, maincolor, (self.x, self.y+5), 15)
-        pg.draw.circle(screen, bordercolor, (self.x, self.y+5), 15, 1)
-        self.write_text(screen)
+        if(self.is_main):
+            maincolor = self.color + (255,)
+            bordercolor = (0,0,0,255)
+            self.write_text(screen)
+
+        elif(self.is_active):
+            maincolor = self.color + (128,)
+            bordercolor = (0,0,0,128)
+            self.write_text(screen)
+
+        else: # render as invisible and don't draw node text if invis.
+            maincolor = (0,0,0,0)
+            bordercolor = (0,0,0,0)
+
+        pg.draw.circle(node_surface, maincolor, self.center, NODERADIUS)
+        pg.draw.circle(node_surface, bordercolor, self.center, NODERADIUS, 1)
 
 class Edge:
     def __init__(self, font:pg.font.Font, relation:str, value:float, a:Node, b:Node):
-        self.active_in_step, self.main_in_step = [], []
-        self.is_active, self.show_edge_info = False, False
+        self.active_in_step, self.main_in_step = set(), set()
+        self.is_active, self.is_main = False, False
         self.active_color, self.base_color = (136, 8, 8), (0, 0, 0)
 
         self.font, self.rel, self.value, self.a, self.b = font, relation, value, a, b
+        self.ax, self.ay = a.circle_rect.centerx, a.circle_rect.centery
+        self.bx, self.by = b.circle_rect.centerx, b.circle_rect.centery
 
-    def run(self, screen:pg.surface.Surface):
-        origin, dest = (self.a.x, self.a.y+5), (self.b.x, self.b.y+5)
-        color = self.active_color if self.is_active else self.base_color
+
+    def run(self, cycle:int , screen:pg.surface.Surface):
+        self.set_active_state(cycle)
+
+        origin, dest = (self.ax, self.ay), (self.bx, self.by)
+        color = self.active_color if self.is_main else self.base_color
+        
+        if self.is_main: linewidth = 5
+        elif self.is_active: linewidth = 2 
+        else: linewidth = 0
 
         if(origin == dest):
-            self.draw_self(screen, origin, color)
+            self.draw_self(screen, color, linewidth)
         else:
-            pg.draw.line(screen, color, origin, dest, 3)
-            if self.show_edge_info:
-                text_img = self.font.render(f"{self.rel}-({self.value:.4f})", True, (0,0,0))
-                screen.blit(text_img, 
-                (int((self.a.x + self.b.x)/2) - text_img.get_width()/2, # adjust depending on rel name width.
-                int((self.a.y + self.b.y)/2)))
+           self.draw_straight(screen, color, linewidth, origin, dest)
 
-    def set_active_state(self, s:bool):
-        self.is_active = s
-    
-    def set_show_edge_info(self, s:bool):
-        self.show_edge_info = s        
+    def set_active_state(self, cycle: int):
+        self.is_main, self.is_active = False, False
 
-    def draw_self(self, screen:pg.surface.Surface, point, color):
+        if(cycle in self.main_in_step):
+            self.is_main = True
+        elif(cycle in self.active_in_step):
+            self.is_active = True     
+
+    def draw_straight(self, screen:pg.surface.Surface, color, linewidth, origin, dest):
+        
+        pg.draw.line(screen, color, origin, dest, linewidth)
+
+        if self.is_active or self.is_main:
+            text_img = self.font.render(f"{self.rel}-({self.value:.4f})", True, (0,0,0))
+            screen.blit(text_img, 
+            (int((self.ax + self.bx)/2) - text_img.get_width()/2, # adjust depending on rel name width.
+            int((self.ay + self.by)/2)))
+
+
+    def draw_self(self, screen:pg.surface.Surface, color, linewidth):
         w = screen.get_width()
         h = screen.get_height()
 
@@ -691,12 +760,11 @@ class Edge:
             r.move_ip((-0, -15))
             start_angle, end_angle = 300, 240
 
-        pg.draw.arc(screen, color, r ,math.radians(start_angle), math.radians(end_angle), 3)
+        pg.draw.arc(screen, color, r ,math.radians(start_angle), math.radians(end_angle), linewidth)
 
-        if(self.show_edge_info):
+        if self.is_active or self.is_main:
             text_img = self.font.render(f"{self.rel}-({self.value:.4f})", True, (0,0,0))
             screen.blit(text_img, r.center)
-
 
 class SimpleText:
     def __init__(self, text:str, x:int, y:int, color: tuple):
