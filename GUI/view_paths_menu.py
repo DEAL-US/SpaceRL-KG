@@ -222,6 +222,7 @@ class menu():
             # run displayed texts
             self.numpath_displayed.run(screen)
             self.literal_path.run(screen)
+            self.path_step_text.run(screen)
 
             # nodes must run first as adges rely on them.
             # but we need to redraw them later as they have to be on top
@@ -243,7 +244,7 @@ class menu():
                 
                 # Arrow key scroll:
 
-                if event.type == pg.KEYDOWN and self.ticks > 10:
+                if event.type == pg.KEYDOWN and self.ticks > 5:
                     if event.key == pg.K_LEFT:
                         self.cycle -= 1
                         if (self.cycle < 0):
@@ -254,6 +255,7 @@ class menu():
                         if (self.cycle > self.path_length-1):
                             self.cycle = 0
                     
+                    self.path_step_text = SimpleText(f"{self.cycle + 1}/{self.path_length}", self.width/2, self.height-40, (0,0,0))
                     self.ticks = 0
             
             screen.blit(node_surface, (0,0))
@@ -293,6 +295,7 @@ class menu():
         self.nodes, self.neighbor_edges, self.path_edges = [], [], []
 
         # Text objects init
+        self.path_step_text = SimpleText(f"1/{self.path_length}", self.width/2, self.height-40, (0,0,0))
         self.numpath_displayed = SimpleText(f"{self.current_visualized_path_idx+1}/{self.total_path_count}", self.width/2, 40, (0,0,0))
         textual_path = ""
         
@@ -744,8 +747,11 @@ class Edge:
             self.is_active = True     
 
     def draw_straight(self, screen:pg.surface.Surface, color, linewidth, origin, dest):
+        o, d = self.calculate_external_node_point(origin, dest)
         
-        pg.draw.line(screen, color, origin, dest, linewidth)
+        pg.draw.line(screen, color, o, d, linewidth)
+        # pg.draw.line(screen, color, origin, dest, linewidth)
+
 
         if self.is_active or self.is_main:
             text_img = self.font.render(f"{self.rel}-({self.value:.4f})", True, (0,0,0))
@@ -753,6 +759,16 @@ class Edge:
             (int((self.ax + self.bx)/2) - text_img.get_width()/2, # adjust depending on rel name width.
             int((self.ay + self.by)/2)))
 
+    def calculate_external_node_point(self, origin, dest):
+        # NO TOCAR.
+        dx = origin[0] - dest[0]
+        dy = origin[1] - dest[1]
+        dl = math.sqrt(dx**2 + dy**2)
+
+        x_offset = int(dx/dl * NODERADIUS)
+        y_offset = int(dy/dl * NODERADIUS)
+
+        return (origin[0]-x_offset, origin[1]-y_offset), (dest[0]+x_offset, dest[1]+y_offset)
 
     def draw_self(self, screen:pg.surface.Surface, color, linewidth):
         w = screen.get_width()
