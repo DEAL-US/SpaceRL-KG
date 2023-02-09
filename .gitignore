@@ -2,4 +2,5 @@ env
 *.log
 *.pkl
 .vscode
+_testing
 __pycache__

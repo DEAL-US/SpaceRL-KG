@@ -324,7 +324,9 @@ class menu():
                 if(i+1 == self.path_length):
                     if(n.text == valid[2]):
                         n.main_in_step.add(i+1)
-                        n.active_in_step.remove(i)
+                        try:
+                            n.active_in_step.remove(i)
+                        except:pass
 
             try:
                 e = Edge(self.font, valid[1][0], valid[1][1], nodes_in_rel[0], nodes_in_rel[1])
@@ -681,45 +683,54 @@ class Node:
             if(cycle in self.active_in_step):
                 maincolor = (62, 195, 39, 190) # green
             else:
-                maincolor = (62, 195, 39, 75) # veeery clear
+                maincolor = (62, 195, 39, 75) # veeery clear green
                 write_text = False
 
         return maincolor, borderopacity, write_text
 
-    def write_text(self, screen: pg.surface.Surface):
-        text_img = self.font.render(self.text, True, (0,0,0))
-        t_x = self.x - int(text_img.get_width()/2)
-        t_y = self.y - int(text_img.get_height()/2)
+    def write_text(self, screen: pg.surface.Surface, cycle):
         w = screen.get_width()
         h = screen.get_height()
+        text_img = self.font.render(self.text, True, (0,0,0))
+        loc = self.move_text_by_cuadrant(text_img, w, h, 30)
+        screen.blit(text_img, loc)
+
+    def move_text_by_cuadrant(self, text_surface, w, h, gap):
+        t_x = self.x - int(text_surface.get_width()/2)
+        t_y = self.y - int(text_surface.get_height()/2)
 
         if(self.x < w/2 and self.y > h/2): # bottom left
-            loc = (t_x -30 , t_y +30)
+            loc = (t_x -gap , t_y +gap)
 
         elif(self.x > w/2 and self.y > h/2): # bottom right
-            loc = (t_x +30, t_y +30)
+            loc = (t_x +gap, t_y +gap)
 
         elif(self.x > w/2 and self.y < h/2): # top right
-            loc = (t_x +30, t_y -30)
+            loc = (t_x +gap, t_y -gap)
             
         elif(self.x < w/2 and self.y < h/2): # top left
-            loc = (t_x -30, t_y -30)
+            loc = (t_x -gap, t_y -gap)
            
         else: # centered
-            loc = (t_x , t_y -30)
-           
-        screen.blit(text_img, loc)
+            loc = (t_x , t_y -gap)
         
+        return loc
+
     def run(self, cycle: int, screen:pg.surface.Surface, node_surface: pg.surface.Surface):
         # render node circle.
         maincolor, borderopacity, write_b = self.get_state(cycle)
         bordercolor = (0,0,0,255)
 
-        if write_b:
-            self.write_text(screen)
-
         pg.draw.circle(node_surface, maincolor, self.center, NODERADIUS)
         pg.draw.circle(node_surface, bordercolor, self.center, NODERADIUS, borderopacity)
+
+        if write_b:
+            self.write_text(screen, cycle)
+
+        if(len(self.main_in_step) != 0 and cycle == -1):
+            num_path = self.font.render(str(self.main_in_step), True, (0,0,0))
+            loc = self.move_text_by_cuadrant(num_path, screen.get_width(), screen.get_height(), 30)
+            screen.blit(num_path, loc)
 
 class Edge:
     def __init__(self, font:pg.font.Font, relation:str, value:float, a:Node, b:Node):
@@ -727,37 +738,36 @@ class Edge:
         self.is_active, self.is_main = False, False
         self.active_color, self.base_color = (136, 8, 8), (0, 0, 0)
 
-        self.font, self.rel, self.value, self.a, self.b = font, relation, value, a, b
+        self.font, self.rel, self.value, = font, relation, value
+
+        self.a, self.b = a, b
+
         self.ax, self.ay = a.circle_rect.centerx, a.circle_rect.centery
         self.bx, self.by = b.circle_rect.centerx, b.circle_rect.centery
 
     def run(self, cycle:int , screen:pg.surface.Surface):
-        self.set_active_state(cycle)
-
         origin, dest = (self.ax, self.ay), (self.bx, self.by)
-        color = self.active_color if self.is_main else self.base_color
         
-        if self.is_main: linewidth = 5
-        elif self.is_active: linewidth = 2 
-        else: linewidth = 1
+        linewidth, color = self.get_state(cycle)
 
         if(origin == dest):
             self.draw_self(screen, color, linewidth)
         else:
            self.draw_straight(screen, color, linewidth, origin, dest)
 
-    def set_active_state(self, cycle: int):
+    def get_state(self, cycle: int):
         self.is_main, self.is_active = False, False
 
-        if(cycle == -1):
-            if len(self.main_in_step) != 0:
-                self.is_main = True
-        else:
-            if(cycle in self.main_in_step):
-                self.is_main = True
+        if(len(self.main_in_step) != 0): # is in main path:
+            self.is_main = True
+            return 8, self.active_color
 
-            elif(cycle in self.active_in_step):
+        else: # not in main path
+            if(cycle in self.active_in_step):
                 self.is_active = True
+                return 3, self.base_color
+            else:
+                return 1, self.base_color
 
 
     def draw_straight(self, screen:pg.surface.Surface, color, linewidth, origin, dest):
@@ -771,7 +781,7 @@ class Edge:
 
         if self.is_active or self.is_main:
             self.render_text_rotated(screen, line, origin, dest, dy, dx, dl)
-
+    
     def render_text_rotated(self, screen, line, origin, dest, dy, dx, dl):
         alpha = -math.degrees(math.asin(dy/dl))
         if dest[0] < origin[0]:
@@ -795,7 +805,6 @@ class Edge:
 
         self.text_rect = screen.blit(text_img, (x,y))
 
-
     def calculate_external_node_point(self, origin, dest, dx, dy, dl):
         """
         Finds the point in the node circumpherence where the line collides for the origin and dest nodes.
@@ -810,7 +819,7 @@ class Edge:
         w = screen.get_width()
         h = screen.get_height()
 
-        x, y = self.a.circle_rect.centerx, self.a.circle_rect.centery
+        x, y = self.ax, self.ay
         r = self.a.circle_rect.copy()
 
         if(x < w/2 and y > h/2): # bottom left
