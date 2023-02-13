@@ -75,6 +75,7 @@ def get_config():
 @app.post("/config/{param}:{value}")
 def set_config(param:str, value):
 
+    # Raise is not good, gives 500 server error. check docs.
     if param not in changeable_config.keys():
         raise FastAPIError(f"{param} not present in config.")
     
