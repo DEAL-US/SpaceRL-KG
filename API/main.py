@@ -1,16 +1,30 @@
+# Local imports
 from subprocess import run
 import multiprocessing
-
-from fastapi import FastAPI
-from fastapi.responses import PlainTextResponse
-from fastapi.exceptions import FastAPIError
-
 from pathlib import Path
+
+# FastAPI imports
+from enum import Enum
+
+from fastapi import FastAPI, Query
+from fastapi.responses import PlainTextResponse
+from fastapi.exceptions import HTTPException
+
+from pydantic import BaseModel
+from typing import Union
 
 app = FastAPI()
 
+# Folder paths:
 current_dir = Path(__file__).parent.resolve()
+parent_path = current_dir.parent.resolve()
+agents_path = Path(f"{parent_path}/model/data/agents").resolve()
+datasets_path = Path(f"{parent_path}/datasets").resolve()
 
+# TODO replace for get_datasets() function.
+DATASETS = Enum('DATASETS', ['COUNTRIES', 'UMLS', 'KINSHIP'])
+
+# Config.
 permanent_config = {
     "gpu_acceleration": True, # wether to use GPU(S) to perform fast training & embedding generation.
     "multithreaded_dist_reward": False, 
@@ -47,6 +61,34 @@ changeable_config = {
     "seed":78534245, # sets the seed to this number.
 }
 
+Experiments = []
+Tests = []
+
+# Pydantic models
+
+# FastAPI is built with these pydantic models models in mind as a return,
+# the idea is to define one of these for each response type you provide.
+class Error(BaseModel):
+    name: str
+    desc: str
+
+class Experiment(BaseModel):
+    name: str
+    dataset: DATASETS
+    single_relation: bool
+    embeddings : list
+    laps : int
+    relation_to_train : Union[str, None]
+
+class Test(BaseModel):
+    name: str
+    agent_name :str
+    episodes: int
+    embeddings : list
+    dataset: DATASETS
+    single_relation: bool
+    relation_to_train : Union[str, None]
+
 
 @app.get("/", response_class=PlainTextResponse)
 def root():
@@ -63,30 +105,37 @@ def root():
 / / /______\/ // / /  \ \ \/ / /_       __\ \_\/ / /_________\/ / /_______\ 
 \/___________/ \/_/    \_\/\_\___\     /____/_/\/____________/\/__________/ 
 
-Hi! this is the API endtry point for the GRACE Framework.
-try /docs to check all the commands I can do!
+Hi! you are in the API for the GRACE Framework.
+try /docs to check all the things I can do!
 """
     return text
 
-@app.get("/config")
+@app.get("/config/")
 def get_config():
     return changeable_config
 
-@app.post("/config/{param}:{value}")
-def set_config(param:str, value):
+@app.put("/config/")
+def set_config(param:str, value:Union[str, None] = Query()):
+    if(param is None or value is None):
+        return Error(name = "MissingValueError",
+        desc = f"One or more parameters are missing, param = {param}, value = {value}")
 
-    # Raise is not good, gives 500 server error. check docs.
     if param not in changeable_config.keys():
-        raise FastAPIError(f"{param} not present in config.")
+        return Error(name = "ParameterDoesNotExist",
+        dest = f"{param} is not a config param.")
     
     t = type(changeable_config[param])
     if  t != type(value):
-        raise FastAPIError(f"{value} must be of type {t}, was {type(value)} instead.")
+        raise Error(name = "TypeMismatchError",
+        desc = f"{value} must be of type {t}, was {type(value)} instead.")
 
     changeable_config[param] = value
 
     return changeable_config
 
+@app.get("/experiments/")
+def get_experiments():
+    pass # TODO: return current experiments.
 
 if __name__ == "__main__":
     command = f"uvicorn main:app --reload".split()
