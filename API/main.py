@@ -11,7 +11,7 @@ from fastapi.responses import PlainTextResponse
 from fastapi.exceptions import HTTPException
 
 from pydantic import BaseModel
-from typing import Union
+from typing import Union, List
 
 app = FastAPI()
 
@@ -23,6 +23,7 @@ datasets_path = Path(f"{parent_path}/datasets").resolve()
 
 # TODO replace for get_datasets() function.
 DATASETS = Enum('DATASETS', ['COUNTRIES', 'UMLS', 'KINSHIP'])
+ALLOWED_EMBEDDINGS = []
 
 # Config.
 permanent_config = {
@@ -61,8 +62,8 @@ changeable_config = {
     "seed":78534245, # sets the seed to this number.
 }
 
-Experiments = []
-Tests = []
+EXPERIMENTS, TESTS = {}, {}
+exp_idx, test_idx = 0, 0
 
 # Pydantic models
 
@@ -76,7 +77,7 @@ class Experiment(BaseModel):
     name: str
     dataset: DATASETS
     single_relation: bool
-    embeddings : list
+    embeddings : List[str]
     laps : int
     relation_to_train : Union[str, None]
 
@@ -84,7 +85,7 @@ class Test(BaseModel):
     name: str
     agent_name :str
     episodes: int
-    embeddings : list
+    embeddings : List[str]
     dataset: DATASETS
     single_relation: bool
     relation_to_train : Union[str, None]
@@ -111,11 +112,11 @@ try /docs to check all the things I can do!
     return text
 
 @app.get("/config/")
-def get_config():
+def get_config() -> dict:
     return changeable_config
 
 @app.put("/config/")
-def set_config(param:str, value:Union[str, None] = Query()):
+def set_config(param:str, value:Union[str, None] = Query()) -> dict:
     if(param is None or value is None):
         return Error(name = "MissingValueError",
         desc = f"One or more parameters are missing, param = {param}, value = {value}")
@@ -126,7 +127,7 @@ def set_config(param:str, value:Union[str, None] = Query()):
     
     t = type(changeable_config[param])
     if  t != type(value):
-        raise Error(name = "TypeMismatchError",
+        return Error(name = "TypeMismatchError",
         desc = f"{value} must be of type {t}, was {type(value)} instead.")
 
     changeable_config[param] = value
@@ -135,7 +136,16 @@ def set_config(param:str, value:Union[str, None] = Query()):
 
 @app.get("/experiments/")
 def get_experiments():
-    pass # TODO: return current experiments.
+    return EXPERIMENTS
+
+@app.post("/experiments/")
+def add_experiment(experiment:Experiment):
+    #TODO: check that the supplied experiment values are valid...
+
+
+    EXPERIMENTS[exp_idx] = experiment
+
+    return EXPERIMENTS
 
 if __name__ == "__main__":
     command = f"uvicorn main:app --reload".split()
