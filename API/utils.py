@@ -6,6 +6,10 @@ from pathlib import Path
 from typing import Union, List
 from pydantic import BaseModel
 
+from fastapi import HTTPException
+
+import networkx as nx
+
 # Folder paths:
 current_dir = Path(__file__).parent.resolve()
 parent_path = current_dir.parent.resolve()
@@ -73,9 +77,15 @@ changeable_config = {
 
 # FastAPI is built with these pydantic models models in mind as a return,
 # the idea is to define one of these for each response type you provide.
-class Error(BaseModel):
-    name: str
-    desc: str
+class Error():
+    def __init__(self, name:str, desc:str):
+        raise HTTPException(status_code=400, 
+        detail=f"{name} - {desc}")
+
+class Triple(BaseModel):
+    e1: str
+    r: str
+    e2: str
 
 class Experiment(BaseModel):
     name: str
@@ -94,8 +104,8 @@ class Test(BaseModel):
     single_relation: bool
     relation_to_train : Union[str, None]
 
-# Helper functions:
-def validate_experiment(exp:Experiment):
+# Main Functions
+def validate_experiment(exp: Experiment):
     print(EXPERIMENTS)
 
     reasons = []
@@ -121,13 +131,68 @@ def validate_experiment(exp:Experiment):
     if exp.laps < 10 or exp.laps > 10_000:
         reasons.append("laps must be from 10-10.000\n")
 
+    if len(reasons) !=0: Error(name = "ExperimentError", desc = "".join(reasons))
     
+def validate_test(tst: Test):
+    # TODO: COMPLETE THIS.
+    print(TESTS)
 
-    return (True, None) if len(reasons) == 0 else (False, Error(name = "ExperimentError", desc = "".join(reasons)))
+    reasons = []
+    tests = get_tests()
     
-def validate_test():
-    pass
+    if len(tst.name) > 200 and len(tst.name) < 10:
+        reasons.append("Test name must be between 10-200 characters\n")
 
+    f = list(filter(lambda l_tst: True if l_tst.name == tst.name else False, TESTS.values()))
+
+    if tst.name in tests or len(f) != 0:
+        reasons.append("Test with that name already exists, try again.\n")
+
+    # dataset value can't be outside of enum scope, no need for extra validation
+    
+    if tst.single_relation == True:
+        if tst.relation_to_train is None:
+            reasons.append("Provide a relation name if you wish to train for it.\n")
+        
+        elif not check_for_relation_in_dataset(tst.dataset, tst.relation_to_train):
+            reasons.append("Provided relation is not in dataset.\n")
+    
+    if tst.laps < 10 or tst.laps > 10_000:
+        reasons.append("laps must be from 10-10.000\n")
+
+
+    #     try:
+    #     config_used = open(f"{agent_path}/config_used.txt")
+    #     for ln in config_used.readlines():
+    #         if ln.startswith("dataset: "):
+    #             self.dataset = ln.lstrip("dataset: ").strip()
+
+    #         if ln.startswith("single_relation_pair: "):
+    #             aux = ln.lstrip("single_relation_pair: ").strip()
+    #             aux = aux.replace("[", "").replace("]","").replace(" ", "").replace("\'", "").strip().split(",")
+    #             self.single_relation, self.relation_to_train = [aux[0]=="True", None if aux[1] == "None" else aux[1]]
+    # except:
+    #     print(f"Incoherent Test detected: {self.name}")
+    #     self.to_delete = True
+
+    # Raises error if reasons is not empty.
+    if len(reasons) !=0: Error(name = "ExperimentError", desc = "".join(reasons))
+    
+def add_dataset(dataset_name:str, triples: List[Triple]) -> Union[None, Error]:
+    p = Path(f"{datasets_path}/{dataset_name}")
+    try:
+        os.mkdir(p)
+    except:
+        Error(name="DatasetExists",
+        desc="Dataset with that name already exists, try again.")
+    
+    with open(Path(f"{p}/graph.txt"), "w") as f:
+        res = ""
+        for t in triples:
+            res += f"{t.e1}\t{t.r}\t{t.e2}\n"
+        f.write(res)
+        
+# Helper functions:
 def get_agents():
     agent_list = os.listdir(agents_path)
     agent_list.remove('.gitkeep')
@@ -152,3 +217,5 @@ def check_for_relation_in_dataset(dataset_name:str, relation_name:str):
                 break
     
     return relation_in_graph
+
+

@@ -5,8 +5,9 @@ from pathlib import Path
 
 from utils import DATASETS, ALLOWED_EMBEDDINGS
 from utils import EXPERIMENTS, TESTS
-from utils import permanent_config, changeable_config, Experiment, Test, Error
-from utils import validate_test, validate_experiment
+from utils import permanent_config, changeable_config
+from utils import Experiment, Test, Error, Triple
+from utils import validate_test, validate_experiment, add_dataset
 
 # FastAPI imports
 
@@ -15,8 +16,6 @@ from fastapi.responses import PlainTextResponse
 from fastapi.exceptions import HTTPException
 
 from typing import Union, List, Dict
-from enum import Enum
-
 
 app = FastAPI()
 
@@ -57,12 +56,12 @@ def get_config() -> dict:
 @app.put("/config/")
 def set_config(param:str, value) -> dict:
     if param not in changeable_config.keys():
-        return Error(name = "ParameterDoesNotExist",
+        Error(name = "ParameterDoesNotExist",
         dest = f"{param} is not a config param.")
     
     t = type(changeable_config[param])
     if  t != type(value):
-        return Error(name = "TypeMismatchError",
+        Error(name = "TypeMismatchError",
         desc = f"{value} must be of type {t}, was {type(value)} instead.")
 
     changeable_config[param] = value
@@ -75,12 +74,13 @@ def get_dataset():
     return DATASETS
 
 @app.post("/datasets/")
-def set_dataset():
-    return "WIP"
+def set_dataset(name:str, triples: List[Triple]):
+    add_dataset(name, triples)
+    return {"dataset added successfully."}
 
-@app.put("/datasets/")
-def put_dataset():
-    return "WIP"
+# PUT and DELETE require much more work than these, might be added later...
+# TODO: add background task that cleans up generated info to previous dataset.
+# Delete Chaches, embedding files, agents and tests related to the DATASET being edited or deleted.
 
 # EMBEDDING OPERATIONS
 @app.get("/embeddings/")
@@ -89,30 +89,60 @@ def get_embeddings() -> Dict[(str, str)]:
 
 # EXPERIMENTS OPERATIONS
 @app.get("/experiments/")
-def get_experiment(id:int = None) -> Union[Dict[(int, Experiment)], Error]:
+def get_experiment(id:int = None) -> Dict[(int, Experiment)]:
     if id is None:
         return EXPERIMENTS
     else:
         try:
             return EXPERIMENTS[id]
         except:
-            return Error(name="NonexistantExperiment",
-            desc = "There is no experiment by this ID.")
+            Error(name="NonexistantExperiment",
+            desc = f"There is no experiment with id {id}")
 
 @app.post("/experiments/") 
-def add_experiment(experiment:Experiment) -> Union[Dict[(int, Experiment)], Error]:
-    valid, err = validate_experiment(experiment)
+def add_experiment(experiment:Experiment) -> Dict[(int, Experiment)]:
+    validate_experiment(experiment)
     global exp_idx
-    if(valid):
-        EXPERIMENTS[exp_idx] = experiment
-        exp_idx += 1
-        return EXPERIMENTS
-    else:
-        return err
+    EXPERIMENTS[exp_idx] = experiment
+    exp_idx += 1
+    return EXPERIMENTS
     
 @app.delete("/experiments/") 
 def remove_experiment(id:int):
-    del EXPERIMENTS[id]
+    try:
+        del EXPERIMENTS[id]
+    except:
+        Error(name="NonexistantExperiment",
+        desc = f"There is no experiment with id {id}")
+
+# TEST OPERATIONS
+@app.get("/tests/")
+def get_test(id:int = None) -> Dict[(int, Test)]:
+    if id is None:
+        return TESTS
+    else:
+        try:
+            return TESTS[id]
+        except:
+            Error(name="NonexistantTest",
+            desc = f"There is no test with id {id}")
+
+@app.post("/tests/") 
+def add_test(test:Test) -> Dict[(int, Test)]:
+    validate_test(test)
+    global test_idx
+    TESTS[test_idx] = test
+    test_idx += 1
+    return TESTS
+    
+@app.delete("/tests/") 
+def remove_test(id:int):
+    try:
+        del TESTS[id]
+    except:
+        Error(name="NonexistantTest",
+        desc = f"There is no test with id {id}")
+
         
 if __name__ == "__main__":
     command = f"uvicorn main:app --reload".split()
