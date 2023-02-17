@@ -161,7 +161,7 @@ def validate_test(tst: Test):
         reasons.append("laps must be from 10-10.000\n")
 
 
-    #     try:
+    #   try:
     #     config_used = open(f"{agent_path}/config_used.txt")
     #     for ln in config_used.readlines():
     #         if ln.startswith("dataset: "):
