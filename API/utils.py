@@ -99,9 +99,9 @@ class Test(BaseModel):
     name: str
     agent_name :str
     episodes: int
-    embedding : ALLOWED_EMBEDDINGS
-    dataset: DATASETS
-    single_relation: bool
+    embedding : Union[ALLOWED_EMBEDDINGS, None]
+    dataset: Union[DATASETS, None]
+    single_relation: Union[bool, None]
     relation_to_train : Union[str, None]
 
 # Main Functions
@@ -134,9 +134,6 @@ def validate_experiment(exp: Experiment):
     if len(reasons) !=0: Error(name = "ExperimentError", desc = "".join(reasons))
     
 def validate_test(tst: Test):
-    # TODO: COMPLETE THIS.
-    print(TESTS)
-
     reasons = []
     tests = get_tests()
     
@@ -149,34 +146,43 @@ def validate_test(tst: Test):
         reasons.append("Test with that name already exists, try again.\n")
 
     # dataset value can't be outside of enum scope, no need for extra validation
+
+    if tst.episodes < 10 or tst.episodes > 10_000:
+        reasons.append("episodes must be from 10-10.000\n")
     
-    if tst.single_relation == True:
-        if tst.relation_to_train is None:
-            reasons.append("Provide a relation name if you wish to train for it.\n")
-        
-        elif not check_for_relation_in_dataset(tst.dataset, tst.relation_to_train):
-            reasons.append("Provided relation is not in dataset.\n")
+    try:
+        config_used = open(f"{agents_path}/{tst.agent_name}/config_used.txt")
+        for ln in config_used.readlines():
+            if ln.startswith("dataset: "):
+                dataset = ln.lstrip("dataset: ").strip()
+
+            if ln.startswith("embedding: "):
+                embedding = ln.lstrip("embedding: ").strip()
+
+            if ln.startswith("single_relation_pair: "):
+                aux = ln.lstrip("single_relation_pair: ").strip()
+                aux = aux.replace("[", "").replace("]","").replace(" ", "").replace("\'", "").strip().split(",")
+                single_relation, relation_to_train = [aux[0]=="True", None if aux[1] == "None" else aux[1]]
+    except:
+        reasons.append(f"Incoherent Test detected, agent name was: {tst.agent_name}\n")
     
-    if tst.laps < 10 or tst.laps > 10_000:
-        reasons.append("laps must be from 10-10.000\n")
+    f = list(filter(lambda dtst: True if dataset == dtst.value else False, DATASETS))
 
+    if(len(f) == 0):
+        reasons.append(f"no valid dataset detected for test, have you deleted it?\n")
 
-    #   try:
-    #     config_used = open(f"{agent_path}/config_used.txt")
-    #     for ln in config_used.readlines():
-    #         if ln.startswith("dataset: "):
-    #             self.dataset = ln.lstrip("dataset: ").strip()
-
-    #         if ln.startswith("single_relation_pair: "):
-    #             aux = ln.lstrip("single_relation_pair: ").strip()
-    #             aux = aux.replace("[", "").replace("]","").replace(" ", "").replace("\'", "").strip().split(",")
-    #             self.single_relation, self.relation_to_train = [aux[0]=="True", None if aux[1] == "None" else aux[1]]
-    # except:
-    #     print(f"Incoherent Test detected: {self.name}")
-    #     self.to_delete = True
+    if(single_relation and relation_to_train is None):
+        reasons.append(f"test is marked as single relation and None was provided.\n")
 
     # Raises error if reasons is not empty.
     if len(reasons) !=0: Error(name = "ExperimentError", desc = "".join(reasons))
+    tst.embedding = embedding
+    tst.dataset = dataset
+    tst.single_relation = single_relation
+    tst.relation_to_train = relation_to_train
+
+    return tst
+
     
 def add_dataset(dataset_name:str, triples: List[Triple]) -> Union[None, Error]:
     p = Path(f"{datasets_path}/{dataset_name}")
