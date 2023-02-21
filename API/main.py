@@ -1,19 +1,22 @@
 # Local imports
-import sys
+import sys, os
 import multiprocessing as mp
 
 from subprocess import run
 from pathlib import Path
-import GPUtil as gputil
+
 
 from utils import DATASETS, ALLOWED_EMBEDDINGS
-from utils import EXPERIMENTS, TESTS
 from utils import permanent_config, changeable_config
-from utils import Experiment, Test, Error, Triple
+from utils import Experiment, Test, Error, Triple, EmbGen
 from utils import validate_test, validate_experiment, add_dataset, get_agents
+from utils import embgen_queue, cache_queue, experiment_queue, test_queue
+from utils import embgen_idx, cache_idx, exp_idx, test_idx
+
+from utils import QueueProcessHandler
 
 # FastAPI imports
-from fastapi import FastAPI, Query
+from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
 from fastapi.exceptions import HTTPException
 
@@ -27,14 +30,8 @@ parent_path = current_dir.parent.resolve()
 agents_path = Path(f"{parent_path}/model/data/agents").resolve()
 datasets_path = Path(f"{parent_path}/datasets").resolve()
 
-exp_idx, test_idx = 0, 0
-
-# RELATIVE IMPORTS.
-sys.path.insert(0, f"{parent_path}/model/data")
-
-import generator.generate_trans_embeddings as embgen
-
-sys.path.pop(0)
+# Local threads:
+embgen_process_queue = []
 
 @app.get("/", response_class=PlainTextResponse)
 def root() ->str:
@@ -74,6 +71,10 @@ def set_config(param:str, value) -> dict:
         Error(name = "TypeMismatchError",
         desc = f"{value} must be of type {t}, was {type(value)} instead.")
 
+    if(len(experiment_queue) != 0 or len(test_queue) !=0):
+        Error(name = "BusyResourcesError",
+        desc = f"There are is an active test/train suite")
+
     changeable_config[param] = value
 
     return changeable_config
@@ -95,22 +96,17 @@ def set_dataset(name:str, triples: List[Triple]):
 # Delete Chaches, embedding files, agents and tests related to the DATASET being edited or deleted.
 
 
-
 # EMBEDDING OPERATIONS
 @app.get("/embeddings/")
 def get_embeddings():
     return {i.name: i.value for i in ALLOWED_EMBEDDINGS}
 
 @app.post("/embeddings/")
-def gen_embedding(dataset:DATASETS, models:List[ALLOWED_EMBEDDINGS] = [], use_gpu:bool = gputil.getAvailable()!= 0,
-                   regenerate_existing:bool = False, normalize:bool = True, add_inverse_path:bool = True, fast_mode:bool = False):
-    
-    p = mp.Process(target=embgen.generate_embedding,
-    args=(dataset, models, use_gpu,regenerate_existing, normalize, add_inverse_path, fast_mode))
-    p.start()
-    p.join()
-
-    return{"message":"embedding generation process is running"}
+def gen_embedding(embedding: EmbGen):
+    global embgen_idx
+    embgen_queue[embgen_idx] = embedding
+    embgen_idx += 1
+    return embgen_queue
 
 # AGENTS
 @app.get("/agents/")
@@ -123,10 +119,10 @@ def agents():
 @app.get("/experiments/")
 def get_experiment(id:int = None) -> Union[Dict[(int, Experiment)], Experiment]:
     if id is None:
-        return EXPERIMENTS
+        return experiment_queue
     else:
         try:
-            return EXPERIMENTS[id]
+            return experiment_queue[id]
         except:
             Error(name="NonexistantExperiment",
             desc = f"There is no experiment with id {id}")
@@ -135,14 +131,14 @@ def get_experiment(id:int = None) -> Union[Dict[(int, Experiment)], Experiment]:
 def add_experiment(experiment:Experiment) -> Dict[(int, Experiment)]:
     validate_experiment(experiment)
     global exp_idx
-    EXPERIMENTS[exp_idx] = experiment
+    experiment_queue[exp_idx] = experiment
     exp_idx += 1
-    return EXPERIMENTS
+    return experiment_queue
     
 @app.delete("/experiments/") 
 def remove_experiment(id:int):
     try:
-        del EXPERIMENTS[id]
+        del experiment_queue[id]
         return {"message":"experiment was removed successfully."}
 
     except:
@@ -155,10 +151,10 @@ def remove_experiment(id:int):
 @app.get("/tests/")
 def get_test(id:int = None) -> Union[Dict[(int, Test)], Test]:
     if id is None:
-        return TESTS
+        return test_queue
     else:
         try:
-            return TESTS[id]
+            return test_queue[id]
         except:
             Error(name="NonexistantTest",
             desc = f"There is no test with id {id}")
@@ -167,21 +163,18 @@ def get_test(id:int = None) -> Union[Dict[(int, Test)], Test]:
 def add_test(test:Test) -> Dict[(int, Test)]:
     test = validate_test(test)
     global test_idx
-    TESTS[test_idx] = test
+    test_queue[test_idx] = test
     test_idx += 1
-    return TESTS
+    return test_queue
     
 @app.delete("/tests/") 
 def remove_test(id:int):
     try:
-        del TESTS[id]
+        del test_queue[id]
         return {"message":"test was removed successfully."}
     except:
         Error(name="NonexistantTest",
         desc = f"There is no test with id {id}")
-
-        
-
 
 
 if __name__ == "__main__":

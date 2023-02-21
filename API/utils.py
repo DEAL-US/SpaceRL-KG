@@ -1,14 +1,58 @@
 # Local imports
-import multiprocessing, os
+import sys, os, time
 
 from enum import Enum
 from pathlib import Path
 from typing import Union, List
 from pydantic import BaseModel
+import GPUtil as gputil
 
 from fastapi import HTTPException
 
+from multiprocessing import Process, Manager, cpu_count
+
 import networkx as nx
+
+# Process queues:
+manager = Manager()
+
+embgen_queue, cache_queue, experiment_queue, test_queue = manager.dict(), manager.dict(), manager.dict(), manager.dict()
+embgen_idx, cache_idx, exp_idx, test_idx = 0,0,0,0
+
+
+# Folder paths:
+current_dir = Path(__file__).parent.resolve()
+parent_path = current_dir.parent.resolve()
+
+
+# RELATIVE IMPORTS.
+genpath = Path(f"{parent_path}/model/data/generator").resolve()
+
+sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, str(genpath))
+
+import generate_trans_embeddings as embgen
+
+def QueueProcessHandler():
+    """
+    Handles the queues 
+    """
+    nxt_eg, nxt_chq, nxt_expq, nxt_tstq = None, None, None, None
+    while True:
+        if embgen_queue: nxt_eg = next(iter(embgen_queue.items()))
+        if cache_queue: nxt_chq = next(iter(cache_queue.items()))
+        if experiment_queue: nxt_expq = next(iter(experiment_queue.items()))
+        if test_queue: nxt_tstq = next(iter(test_queue.items()))
+
+        print(nxt_eg, nxt_chq, nxt_expq, nxt_tstq)
+        print(embgen_queue, cache_queue, experiment_queue, test_queue)
+
+        time.sleep(2)
+
+    
+    # p = mp.Process(target=embgen.generate_embedding,
+    # args=(dataset.name, models, use_gpu,regenerate_existing, normalize, add_inverse_path, fast_mode))
+    # embgen_queue[len(embgen_queue)] = p
 
 # Folder paths:
 current_dir = Path(__file__).parent.resolve()
@@ -34,8 +78,6 @@ ALLOWED_EMBEDDINGS = Enum("ALLOWED_EMBEDDINGS",
 {"TRANS-E":"TransE_l2", "DIST-MULT":"DistMult",
 "COMPLEX":"ComplEx", "TRANS-R":"TransR"})
 
-EXPERIMENTS, TESTS = {}, {}
-
 # Config.
 permanent_config = {
     "gpu_acceleration": True, # wether to use GPU(S) to perform fast training & embedding generation.
@@ -50,7 +92,7 @@ permanent_config = {
 }
 
 changeable_config = {
-    "available_cores": multiprocessing.cpu_count(), #number of cpu cores to use when computing the reward
+    "available_cores": cpu_count(), #number of cpu cores to use when computing the reward
     "guided_reward": True, # wether to follow a step-based reward or just a reward at the end of the episode.
     "guided_to_compute":["terminal", "embedding"], #"distance","terminal","embedding"
     "regenerate_embeddings":False, # if embedding is found and true re-calculates them.
@@ -104,17 +146,24 @@ class Test(BaseModel):
     single_relation: Union[bool, None]
     relation_to_train : Union[str, None]
 
+class EmbGen(BaseModel):
+    dataset: DATASETS
+    models:List[ALLOWED_EMBEDDINGS] = []
+    use_gpu:bool = gputil.getAvailable()!= 0
+    regenerate_existing:bool = False
+    normalize:bool = True
+    add_inverse_path:bool = True
+    fast_mode:bool = False
+
 # Main Functions
 def validate_experiment(exp: Experiment):
-    print(EXPERIMENTS)
-
     reasons = []
     agents = get_agents()
     
     if len(exp.name) > 200 and len(exp.name) < 10:
         reasons.append("Experiment name must be between 10-200 characters\n")
 
-    f = list(filter(lambda l_exp: True if l_exp.name == exp.name else False, EXPERIMENTS.values()))
+    f = list(filter(lambda l_exp: True if l_exp.name == exp.name else False, experiment_queue.values()))
 
     if exp.name in agents or len(f) != 0:
         reasons.append("Agent already exists, try a different name.\n")
@@ -140,7 +189,7 @@ def validate_test(tst: Test):
     if len(tst.name) > 200 and len(tst.name) < 10:
         reasons.append("Test name must be between 10-200 characters\n")
 
-    f = list(filter(lambda l_tst: True if l_tst.name == tst.name else False, TESTS.values()))
+    f = list(filter(lambda l_tst: True if l_tst.name == tst.name else False, test_queue.values()))
 
     if tst.name in tests or len(f) != 0:
         reasons.append("Test with that name already exists, try again.\n")
@@ -183,7 +232,6 @@ def validate_test(tst: Test):
 
     return tst
 
-    
 def add_dataset(dataset_name:str, triples: List[Triple]) -> Union[None, Error]:
     p = Path(f"{datasets_path}/{dataset_name}")
     try:
@@ -223,5 +271,4 @@ def check_for_relation_in_dataset(dataset_name:str, relation_name:str):
                 break
     
     return relation_in_graph
-
 
