@@ -1,19 +1,17 @@
 # Local imports
-import sys, os
+import sys, os, atexit
 import multiprocessing as mp
 
 from subprocess import run
 from pathlib import Path
 
-
 from utils import DATASETS, ALLOWED_EMBEDDINGS
 from utils import permanent_config, changeable_config
-from utils import Experiment, Test, Error, Triple, EmbGen
-from utils import validate_test, validate_experiment, add_dataset, get_agents
-from utils import embgen_queue, cache_queue, experiment_queue, test_queue
-from utils import embgen_idx, cache_idx, exp_idx, test_idx
+from utils import Experiment, Test, Error, Triple, EmbGen, infodicttype
+from utils import validate_test, validate_experiment, add_dataset, get_agents, get_info_from, send_message_to_handler
+from utils import add_embedding, add_cache, add_experiment, add_test
 
-from utils import QueueProcessHandler
+from threaded_elements_handler import main as t_handle
 
 # FastAPI imports
 from fastapi import FastAPI
@@ -63,22 +61,22 @@ def get_config() -> dict:
 @app.put("/config/")
 def set_config(param:str, value) -> dict:
     if param not in changeable_config.keys():
-        Error(name = "ParameterDoesNotExist",
-        dest = f"{param} is not a config param.")
+        Error("ParameterDoesNotExist",
+        f"{param} is not a config param.")
     
     t = type(changeable_config[param])
     if  t != type(value):
-        Error(name = "TypeMismatchError",
-        desc = f"{value} must be of type {t}, was {type(value)} instead.")
+        Error("TypeMismatchError",
+        f"{value} must be of type {t}, was {type(value)} instead.")
 
-    if(len(experiment_queue) != 0 or len(test_queue) !=0):
+    if(len(get_info_from(infodicttype.EXPERIMENT)) != 0 
+       or len(get_info_from(infodicttype.TEST)) !=0):
         Error(name = "BusyResourcesError",
         desc = f"There are is an active test/train suite")
 
     changeable_config[param] = value
 
     return changeable_config
-
 
 
 # DATASET OPERATIONS
@@ -103,10 +101,13 @@ def get_embeddings():
 
 @app.post("/embeddings/")
 def gen_embedding(embedding: EmbGen):
-    global embgen_idx
-    embgen_queue[embgen_idx] = embedding
-    embgen_idx += 1
-    return embgen_queue
+    add_embedding(embedding)
+
+    # global embgen_idx
+    # embgen_queue[embgen_idx] = embedding
+    # embgen_idx += 1
+    # return embgen_queue
+
 
 # AGENTS
 @app.get("/agents/")
@@ -119,10 +120,10 @@ def agents():
 @app.get("/experiments/")
 def get_experiment(id:int = None) -> Union[Dict[(int, Experiment)], Experiment]:
     if id is None:
-        return experiment_queue
+        return get_info_from(infodicttype.EXPERIMENT)
     else:
         try:
-            return experiment_queue[id]
+            return get_info_from(infodicttype.EXPERIMENT, id)
         except:
             Error(name="NonexistantExperiment",
             desc = f"There is no experiment with id {id}")
@@ -130,15 +131,19 @@ def get_experiment(id:int = None) -> Union[Dict[(int, Experiment)], Experiment]:
 @app.post("/experiments/") 
 def add_experiment(experiment:Experiment) -> Dict[(int, Experiment)]:
     validate_experiment(experiment)
-    global exp_idx
-    experiment_queue[exp_idx] = experiment
-    exp_idx += 1
-    return experiment_queue
+    add_experiment(experiment)
+
+    # global exp_idx
+    # experiment_queue[exp_idx] = experiment
+    # exp_idx += 1
+    # return experiment_queue
+
     
 @app.delete("/experiments/") 
 def remove_experiment(id:int):
     try:
-        del experiment_queue[id]
+        send_message_to_handler(f"delete;experiment;{id}")
+        # del experiment_queue[id]
         return {"message":"experiment was removed successfully."}
 
     except:
@@ -151,10 +156,10 @@ def remove_experiment(id:int):
 @app.get("/tests/")
 def get_test(id:int = None) -> Union[Dict[(int, Test)], Test]:
     if id is None:
-        return test_queue
+        return get_info_from(infodicttype.TEST)
     else:
         try:
-            return test_queue[id]
+            return get_info_from(infodicttype.TEST, id)
         except:
             Error(name="NonexistantTest",
             desc = f"There is no test with id {id}")
@@ -162,15 +167,19 @@ def get_test(id:int = None) -> Union[Dict[(int, Test)], Test]:
 @app.post("/tests/") 
 def add_test(test:Test) -> Dict[(int, Test)]:
     test = validate_test(test)
-    global test_idx
-    test_queue[test_idx] = test
-    test_idx += 1
-    return test_queue
+    add_test(test)
+
+    # global test_idx
+    # test_queue[test_idx] = test
+    # test_idx += 1
+    # return test_queue
     
 @app.delete("/tests/") 
 def remove_test(id:int):
     try:
-        del test_queue[id]
+        send_message_to_handler(f"delete;test;{id}")
+
+        # del test_queue[id]
         return {"message":"test was removed successfully."}
     except:
         Error(name="NonexistantTest",
@@ -178,5 +187,10 @@ def remove_test(id:int):
 
 
 if __name__ == "__main__":
+    p = mp.Process(target = t_handle)
+    p.start()
+
+    atexit.register(send_message_to_handler, args=("quit,"))
+
     command = f"uvicorn main:app --reload".split()
     run(command, cwd = current_dir)

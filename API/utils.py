@@ -7,52 +7,13 @@ from typing import Union, List
 from pydantic import BaseModel
 import GPUtil as gputil
 
+from multiprocessing import cpu_count
+
 from fastapi import HTTPException
-
-from multiprocessing import Process, Manager, cpu_count
-
-import networkx as nx
-
-# Process queues:
-manager = Manager()
-
-embgen_queue, cache_queue, experiment_queue, test_queue = manager.dict(), manager.dict(), manager.dict(), manager.dict()
-embgen_idx, cache_idx, exp_idx, test_idx = 0,0,0,0
-
 
 # Folder paths:
 current_dir = Path(__file__).parent.resolve()
 parent_path = current_dir.parent.resolve()
-
-
-# RELATIVE IMPORTS.
-genpath = Path(f"{parent_path}/model/data/generator").resolve()
-
-sys.path.insert(0, os.path.abspath('../..'))
-sys.path.insert(0, str(genpath))
-
-import generate_trans_embeddings as embgen
-
-def QueueProcessHandler():
-    """
-    Handles the queues 
-    """
-    nxt_eg, nxt_chq, nxt_expq, nxt_tstq = None, None, None, None
-    while True:
-        if embgen_queue: nxt_eg = next(iter(embgen_queue.items()))
-        if cache_queue: nxt_chq = next(iter(cache_queue.items()))
-        if experiment_queue: nxt_expq = next(iter(experiment_queue.items()))
-        if test_queue: nxt_tstq = next(iter(test_queue.items()))
-
-        print(nxt_eg, nxt_chq, nxt_expq, nxt_tstq)
-        print(embgen_queue, cache_queue, experiment_queue, test_queue)
-
-        time.sleep(2)
-
-    
-    # p = mp.Process(target=embgen.generate_embedding,
-    # args=(dataset.name, models, use_gpu,regenerate_existing, normalize, add_inverse_path, fast_mode))
-    # embgen_queue[len(embgen_queue)] = p
 
 # Folder paths:
 current_dir = Path(__file__).parent.resolve()
@@ -156,6 +117,7 @@ class EmbGen(BaseModel):
     fast_mode:bool = False
 
 # Main Functions
+# Validation
 def validate_experiment(exp: Experiment):
     reasons = []
     agents = get_agents()
@@ -232,6 +194,7 @@ def validate_test(tst: Test):
 
     return tst
 
+# Adding to queue.
 def add_dataset(dataset_name:str, triples: List[Triple]) -> Union[None, Error]:
     p = Path(f"{datasets_path}/{dataset_name}")
     try:
@@ -246,6 +209,22 @@ def add_dataset(dataset_name:str, triples: List[Triple]) -> Union[None, Error]:
             res += f"{t.e1}\t{t.r}\t{t.e2}\n"
         f.write(res)
         
+def add_embedding(embedding:EmbGen):
+    return send_message_to_handler(f"post;embedding\n{embedding}")
+
+def add_cache():
+    pass
+
+def add_experiment(exp:Experiment):
+    return send_message_to_handler(f"post;experiment\n{exp}")
+
+
+def add_test(test:Test):
+    return send_message_to_handler(f"post;test\n{test}")
+
+# removing from queue
+
+
 # Helper functions:
 def get_agents():
     agent_list = os.listdir(agents_path)
@@ -272,3 +251,42 @@ def check_for_relation_in_dataset(dataset_name:str, relation_name:str):
     
     return relation_in_graph
 
+class infodicttype(Enum):
+    CACHE = "cache"
+    EXPERIMENT = "experiment"
+    TEST = "test"
+
+def get_info_from(opt:infodicttype, id:int = None):
+    if(opt == infodicttype.CACHE):
+        msg = f"get;caches"
+
+    elif(opt == infodicttype.EXPERIMENT):
+        msg = f"get;experiments"
+
+    elif(opt == infodicttype.TEST):
+        msg = f"get;tests"
+
+    else:
+        Error("BadRequestError","you asked for the wrong thing bucko!")
+
+    if(id is not None):
+        msg = f"{msg[:-1]};{id}"
+
+    return send_message_to_handler(msg)
+
+
+# Client code to communicate with handler
+import socket
+
+HOST = "127.0.0.1"  # The server's hostname or IP address
+PORT = 65432  # The port used by the server
+
+def send_message_to_handler(msg:str):
+    msg = bytes(msg, 'utf-8')
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect((HOST, PORT))
+        s.sendall(msg)
+        data = s.recv(1024)
+
+    print(f"Received {data!r}")
+    return data
