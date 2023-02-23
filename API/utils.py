@@ -7,7 +7,7 @@ from typing import Union, List
 from pydantic import BaseModel
 import GPUtil as gputil
 
-from multiprocessing import cpu_count
+from multiprocessing import cpu_count, Process, Manager
 
 from fastapi import HTTPException
 
@@ -210,17 +210,17 @@ def add_dataset(dataset_name:str, triples: List[Triple]) -> Union[None, Error]:
         f.write(res)
         
 def add_embedding(embedding:EmbGen):
-    return send_message_to_handler(f"post;embedding\n{embedding}")
+    return send_message_to_handler(f"post;embedding;{embedding}")
 
 def add_cache():
     pass
 
 def add_experiment(exp:Experiment):
-    return send_message_to_handler(f"post;experiment\n{exp}")
+    return send_message_to_handler(f"post;experiment;{exp}")
 
 
 def add_test(test:Test):
-    return send_message_to_handler(f"post;test\n{test}")
+    return send_message_to_handler(f"post;test:{test}")
 
 # removing from queue
 
@@ -270,7 +270,7 @@ def get_info_from(opt:infodicttype, id:int = None):
         Error("BadRequestError","you asked for the wrong thing bucko!")
 
     if(id is not None):
-        msg = f"{msg[:-1]};{id}"
+        msg += f";{id}"
 
     return send_message_to_handler(msg)
 
@@ -278,15 +278,36 @@ def get_info_from(opt:infodicttype, id:int = None):
 # Client code to communicate with handler
 import socket
 
+def response_handler(r:str):
+    msg = r.split(';', maxsplit=3)
+    var = msg[0]
+
+    if var == 'error':
+        Error(msg[1], msg[2])
+    
+    if var == 'success':
+        return {"message":msg[1]}
+
+    if len(msg)==2: # recieved whole list of objects.
+
+
+
 HOST = "127.0.0.1"  # The server's hostname or IP address
 PORT = 65432  # The port used by the server
+MAXBYTES = 1024
+
+manager = Manager()
+big_responses = manager.dict()
 
 def send_message_to_handler(msg:str):
     msg = bytes(msg, 'utf-8')
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))
         s.sendall(msg)
-        data = s.recv(1024)
 
-    print(f"Received {data!r}")
-    return data
+        data = s.recv(MAXBYTES)
+        data = data.decode("utf-8")
+
+        print(f"GOT MESSAGE BACK FROM SERVER {data}")
+        data = response_handler(data)
+        return data

@@ -103,12 +103,6 @@ def get_embeddings():
 def gen_embedding(embedding: EmbGen):
     add_embedding(embedding)
 
-    # global embgen_idx
-    # embgen_queue[embgen_idx] = embedding
-    # embgen_idx += 1
-    # return embgen_queue
-
-
 # AGENTS
 @app.get("/agents/")
 def agents():
@@ -132,11 +126,6 @@ def get_experiment(id:int = None) -> Union[Dict[(int, Experiment)], Experiment]:
 def add_experiment(experiment:Experiment) -> Dict[(int, Experiment)]:
     validate_experiment(experiment)
     add_experiment(experiment)
-
-    # global exp_idx
-    # experiment_queue[exp_idx] = experiment
-    # exp_idx += 1
-    # return experiment_queue
 
     
 @app.delete("/experiments/") 
@@ -190,7 +179,7 @@ if __name__ == "__main__":
     p = mp.Process(target = t_handle)
     p.start()
 
-    atexit.register(send_message_to_handler, args=("quit,"))
+    atexit.register(send_message_to_handler, msg="quit")
 
     command = f"uvicorn main:app --reload".split()
     run(command, cwd = current_dir)
