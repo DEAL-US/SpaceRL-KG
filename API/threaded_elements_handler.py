@@ -3,8 +3,6 @@ import socket
 
 from pathlib import Path
 
-
-
 embgen_queue, cache_queue, experiment_queue, test_queue = dict(), dict(), dict(), dict()
 embgen_idx, cache_idx, exp_idx, test_idx = 0,0,0,0
 
@@ -68,20 +66,36 @@ def message_handler(data:str) -> str:
                 
     if(petition == 'post'):
         if(variant == 'caches'):
-            experiment = msg[2]
-            print(experiment)
-            quit()
-            global exp_idx
-            experiment_queue[exp_idx] = experiment
-            exp_idx += 1
+            cache = msg[2]
+            print(cache)
+            cache_queue[cache_idx] = cache
+            cache_idx += 1
 
             return f"success;cache successfully added to queue."
         
+        if(variant == 'embeddings'):
+            embedding = msg[2]
+            print(embedding)
+            embgen_queue[embgen_idx] = embedding
+            embgen_idx += 1
+
+            return f"success;embedding successfully added to queue."
+
         elif(variant == 'experiments'):
-            return f"get;experiments;{experiment_queue}"
+            experiment = msg[2]
+            print(experiment)
+            experiment_queue[exp_idx] = experiment
+            exp_idx += 1
+
+            return f"success;experiment successfully added to queue."
         
         elif(variant == 'tests'):
-            return f"get;tests;{test_queue}"
+            test = msg[2]
+            print(test)
+            test_queue[test_idx] = test
+            test_idx += 1
+
+            return f"success;test successfully added to queue."
 
     if (len(res) > MAXBYTES): #msg is multipart.
         reslist = []
@@ -91,10 +105,12 @@ def message_handler(data:str) -> str:
 
         while not done:
             c += 1
-            reslist.append(f"{head}{res[a:b]}")
 
             if(b > len(res)):
                 done = True
+                head = f"multi;{multipart_idx};L;"
+
+            reslist.append(f"{head}{res[a:b]}")
 
             head = f"multi;{multipart_idx};{c};"
             overhead = len(head)
@@ -105,7 +121,7 @@ def message_handler(data:str) -> str:
         print("".join[reslist])
 
         multipart_idx += 1
-        return reslist
+        return "".join[reslist]
     
     return res
 
@@ -126,6 +142,5 @@ def main():
                 if not data:
                     break
 
-                response = message_handler(data.decode("utf-8"))
-                print(response)
+                response = message_handler(data.decode("utf-8"))                
                 conn.sendall(bytes(response, 'utf-8'))

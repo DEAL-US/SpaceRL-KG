@@ -123,7 +123,7 @@ def get_experiment(id:int = None) -> Union[Dict[(int, Experiment)], Experiment]:
             desc = f"There is no experiment with id {id}")
 
 @app.post("/experiments/") 
-def add_experiment(experiment:Experiment) -> Dict[(int, Experiment)]:
+def add_exp(experiment:Experiment) -> Dict[(int, Experiment)]:
     validate_experiment(experiment)
     add_experiment(experiment)
 
@@ -154,14 +154,9 @@ def get_test(id:int = None) -> Union[Dict[(int, Test)], Test]:
             desc = f"There is no test with id {id}")
 
 @app.post("/tests/") 
-def add_test(test:Test) -> Dict[(int, Test)]:
-    test = validate_test(test)
+def add_tst(test:Test) -> Dict[(int, Test)]:
+    validate_test(test)
     add_test(test)
-
-    # global test_idx
-    # test_queue[test_idx] = test
-    # test_idx += 1
-    # return test_queue
     
 @app.delete("/tests/") 
 def remove_test(id:int):

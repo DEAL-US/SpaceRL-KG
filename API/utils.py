@@ -1,5 +1,5 @@
 # Local imports
-import sys, os, time
+import sys, os, time, collections, json
 
 from enum import Enum
 from pathlib import Path
@@ -125,6 +125,7 @@ def validate_experiment(exp: Experiment):
     if len(exp.name) > 200 and len(exp.name) < 10:
         reasons.append("Experiment name must be between 10-200 characters\n")
 
+    experiment_queue = send_message_to_handler("get;experiments")
     f = list(filter(lambda l_exp: True if l_exp.name == exp.name else False, experiment_queue.values()))
 
     if exp.name in agents or len(f) != 0:
@@ -151,6 +152,7 @@ def validate_test(tst: Test):
     if len(tst.name) > 200 and len(tst.name) < 10:
         reasons.append("Test name must be between 10-200 characters\n")
 
+    test_queue = send_message_to_handler("get;tests")
     f = list(filter(lambda l_tst: True if l_tst.name == tst.name else False, test_queue.values()))
 
     if tst.name in tests or len(f) != 0:
@@ -251,6 +253,13 @@ def check_for_relation_in_dataset(dataset_name:str, relation_name:str):
     
     return relation_in_graph
 
+
+######################
+#   CLIENT HANDLER   #
+######################
+
+import socket
+
 class infodicttype(Enum):
     CACHE = "cache"
     EXPERIMENT = "experiment"
@@ -267,16 +276,17 @@ def get_info_from(opt:infodicttype, id:int = None):
         msg = f"get;tests"
 
     else:
-        Error("BadRequestError","you asked for the wrong thing bucko!")
+        Error("BadRequestError",f"you asked for the wrong thing bucko!\n{opt}")
 
     if(id is not None):
         msg += f";{id}"
 
     return send_message_to_handler(msg)
 
+# manager = Manager()
+# big_responses = manager.dict()
 
-# Client code to communicate with handler
-import socket
+big_responses = dict()
 
 def response_handler(r:str):
     msg = r.split(';', maxsplit=3)
@@ -287,19 +297,49 @@ def response_handler(r:str):
     
     if var == 'success':
         return {"message":msg[1]}
+    
+    if var == 'multi':
+        multi_idx, part_idx, msg_part = msg[1], *msg[2].split(';', maxsplit=2)
+
+        if(part_idx == 'L'):
+            od = collections.OrderedDict(sorted(big_responses.items()))
+            reslist = list(od.values())
+            reslist.append(msg_part)
+            return response_handler("".join(reslist))
+
+        elif multi_idx not in big_responses:
+            big_responses[multi_idx] = dict()
+            big_responses[multi_idx][part_idx] = msg_part
+        
+        return 'multi'
 
     if len(msg)==2: # recieved whole list of objects.
+        resp = msg[1]
+        print(resp)
+        if var == 'cache':
+            pass
 
+        if var == 'experiment':
+            pass
+            
+        if var == 'test':
+            pass
+            
+        return json.loads(resp)
+
+    if len(msg)==3:
+        idx, resp = msg[1], msg[2]
+        print(resp)
+    
+        return json.loads(resp)
 
 
 HOST = "127.0.0.1"  # The server's hostname or IP address
-PORT = 65432  # The port used by the server
+PORT = 65432  # The ports used by the server
 MAXBYTES = 1024
 
-manager = Manager()
-big_responses = manager.dict()
-
 def send_message_to_handler(msg:str):
+    print(f"SENDING MESSAGE TO SERVER:\n{msg}")
     msg = bytes(msg, 'utf-8')
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))
@@ -310,4 +350,13 @@ def send_message_to_handler(msg:str):
 
         print(f"GOT MESSAGE BACK FROM SERVER {data}")
         data = response_handler(data)
-        return data
+
+        if(data == 'multi'):
+            print("DATA IS MULTIPART, NEED TO RECIEVE MORE!")
+            done = False
+            while(not done):
+                break
+
+        else:
+            print(f"data being returned is of type: {type(data)}")
+            return data
