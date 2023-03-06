@@ -1,0 +1,6 @@
+,,NELL-995
+hits@1,TransE_l2,0.0132
+hits@3,TransE_l2,0.0322
+hits@5,TransE_l2,0.054
+hits@10,TransE_l2,0.104
+MRR,TransE_l2,0.03262722222222218

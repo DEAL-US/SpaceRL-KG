@@ -1,0 +1,22 @@
+multithreaded_dist_reward: False
+guided_reward: True
+guided_to_compute: ['terminal', 'distance']
+use_LSTM: True
+use_episodes: False
+episodes: 0
+alpha: 0.9
+gamma: 0.99
+learning_rate: 0.001
+activation: leaky_relu
+regularizers: ['kernel']
+algorithm: BASE
+reward_type: simple
+action_picking_policy: probability
+reward_computation: one_hot_max
+path_length: 3
+laps: 250
+dataset: NELL-995
+single_relation_pair: [True, 'concept:thinghascolor']
+name: has_color_NELL_base_BASE_simple_distance_250
+embeddings: ['TransE_l2']
+embedding: TransE_l2

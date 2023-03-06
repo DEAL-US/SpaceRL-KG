@@ -1,0 +1,6 @@
+,,WN18RR
+hits@1,TransE_l2,0.0088
+hits@3,TransE_l2,0.022
+hits@5,TransE_l2,0.0378
+hits@10,TransE_l2,0.077
+MRR,TransE_l2,0.023114047619047624

@@ -1,0 +1,6 @@
+,,FB15K-237
+hits@1,TransE_l2,0.0064
+hits@3,TransE_l2,0.0268
+hits@5,TransE_l2,0.0408
+hits@10,TransE_l2,0.084
+MRR,TransE_l2,0.023387936507936555

@@ -32,7 +32,7 @@ config = {
     # distance: computes the distance to the final node and gives a score based on it.
     # embedding: based on the similarity to the end node we reward the agent.
     # terminal: reward if we are on the final node, 0 otherwise.
-    "guided_to_compute":["terminal", "embedding"], #"distance","terminal","embedding"
+    "guided_to_compute":["terminal", "distance"], #"distance","terminal","embedding"
 
     "regenerate_embeddings":False, # if embedding is found and true re-calculates them.
     # if re-calculation is active, normalizes embedding values to be on the center of the N-dim embedding array
@@ -88,7 +88,7 @@ config = {
     #################
     # these parameters are shared by the trainer and tester suites.
 
-    "path_length":5, #the length of path exploration.
+    "path_length":3, #the length of path exploration.
 
     "random_seed":True, # to repeat the same results if false.
     "seed":78534245, # sets the seed to this number.
@@ -121,7 +121,6 @@ class Experiment():
             self.relation_to_train = relation
         else:
             self.relation_to_train = None
-
 
 current_dir = pathlib.Path(__file__).parent.resolve()
 agents_folder = pathlib.Path(f"{current_dir}/data/agents").resolve()
@@ -159,19 +158,68 @@ class Test():
             print(f"Incoherent Test detected: {self.name}")
             self.to_delete = True
 
+# TODO: train wordnet for PPO embedding and compare vs single relations
 EXPERIMENTS = [
-    Experiment("is_taller_NELL_PPO_simple_embedding_250", "NELL-995", ["TransE_l2"], 250, True, relation = "concept:istallerthan"),
-    Experiment("music_artist_genre_NELL_PPO_simple_embedding_150", "NELL-995", ["TransE_l2"], 150, True, relation = "concept:musicartistgenre"),
-    Experiment("has_color_NELL_base_PPO_embedding_250", "NELL-995", ["TransE_l2"], 250, True, relation = "concept:thinghascolor"),
-    # Experiment("asd1", "COUNTRIES", ["TransE_l2"], 1),
-    # Experiment("countiesall", "COUNTRIES", ["TransR"], 1) 
-    # Experiment("Umls-distancerew-125laps-PPO", "UMLS", ["TransE_l2"], 10),
-    # Experiment("embedding_testing", "NELL-995", ["TransE_l2"], 10, True, relation = "concept:animalpreyson"),
-    # Experiment("Countries 500 base", "COUNTRIES", ["TransE_l2"], 500, single_relation=False, relation="neighborOf")
+    # Experiment("film_genre_FB_PPO_distance_22", "FB15K-237", ["TransE_l2"], 22, True, relation = "/film/film/genre"),
+
+    # RL1 doing theese.
+    # Experiment("_hypernym_WN18_generic_PPO_simple_embedding_100", "WN18RR", ["TransE_l2"], 100, True, "_hypernym"),
+    # Experiment("_instance_hypernym_WN18_generic_PPO_simple_embedding_100", "WN18RR", ["TransE_l2"], 100, True, "_instance_hypernym"),
+    # Experiment("_member_meronym_WN18_generic_PPO_simple_embedding_100", "WN18RR", ["TransE_l2"], 100, True, "_member_meronym"),
+    # Experiment("_synset_domain_topic_of_WN18_generic_PPO_simple_embedding_100", "WN18RR", ["TransE_l2"], 100, True, "_synset_domain_topic_of"),
+
+    # RL2 doing these.
+    # Experiment("_also_see_WN18_generic_PPO_simple_embedding_100", "WN18RR", ["TransE_l2"], 200, True, "_also_see"),
+    # Experiment("_has_part_WN18_generic_PPO_simple_embedding_100", "WN18RR", ["TransE_l2"], 100, True, "_has_part"),
+    # Experiment("_member_of_domain_usage_WN18_generic_PPO_simple_embedding_100", "WN18RR", ["TransE_l2"], 200, True, "_member_of_domain_usage"),
+    # Experiment("_member_of_domain_region_WN18_generic_PPO_simple_embedding_100", "WN18RR", ["TransE_l2"], 200, True, "_member_of_domain_region"),
+    # Experiment("_verb_group_WN18_generic_PPO_simple_embedding_100", "WN18RR", ["TransE_l2"], 150, True, "_verb_group"),
+    # Experiment("_similar_to_WN18_generic_PPO_simple_embedding_100", "WN18RR", ["TransE_l2"], 500, True, "_similar_to"),
+    # Experiment("_derivationally_related_form_WN18_generic_PPO_simple_embedding_100", "WN18RR", ["TransE_l2"], 100, True, "_derivationally_related_form"),
+    # Experiment("WN18_generic_PPO_simple_embedding_50", "WN18RR", ["TransE_l2"], 50),
+
+    # Experiment("music_artist_genre_NELL_PPO_simple_distance_150", "NELL-995", ["TransE_l2"], 150, True, relation = "concept:musicartistgenre"),
+    # Experiment("has_color_NELL_PPO_simple_distance_250", "NELL-995", ["TransE_l2"], 250, True, relation = "concept:thinghascolor"),
 ]
 
 TESTS = [
-    # Test("countries-test-name", "countries-1", ["TransE_l2"], 5),
+    Test("WN18_generic_PPO_simple_embedding_50", "WN18_generic_PPO_simple_embedding_50", ["TransE_l2"], 5000),
+    Test("film_genre_FB_PPO_distance_22", "film_genre_FB_PPO_distance_22", ["TransE_l2"], 5000),
+    
+    #WN18 TESTS
+    # Test("also-see-wn18-PPO-simple-emb-100", "_also_see_WN18_generic_PPO_simple_embedding_100", ["TransE_l2"], 5000),
+    # Test("derivationally-related-from-wn18-PPO-simple-emb-100", "_derivationally_related_form_WN18_generic_PPO_simple_embedding_100", ["TransE_l2"], 5000),
+    # Test("has-part-wn18-PPO-simple-emb-100", "_has_part_WN18_generic_PPO_simple_embedding_100", ["TransE_l2"], 5000),
+    # Test("hypernym-wn18-PPO-simple-emb-100", "_hypernym_WN18_generic_PPO_simple_embedding_100", ["TransE_l2"], 5000),
+    # Test("instance-hypernim-wn18-PPO-simple-emb-100", "_instance_hypernym_WN18_generic_PPO_simple_embedding_100", ["TransE_l2"], 5000),
+    # Test("member-meronym-wn18-PPO-simple-emb-100", "_member_meronym_WN18_generic_PPO_simple_embedding_100", ["TransE_l2"], 5000),
+    # Test("member-domain-region-wn18-PPO-simple-emb-100", "_member_of_domain_region_WN18_generic_PPO_simple_embedding_100", ["TransE_l2"], 5000),
+    # Test("member-domain-usage-wn18-PPO-simple-emb-100", "_member_of_domain_usage_WN18_generic_PPO_simple_embedding_100", ["TransE_l2"], 5000),
+    # Test("similar-to-wn18-PPO-simple-emb-100", "_similar_to_WN18_generic_PPO_simple_embedding_100", ["TransE_l2"], 5000),
+    # Test("synset-domain-topic-wn18-PPO-simple-emb-100", "_synset_domain_topic_of_WN18_generic_PPO_simple_embedding_100", ["TransE_l2"], 5000),
+    # Test("verb-group-wn18-PPO-simple-emb-100", "_verb_group_WN18_generic_PPO_simple_embedding_100", ["TransE_l2"], 5000),
+
+    # # FREEBASE TESTS
+    # Test("film-genre-FB-base-simple-distance-22-test", "film_genre_FB_Base_simple_distance_22", ["TransE_l2"], 2500),
+    # Test("film-genre-FB-base-simple-embedding-22-test", "film_genre_FB_Base_simple_embedding_22", ["TransE_l2"], 2500),
+    # Test("film-genre-FB-PPO-simple-embedding-22-test", "film_genre_FB_PPO_embedding_22", ["TransE_l2"], 2500),
+
+    # # NELL-TESTS
+    # Test("has-color-nell-base-dist-250", "has_color_NELL_BASE_simple_distance_250", ["TransE_l2"], 5000),
+    # Test("has-color-nell-base-emb-250", "has_color_NELL_BASE_simple_embedding_250", ["TransE_l2"], 5000),
+    # Test("has-color-nell-ppo-emb-250", "has_color_NELL_PPO_embedding_250", ["TransE_l2"], 5000),
+    # Test("has-color-nell-ppo-dist-250", "has_color_NELL_PPO_simple_distance_250", ["TransE_l2"], 5000),
+    
+    # Test("is-taller-nell-base-dist-250", "is_taller_NELL_BASE_simple_distance_250", ["TransE_l2"], 5000),
+    # Test("is-taller-nell-base-emb-250", "is_taller_NELL_BASE_simple_embedding_250", ["TransE_l2"], 5000),
+    # Test("is-taller-nell-ppo-emb-250", "is_taller_NELL_PPO_simple_embedding_250", ["TransE_l2"], 5000),
+    # Test("is-taller-nell-ppo-dist-250", "is_taller_NELL_PPO_simple_distance_250", ["TransE_l2"], 5000),
+
+    # Test("music_artist_genre-nell-base-dist-150", "music_artist_genre_NELL_BASE_simple_distance_150", ["TransE_l2"], 5000),
+    # Test("music_artist_genre-nell-base-emb-150", "music_artist_genre_NELL_BASE_simple_embedding_150", ["TransE_l2"], 5000),
+    # Test("music_artist_genre-nell-ppo-emb-150", "music_artist_genre_NELL_PPO_simple_embedding_150", ["TransE_l2"], 5000),
+    # Test("music_artist_genre-nell-ppo-dist-150", "music_artist_genre_NELL_PPO_simple_distance_150", ["TransE_l2"], 5000),
+
     # Test("another-test", "Countries-distancerewonly-250laps-PPO", ["TransE_l2"], 10),
     # Test("good_test", "countiesall", ["TransE_l2", "DistMult", "ComplEx"], 10),
 ]

@@ -1,10 +1,7 @@
 import numpy as np
 import networkx as nx
 from numpy.linalg import norm
-import logging
-import random
-import copy
-import gym
+import logging, random, copy, gym, traceback
 
 from multiprocessing import Process
 from data.generator.generate_trans_embeddings import generate_embedding
@@ -207,7 +204,9 @@ class KGEnv(gym.Env):
                 self.distance_cache = self.dm.get_cache_for_dataset(dataset)
                 if(self.distance_cache is None):
                     self.distance_cache = dict()
-            except:
+            except Exception as e:
+                print(f"Cache initialization Failed, related exception is: ")
+                print(traceback.format_exc())
                 self.distance_cache = dict()
 
             print(f"distance cache after init: {len(self.distance_cache)}" )
@@ -347,8 +346,10 @@ class KGEnv(gym.Env):
         :returns: the distance from the origin node to the destination node.
         """
         # check cache for distance.
-        if dest_node in self.distance_cache[origin_node] and not exclude_rel:
-            return self.distance_cache[origin_node][dest_node]
+        try:
+            if dest_node in self.distance_cache[origin_node] and not exclude_rel:
+                return self.distance_cache[origin_node][dest_node]
+        except:pass
 
         if(exclude_rel is not None):
             self.netX_KG.remove_edge(origin_node, dest_node, key=exclude_rel)
@@ -368,7 +369,11 @@ class KGEnv(gym.Env):
                 return None
 
         # if not in cache, add all calculted nodes to cache.
-        self.distance_cache[origin_node].update(lengths)
+        try:
+            self.distance_cache[origin_node].update(lengths)
+        except:
+            self.distance_cache[origin_node] = lengths
+
             
         # return distance if it exists, None if non connected.
         if dest_node in lengths:
