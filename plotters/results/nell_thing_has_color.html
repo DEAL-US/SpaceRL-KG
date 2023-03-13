@@ -1,0 +1,17 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.17.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+</head>
+<body>
+<div class="vega-visualization" id="vega-visualization-3ff517b54b594a059a6a00b2945e4c0e"></div>
+<script type="text/javascript">
+  const spec = {"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}, "axis": {"labelFontSize": 12, "titleFontSize": 12}, "font": "arial narrow"}, "data": {"name": "data-81fe9b35439c9679035aad9068f5771c"}, "mark": "bar", "encoding": {"color": {"field": "config", "legend": null, "scale": {"domain": ["BASE-DISTANCE", "BASE-EMBEDDING", "PPO-DISTANCE", "PPO-EMBEDDING"], "range": ["#003f5c", "#374c80", "#7a5195", "#bc5090", "#ef5675", "#ff764a", "#ffa600"]}, "type": "nominal"}, "column": {"field": "metric", "type": "nominal"}, "x": {"field": "config", "sort": ["BASE-DISTANCE", "BASE-EMBEDDING", "PPO-DISTANCE", "PPO-EMBEDDING"], "title": "", "type": "nominal"}, "y": {"field": "value", "sort": ["hits@01", "hits@03", "hits@05", "hits@10", "MRR"], "title": "", "type": "quantitative"}}, "$schema": "https://vega.github.io/schema/vega-lite/v4.17.0.json", "datasets": {"data-81fe9b35439c9679035aad9068f5771c": [{"value": 0.445, "config": "BASE-DISTANCE", "metric": "hits@01"}, {"value": 0.804, "config": "BASE-DISTANCE", "metric": "hits@03"}, {"value": 0.908, "config": "BASE-DISTANCE", "metric": "hits@05"}, {"value": 0.949, "config": "BASE-DISTANCE", "metric": "hits@10"}, {"value": 0.6923, "config": "BASE-DISTANCE", "metric": "MRR"}, {"value": 0.588, "config": "BASE-EMBEDDING", "metric": "hits@01"}, {"value": 0.897, "config": "BASE-EMBEDDING", "metric": "hits@03"}, {"value": 0.964, "config": "BASE-EMBEDDING", "metric": "hits@05"}, {"value": 0.987, "config": "BASE-EMBEDDING", "metric": "hits@10"}, {"value": 0.7711, "config": "BASE-EMBEDDING", "metric": "MRR"}, {"value": 0.551, "config": "PPO-DISTANCE", "metric": "hits@01"}, {"value": 0.869, "config": "PPO-DISTANCE", "metric": "hits@03"}, {"value": 0.947, "config": "PPO-DISTANCE", "metric": "hits@05"}, {"value": 0.983, "config": "PPO-DISTANCE", "metric": "hits@10"}, {"value": 0.7335, "config": "PPO-DISTANCE", "metric": "MRR"}, {"value": 0.634, "config": "PPO-EMBEDDING", "metric": "hits@01"}, {"value": 0.953, "config": "PPO-EMBEDDING", "metric": "hits@03"}, {"value": 0.996, "config": "PPO-EMBEDDING", "metric": "hits@05"}, {"value": 0.999, "config": "PPO-EMBEDDING", "metric": "hits@10"}, {"value": 0.7889, "config": "PPO-EMBEDDING", "metric": "MRR"}]}};
+  const embedOpt = {};
+  vegaEmbed('#vega-visualization-3ff517b54b594a059a6a00b2945e4c0e', spec, embedOpt).catch(console.error);
+</script>
+</body>
+</html>
