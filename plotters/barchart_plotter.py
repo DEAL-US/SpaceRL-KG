@@ -26,7 +26,8 @@ class barchart_plotter():
         chart = alt.Chart(self.df).mark_bar().encode(
         alt.X(f'{self.header[1]}:N', title='', sort=self.bar_names),
         alt.Y(f'{self.header[0]}:Q', title='', sort=self.groups),
-        color=alt.Color(f'{self.header[1]}:N', scale=alt.Scale(domain=self.bar_names, range=self.colors), legend=None),
+        color=alt.Color(f'{self.header[1]}:N',
+        scale=alt.Scale(domain=self.bar_names, range=self.colors), legend=None),
         column=f'{self.header[2]}:N'
         ).configure(
             font='arial narrow'
