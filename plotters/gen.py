@@ -5,3 +5,6 @@ from barchart_plotter import *
 # nell_is_taller.generate()
 # nell_music_artist_genre.generate()
 # fb_film_genre.generate()
+# relation_appearances.generate()
+# MRR_relations.generate()
+

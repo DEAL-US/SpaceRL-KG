@@ -38,6 +38,67 @@ class barchart_plotter():
 
         save(chart, f"{local_dir}/results/{self.filename}.html")
 
+
+class logarithmic_bar_plot():
+    def __init__(self, filename, header, data, colors):
+        self.header = header
+        self.filename = filename
+        self.data = data
+        self.colors = colors
+
+        self.df = pd.DataFrame(data, columns = header)
+
+        self.names = list(self.df[header[0]])
+
+    def generate(self):
+        chart = alt.Chart(self.df).mark_bar().encode(
+        x=alt.X(
+            f'{self.header[0]}:O',
+            sort = self.names
+        ),
+        y=alt.Y(
+            f'{self.header[1]}',
+            scale=alt.Scale(type="log")
+        ),
+        color=alt.Color(
+            f'{self.header[0]}:N',
+            legend=None,
+            scale=alt.Scale(domain=self.names, range=self.colors),
+        )).configure(
+            font='arial narrow'
+        ).configure_axis(
+            labelFontSize=FONT_SIZE,
+            titleFontSize=FONT_SIZE
+        )
+
+        save(chart, f"{local_dir}/results/{self.filename}.html")
+
+
+relation_appearances = logarithmic_bar_plot(
+filename = "relation_appearances", 
+header = ["rel name", "rel #"], 
+data = [
+["similar_to", 80],
+["verb_group", 1138],
+["also_see", 1299],
+["derivationally_related_from", 29715],
+["GENERIC", 80798]],
+colors = ['#003f5c', '#374c80', '#7a5195', '#bc5090', '#ef5675','#ff764a','#ffa600']
+)
+
+MRR_relations = logarithmic_bar_plot(
+filename = "MRR_relations", 
+header = ["rel name", "MRR"], 
+data = [
+['similar_to', 0.909846667],
+['verb_group', 0.771853889],
+['also_see', 0.745857619],
+['derivationally_related_from', 0.637527063],
+['GENERIC', 0.443105317]
+],
+colors = ['#003f5c', '#374c80', '#7a5195', '#bc5090', '#ef5675','#ff764a','#ffa600']
+)
+
 countries_trans_e = barchart_plotter(filename="countries_trans_e",
 header = ["value", "reward", "metric"],
 data = [[0.355, "Terminal", "hits@01"],

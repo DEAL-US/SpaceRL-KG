@@ -32,49 +32,45 @@ class line_plotter():
 
         save(chart, f"{local_dir}/results/{self.filename}.html")
 
+filename = "MRRvsRelNum"
 
-data = [['similar_to', 0.909846667],
-['verb_group', 0.771853889],
-['also_see', 0.745857619],
-['derivationally_related_from', 0.637527063],
-['GENERIC', 0.443105317]]
-header = ['rel name', 'MRR']
+header = ['rel name', 'rel#', 'MRR']
 
-df1 = pd.DataFrame(data, columns = header )
+data = [["similar_to (80)", 80, 0.909846667],
+["verb_group (1138)", 1138, 0.771853889],
+["also_see (1299)", 1299, 0.745857619],
+["derivationally_related_from (29715)", 29715, 0.637527063],
+["GENERIC (80798)", 80798, 0.443105317]]
 
-data = [
-["similar_to", 80],
-["verb_group", 1138],
-["also_see", 1299],
-["derivationally_related_from", 29715],
-["GENERIC", 80798]]
-header = ["rel name", "rel #"] 
+df = pd.DataFrame(data, columns = header)
 
-df2 = pd.DataFrame(data, columns = header)
+axis_labels = (
+    """datum.label == 80 ? 'similar_to (80)'
+    : datum.label == 1138 ? 'verb_group (1138)'
+    : datum.label == 1299 ? 'also_see (1299)'
+    : datum.label == 29715 ? 'derivationally_related_from (29715)'
+    : datum.label == 80798 ? 'GENERIC (80798)'"""
+)
 
-print(df1)
-print(df2)
-
-filename = "test"
-
-chart = alt.Chart(df2).mark_bar().encode(
+chart = alt.Chart(df).mark_line(point = True).encode(
     x=alt.X(
-        f'{header[0]}:O',
-        sort = ["similar_to", "verb_group", "also_see", "derivationally_related_from", "GENERIC"]
+        f'{header[1]}:O',
+        axis = alt.Axis(title = ["similar_to (80)", "verb_group (1138)", "also_see (1299)",
+        "deriv_rel_from (29715)", "GENERIC (80798)"], labelAngle=0),
+
     ),
     y=alt.Y(
-        f'{header[1]}',
-        scale=alt.Scale(type="log")
-    ),
-    color=alt.Color(
-        f'{header[0]}:N',
-        scale=alt.Scale(domain=["similar_to", "verb_group", "also_see", "derivationally_related_from", "GENERIC"],
-        range=['#003f5c', '#374c80', '#7a5195', '#bc5090', '#ef5675','#ff764a','#ffa600']), legend=None),
+        f'{header[2]}',
+        scale=alt.Scale(domain=[0.4, 1])
+    )
 ).configure(
     font='arial narrow'
 ).configure_axis(
     labelFontSize=FONT_SIZE,
     titleFontSize=FONT_SIZE
+).properties(
+    width=200,
+    height=200
 )
 
 save(chart, f"{local_dir}/results/{filename}.html")
