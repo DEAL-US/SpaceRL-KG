@@ -2,35 +2,52 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 from random import random
+import math
+import Bezier
 
 curr_dir = Path(__file__).parent.resolve()
 
-acc_start_value = 0.0067354
+acc_start_value = 0.67354
 acc_end_value = 0.6466
 
-
-asintotic_percent = 0.56
 laps = 259800
+endraise_percent = 0.5
+stable_percent = 0.84
+x, y = range(laps), []
 
-values_acc = []
-values_loss = []
+bezier_start = laps/endraise_percent
+bezier_end = laps/stable_percent
 
-asintote_lap_start = laps*asintotic_percent
+raise_slope = 0.234
+end_slope = 0.034
 
-for i in range(0, laps, 150):
-    inc_dec_chance = 0.5 if i > asintote_lap_start else 0.25
+bez = Bezier.Bezier()
+# bezier curvature
+bez.Curve()
 
-    incline = random() > inc_dec_chance
-    inc_val = random() * acc_end_value/1500
+for i in range(laps):
+    if laps/i < endraise_percent: 
+        #steady raising almost linear
+        v = raise_slope*x[i]+0
+        y.append(v)
+        lastv = v
 
-    for n in range(150):
-        climb_mod = (i+n+1)/asintote_lap_start
-        v = acc_start_value + (acc_end_value*climb_mod) if i < asintote_lap_start else acc_end_value
-        v = v+inc_val*n if incline else v-inc_val*n
-        values_acc.append(v)
+    # elif laps/i > endraise_percent and laps/i < stable_percent: 
+
+    elif laps/i > stable_percent: 
+        #linear but raising super slow now.
+
+        v = raise_slope*x[i]+0
+        y.append(v)
+        lastv = v
+    
+#find bezier, points
+
+
+
 
 fig, ax = plt.subplots()
-ax.plot(range(laps), values_acc)
+ax.plot(x, y)
 ax.set(xlabel='laps', ylabel='accuracy',
        title='WN18 also see accuracy.')
 
