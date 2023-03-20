@@ -3,6 +3,7 @@ Version 1.1, from < BezierCurveFunction-v1.ipynb > on 2019-05-02
 """
 
 import numpy as np
+from tqdm import tqdm
 
 __all__ = ["Bezier"]
 
@@ -21,8 +22,8 @@ class Bezier():
 
         if not isinstance(P1, np.ndarray) or not isinstance(P2, np.ndarray):
             raise TypeError('Points must be an instance of the numpy.ndarray!')
-        if not isinstance(t, (int, float)):
-            raise TypeError('Parameter t must be an int or float!')
+        # if not isinstance(t, (int, float)):
+        #     raise TypeError('Parameter t must be an int or float!')
 
         Q1 = (1 - t) * P1 + t * P2
         return Q1
@@ -79,11 +80,11 @@ class Bezier():
             raise TypeError("`t_values` Must be an iterable of integers or floats, of length greater than 0 .")
         if len(t_values) < 1:
             raise TypeError("`t_values` Must be an iterable of integers or floats, of length greater than 0 .")
-        if not isinstance(t_values[0], (int, float)):
-            raise TypeError("`t_values` Must be an iterable of integers or floats, of length greater than 0 .")
+        # if not isinstance(t_values[0], (int, float)):
+        #     raise TypeError("`t_values` Must be an iterable of integers or floats, of length greater than 0 .")
 
         curve = np.array([[0.0] * len(points[0])])
-        for t in t_values:
+        for t in tqdm(t_values):
             #print("curve                  \n", curve)
             #print("Bezier.Point(t, points) \n", Bezier.Point(t, points))
 
