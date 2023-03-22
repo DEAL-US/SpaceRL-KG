@@ -4,7 +4,7 @@ from vega_datasets import data
 from altair_saver import save
 import pathlib
 
-FONT_SIZE = 12
+FONT_SIZE = 16
 
 local_dir = pathlib.Path(__file__).parent.resolve()
 
@@ -64,14 +64,27 @@ class logarithmic_bar_plot():
             f'{self.header[0]}:N',
             legend=None,
             scale=alt.Scale(domain=self.names, range=self.colors),
-        )).configure(
+        ))
+
+        line = alt.Chart(self.df).mark_line(color='red', point=True).encode(
+            x=alt.X(
+            f'{self.header[0]}:O',
+            sort = self.names
+            ),
+            y=alt.Y(
+                f'{self.header[1]}',
+                scale=alt.Scale(type="log")
+            ),
+        )
+
+        res = (chart + line).configure(
             font='arial narrow'
         ).configure_axis(
             labelFontSize=FONT_SIZE,
             titleFontSize=FONT_SIZE
         )
 
-        save(chart, f"{local_dir}/results/{self.filename}.html")
+        save(res, f"{local_dir}/results/{self.filename}.html")
 
 
 relation_appearances = logarithmic_bar_plot(
