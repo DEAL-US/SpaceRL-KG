@@ -314,10 +314,15 @@ def validate_config_value(param:str, value):
                 Error("WrongValueError", f"value(s) must be one of the following: {l}, was {value} instead.")
 
     else:
-        l = validation_dict[param]
-        if v not in l:
-            Error("WrongValueError", f"value must be one of the following: {l}, was {value} instead.")
-        
+        try:
+            l = validation_dict[param]
+            if v not in l:
+                Error("WrongValueError", f"value must be one of the following: {l}, was {value} instead.")
+        except:
+            if param not in changeable_config:
+                Error("WrongValueError", f"param was not found.")
+
+
     
 ######################
 #   CLIENT HANDLER   #

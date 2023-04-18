@@ -3,6 +3,8 @@ import altair as alt
 from vega_datasets import data
 from altair_saver import save
 import pathlib
+import numpy as np
+from sklearn import datasets, linear_model
 
 FONT_SIZE = 16
 
@@ -66,16 +68,29 @@ class logarithmic_bar_plot():
             scale=alt.Scale(domain=self.names, range=self.colors),
         ))
 
+        # test stuff
+        regr = linear_model.LinearRegression()
+        x = pd.Series(list(range(1, 6))).values.reshape(5,1)
+        y = self.df[self.header[1]].values.reshape(5,1)
+        reg = regr.fit(x,y).predict(x)
+        # reg[0] = 80
+
+        self.df["regression"] = reg
+
+        print(self.df)
+
         line = alt.Chart(self.df).mark_line(color='red', point=True).encode(
             x=alt.X(
             f'{self.header[0]}:O',
             sort = self.names
             ),
             y=alt.Y(
-                f'{self.header[1]}',
+                'regression',
                 scale=alt.Scale(type="log")
             ),
         )
+
+        # line = chart.transform_regression('x', self.header[1]).mark_line()
 
         res = (chart + line).configure(
             font='arial narrow'
