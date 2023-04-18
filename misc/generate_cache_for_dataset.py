@@ -50,6 +50,7 @@ def main(exclude, max_depth):
         
 
 if __name__ == "__main__":
-    exclude = ["FB15K-237","KINSHIP", "UMLS", "WN18RR", "COUNTRIES"] 
+    # Datasets = ["COUNTRIES", "FB15K-237","KINSHIP", "UMLS", "WN18RR", "NELL-995"] 
+    exclude = ["KINSHIP", "COUNTRIES"] 
     max_depth = 3
     main(exclude, max_depth)

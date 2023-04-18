@@ -209,11 +209,11 @@ def generate_raw(dataset: str, generator_dir: str, dataset_dir: str, add_inverse
 
 # YOU CAN RUN THIS DIRECTLY TO GENERATE ALL THE POSSIBLE EMBEDDINGS AND AVOID WAITING IN THE FUTURE FOR ANY NEW ONES.
 if __name__ == "__main__":
-    use_gpu, regenerate_existing , fast_mode = True, True, False
+    use_gpu, regenerate_existing , fast_mode = False, False, True
 
     # add or remove the datasets you want to generate embeddings for.
     # datasets = ["COUNTRIES", "FB15K-237", "KINSHIP", "NELL-995", "UMLS", "WN18RR"]
-    datasets = ["NELL-995"]
+    datasets = ["COUNTRIES", "FB15K-237", "KINSHIP", "NELL-995", "UMLS", "WN18RR"]
 
     for d in datasets:
         generate_embedding(d, [], use_gpu, regenerate_existing, normalize=True,

@@ -2,16 +2,20 @@ import os, time, threading
 
 from GPUtil import GPUtil
 
-# select avaliable GPU (CONTEMPLATES ONLY 2)
-gpu1, gpu2 = GPUtil.getGPUs()
-available_gpu = gpu1 if gpu1.memoryFree >= gpu2.memoryFree else gpu2
+# select avaliable GPU 
+gpus = GPUtil.getGPUs()
+available_gpu = None
+for gpu in gpus:
+    if gpu.memoryUtil > 0.4:
+        available_gpu = gpu
+        break
 
-if(available_gpu.memoryUtil > 0.4):
+if(available_gpu is None):
     print("NO GPUS AVAILABLE")
     GPUtil.showUtilization()
-    quit()
-
-os.environ["CUDA_VISIBLE_DEVICES"]=str(available_gpu.id)
+else:
+    print(f"USING AVAILABLE GPU {available_gpu}")
+    os.environ["CUDA_VISIBLE_DEVICES"]=str(available_gpu.id)
 
 import tensorflow as tf
 import numpy as np

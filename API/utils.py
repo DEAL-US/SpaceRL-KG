@@ -1,5 +1,5 @@
 # Local imports
-import sys, os, time, collections, json
+import sys, os, time, collections, json, re
 
 from enum import Enum
 from pathlib import Path
@@ -253,7 +253,72 @@ def check_for_relation_in_dataset(dataset_name:str, relation_name:str):
     
     return relation_in_graph
 
+def convert_var_to_config_type(param:str, value):
+    if param in ["seed", "available_cores", "path_length"]:
+        value = int(value)
 
+    elif param in ["guided_reward", "regenerate_embeddings",
+    "normalize_embeddings", "use_LSTM", "random_seed"]:
+        value = bool(value)
+
+    elif param in ["alpha", "gamma", "learning_rate"]:
+        value = float(value)
+
+    elif param in ["guided_to_compute", "regularizers"]:
+        rep = {"[":"", "]":"", "\"":"", "\'":""}
+        rep = dict((re.escape(k), v) for k, v in rep.items()) 
+        pattern = re.compile("|".join(rep.keys()))
+        value = pattern.sub(lambda m: rep[re.escape(m.group(0))], value)
+        value = value.split(",")
+        value = list(map(lambda x: x.strip(), value))
+        value = list(set(value))
+    
+    validate_config_value(param, value)
+
+    return value
+
+def validate_config_value(param:str, value):
+    validation_dict = {
+    "path_length": [3, 10],
+    "available_cores": [1, cpu_count()], 
+
+    "guided_to_compute":["distance", "terminal", "embedding"],
+    "regularizers": ["kernel", "bias", "activity"],
+
+    "alpha": [0.8, 0.99],
+    "gamma": [0.90, 0.99],
+    "learning_rate": [1e-3, 1e-5],
+
+    "activation": ['relu', 'prelu', 'leaky_relu', 'elu', 'tanh'], #opt
+    "algorithm": ['BASE', 'PPO'], #opt
+    "reward_type": ['retropropagation', 'simple'], #opt
+    "action_picking_policy": ["probability", "max"], #opt
+    "reward_computation": ["max_percent", "one_hot_max", "straight"], #opt
+
+    }
+
+    if param in ["available_cores", "path_length"]:
+        l = validation_dict[param]
+        if(value < l[0] or value > l[1]):
+            Error("WrongValueError", f"{value} must be in range {l}, was {value} for param: {param}.")
+
+    elif param in ["alpha", "gamma", "learning_rate"]:
+        l = validation_dict[param]
+        if(value < l[0] or value > l[1]):
+            Error("WrongValueError", f"{value} must be in range {l}, was {value} for param: {param}.")
+
+    elif param in ["guided_to_compute", "regularizers"]:
+        l = validation_dict[param]
+        for v in value:
+            if v not in l:
+                Error("WrongValueError", f"value(s) must be one of the following: {l}, was {value} instead.")
+
+    else:
+        l = validation_dict[param]
+        if v not in l:
+            Error("WrongValueError", f"value must be one of the following: {l}, was {value} instead.")
+        
+    
 ######################
 #   CLIENT HANDLER   #
 ######################

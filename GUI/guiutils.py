@@ -210,6 +210,8 @@ def GetTestsPaths():
 
     test_list = os.listdir(tests_folder)
     test_list.remove(".gitkeep")
+    test_list.remove("TESTING RESULTS RLKG.xlsx")
+
 
     agent_list = os.listdir(agents_folder)
     agent_list.remove(".gitkeep")

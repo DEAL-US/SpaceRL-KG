@@ -2,7 +2,6 @@ from tkinter import *
 from tkinter import ttk
 
 import sys, pathlib, os, random, time, math
-import matplotlib.pyplot as plt
 import networkx as nx
 import pygame as pg
 from guiutils import GetTestsPaths, remove_prefix_suffix

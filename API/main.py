@@ -10,6 +10,7 @@ from utils import permanent_config, changeable_config
 from utils import Experiment, Test, Error, Triple, EmbGen, infodicttype
 from utils import validate_test, validate_experiment, add_dataset, get_agents, get_info_from, send_message_to_handler
 from utils import add_embedding, add_cache, add_experiment, add_test
+from utils import convert_var_to_config_type
 
 from threaded_elements_handler import main as t_handle
 
@@ -64,10 +65,7 @@ def set_config(param:str, value) -> dict:
         Error("ParameterDoesNotExist",
         f"{param} is not a config param.")
     
-    t = type(changeable_config[param])
-    if  t != type(value):
-        Error("TypeMismatchError",
-        f"{value} must be of type {t}, was {type(value)} instead.")
+    value = convert_var_to_config_type(param, value)    
 
     if(len(get_info_from(infodicttype.EXPERIMENT)) != 0 
        or len(get_info_from(infodicttype.TEST)) !=0):
