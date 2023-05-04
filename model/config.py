@@ -160,6 +160,8 @@ class Test():
 
 # TODO: train wordnet for PPO embedding and compare vs single relations
 EXPERIMENTS = [
+    Experiment("test_model", "COUNTRIES", ["TransE_l2"], 1),
+
     # Experiment("film_genre_FB_PPO_distance_22", "FB15K-237", ["TransE_l2"], 22, True, relation = "/film/film/genre"),
 
     # RL1 doing theese.

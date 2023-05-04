@@ -437,7 +437,11 @@ class KGEnv(gym.Env):
         #Cosine similarity: range [0-1] 1 is best.
         cos_sim = dot/(norm(a)*norm(b))
 
+        # TODO: get the initial relation to apply reward shaping...
+        rew_dot = np.dot((a + initial_relation), b)
+        rew_shape_cos_sim = dot/(norm(a + initial_relation)*norm(b))
+
         #Euclidean distance: min = 0
         euc_dist = norm(a-b)
 
-        return(dot, euc_dist, cos_sim)
+        return(dot, euc_dist, cos_sim) # , rew_shape_cos_sim 

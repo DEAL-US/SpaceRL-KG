@@ -9,6 +9,8 @@ from multiprocessing import Process, Queue, Manager
 
 import time, traceback
 
+from keras import utils as k_utils
+
 from data.data_manager import DataManager
 from environment import KGEnv
 
@@ -197,6 +199,8 @@ class Agent(object):
             
             print("=== Build Actor Network ===")
             print(actor.summary())
+            k_utils.vis_utils.plot_model(actor,show_shapes=True)
+            quit()
     
             critic = self.build_critic_network(input_size, hidden_layer_size, LTSM_layer_size)
             optimizer=adam_v2.Adam(learning_rate=lr)
