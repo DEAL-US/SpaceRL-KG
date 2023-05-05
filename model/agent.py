@@ -357,6 +357,7 @@ class Agent(object):
             
             new_state_node = action_taken[1]
             dest_node = self.env.target_triple[2]
+            initial_rel = self.env.target_triple[1]
 
             ratio_emb, ratio_dist = 0.7, 0.3
             
@@ -364,11 +365,12 @@ class Agent(object):
             emb_dists, distance = None, None
 
             if(self.guided_reward):
-
+                emb_dists = self.env.get_embedding_info(new_state_node, initial_rel, dest_node)
+                
                 if "embedding" in self.guided_options:
                     # we compare the embedding operations to the ones in the previous step
                     # and reward the agent if we are closer to the end node according to the embedding.
-                    emb_dists = self.env.get_embedding_info(new_state_node, dest_node)
+
                     latest = self.emb_metrics_mem[-1]
                     
                     # [dot, euc_dist, cos_sim]
@@ -403,6 +405,9 @@ class Agent(object):
                             dist_rew = 1/3
                         else:
                             dist_rew = 0.005 
+
+                if "shaping" in self.guided_options:
+                    total_rew = emb_dists[3]
 
                 if "terminal" in self.guided_options and new_state_node == dest_node:
                     # with terminal rewards active, if we are in the end node reward is max.
@@ -452,8 +457,8 @@ class Agent(object):
         # initialize embedding and distance reward lists.
         origin_node, target_rel , dest_node = self.env.target_triple
 
-        if "embedding" in self.guided_options and len(self.emb_metrics_mem) ==0:
-            baseline_emb_dist = self.env.get_embedding_info(origin_node, dest_node)
+        if "embedding" in self.guided_options or "shaping" in self.guided_options and len(self.emb_metrics_mem) == 0:
+            baseline_emb_dist = self.env.get_embedding_info(origin_node, target_rel, dest_node)
             self.emb_metrics_mem.append(baseline_emb_dist)
 
         if "distance" in self.guided_options and len(self.distance_mem) ==0:
@@ -580,7 +585,7 @@ class Agent(object):
                 self.utils.verb_print(f"calculated distances to end_node {self.step_distances}")
                 self.distance_mem.append(self.step_distances[chosen_action_index])
                 
-            if "embedding" in self.guided_options:
+            if "embedding" in self.guided_options or "shaping" in self.guided_options:
                 self.utils.verb_print(f"calculated embedding metrics {self.step_embeddings}")
                 self.emb_metrics_mem.append(self.step_embeddings[chosen_action_index])
 

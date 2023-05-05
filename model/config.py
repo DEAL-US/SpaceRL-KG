@@ -32,7 +32,7 @@ config = {
     # distance: computes the distance to the final node and gives a score based on it.
     # embedding: based on the similarity to the end node we reward the agent.
     # terminal: reward if we are on the final node, 0 otherwise.
-    "guided_to_compute":["terminal", "distance"], #"distance","terminal","embedding"
+    "guided_to_compute":["terminal", "shaping"], #"distance","terminal","embedding","shaping"
 
     "regenerate_embeddings":False, # if embedding is found and true re-calculates them.
     # if re-calculation is active, normalizes embedding values to be on the center of the N-dim embedding array
@@ -160,7 +160,7 @@ class Test():
 
 # TODO: train wordnet for PPO embedding and compare vs single relations
 EXPERIMENTS = [
-    Experiment("test_model", "COUNTRIES", ["TransE_l2"], 1),
+    Experiment("countries_reward_shaping", "COUNTRIES", ["TransE_l2"], 200),
 
     # Experiment("film_genre_FB_PPO_distance_22", "FB15K-237", ["TransE_l2"], 22, True, relation = "/film/film/genre"),
 

@@ -1,6 +1,6 @@
 multithreaded_dist_reward: False
 guided_reward: True
-guided_to_compute: ['terminal', 'distance']
+guided_to_compute: ['terminal', 'shaping']
 use_LSTM: True
 use_episodes: False
 episodes: 0
@@ -14,9 +14,9 @@ reward_type: simple
 action_picking_policy: probability
 reward_computation: one_hot_max
 path_length: 3
-laps: 1
+laps: 200
 dataset: COUNTRIES
 single_relation_pair: [False, None]
-name: test_model
+name: countries_reward_shaping
 embeddings: ['TransE_l2']
 embedding: TransE_l2

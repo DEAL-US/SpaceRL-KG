@@ -419,7 +419,7 @@ class KGEnv(gym.Env):
 
         return mins_ent, mins_rel, maxs_ent, maxs_rel
 
-    def get_embedding_info(self, evaluated_node:str, end_node:str):
+    def get_embedding_info(self, evaluated_node:str, evaluated_rel:str, end_node:str):
         """
         Calculate the embedding rewards for the current node.
 
@@ -430,6 +430,7 @@ class KGEnv(gym.Env):
         """
         a = np.array(self.entity_emb[evaluated_node])
         b = np.array(self.entity_emb[end_node])
+        r = np.array(self.relation_emb[evaluated_rel])
         
         #Dot product: max = 655
         dot = np.dot(a, b)
@@ -437,11 +438,12 @@ class KGEnv(gym.Env):
         #Cosine similarity: range [0-1] 1 is best.
         cos_sim = dot/(norm(a)*norm(b))
 
-        # TODO: get the initial relation to apply reward shaping...
-        rew_dot = np.dot((a + initial_relation), b)
-        rew_shape_cos_sim = dot/(norm(a + initial_relation)*norm(b))
-
+        # rewards shaping (cosine similarity by using the initial rel...)
+        c = a + r
+        rew_dot = np.dot(c, b)
+        rew_shape_cos_sim = dot/(norm(c)*norm(b))
+        
         #Euclidean distance: min = 0
         euc_dist = norm(a-b)
 
-        return(dot, euc_dist, cos_sim) # , rew_shape_cos_sim 
+        return(dot, euc_dist, cos_sim, rew_shape_cos_sim)
