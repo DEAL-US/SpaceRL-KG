@@ -2,11 +2,10 @@ import sys, os, time
 import socket
 
 from pathlib import Path
+from random import randint
 
 embgen_queue, cache_queue, experiment_queue, test_queue = dict(), dict(), dict(), dict()
 embgen_idx, cache_idx, exp_idx, test_idx = 0,0,0,0
-
-multipart_idx = 0
 
 # Folder paths:
 current_dir = Path(__file__).parent.resolve()
@@ -20,12 +19,14 @@ sys.path.insert(0, str(genpath))
 
 import generate_trans_embeddings as embgen
 
+HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
+MAXBYTES = 4096
 
 # Simple server code.
 def message_handler(data:str) -> str:
     global embgen_queue, cache_queue, experiment_queue, test_queue
     global embgen_idx, cache_idx, exp_idx, test_idx 
-    global multipart_idx 
+    multipart_idx = None
 
     if(data == "quit"):
         quit()
@@ -98,6 +99,7 @@ def message_handler(data:str) -> str:
             return f"success;test successfully added to queue."
 
     if (len(res) > MAXBYTES): #msg is multipart.
+        multipart_idx = randint(0, sys.maxsize) # we believe in a 0 collision world here.
         reslist = []
         done = False
         head = f"multi;{multipart_idx};0;"
@@ -125,22 +127,21 @@ def message_handler(data:str) -> str:
     
     return res
 
-HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
-PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
-MAXBYTES = 1024
-
-def main():
+def start_server(port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((HOST, PORT))
+        s.bind((HOST, port))
         s.listen()
         conn, addr = s.accept()
         
         with conn:
             print(f"Connected by {addr}")
             while True:
+                print("ready to recieve data.")
                 data = conn.recv(MAXBYTES)
+                print(f"data has been recieved by server: {data}")
                 if not data:
+                    print(f"wrong data was sent {data}")
                     break
-
-                response = message_handler(data.decode("utf-8"))                
-                conn.sendall(bytes(response, 'utf-8'))
+                else:
+                    response = message_handler(data.decode("utf-8"))                
+                    conn.sendall(bytes(response, 'utf-8'))

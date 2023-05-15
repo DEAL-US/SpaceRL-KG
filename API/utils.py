@@ -8,6 +8,9 @@ from pydantic import BaseModel
 import GPUtil as gputil
 
 from multiprocessing import cpu_count, Process, Manager
+import multiprocessing as mp
+
+from threaded_elements_handler import start_server
 
 from fastapi import HTTPException
 
@@ -220,9 +223,8 @@ def add_cache():
 def add_experiment(exp:Experiment):
     return send_message_to_handler(f"post;experiment;{exp}")
 
-
 def add_test(test:Test):
-    return send_message_to_handler(f"post;test:{test}")
+    return send_message_to_handler(f"post;test;{test}")
 
 # removing from queue
 
@@ -405,15 +407,52 @@ def response_handler(r:str):
 
 
 HOST = "127.0.0.1"  # The server's hostname or IP address
-PORT = 65432  # The ports used by the server
-MAXBYTES = 1024
+PORTS = dict()  # The ports used by the server
+for i in range(65335, 65435):
+    PORTS[i] = False
+
+MAXBYTES = 4096
+
+def assign_first_available_port() -> int:
+    global PORTS    
+    for k, v in PORTS.items():
+        if not v:
+            PORTS[k] = True
+            return k
+    
+    Error("BusyError", "system is busy, try again later.")
+    return None
+
+def unassign_port(port:int):
+    global PORTS
+    PORTS[port] = False
 
 def send_message_to_handler(msg:str):
-    print(f"SENDING MESSAGE TO SERVER:\n{msg}")
+    # create new process and server on it to handle request.
+    assigned_port = assign_first_available_port()
+    print(f"assigned port: {assigned_port}")
+
+    p = Process(target = start_server, args={assigned_port})
+    p.start()
+
     msg = bytes(msg, 'utf-8')
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect((HOST, PORT))
-        s.sendall(msg)
+        print(HOST, assigned_port)
+        print(type(HOST), type(assigned_port))
+
+        tries = 1
+        while(True):
+            print(f"TRY SENDING MESSAGE TO SERVER ({tries}/10): {msg}")
+            try:
+                s.connect((HOST, assigned_port))
+                s.sendall(msg)
+            except Exception as e:
+                # TODO: FIX THIS SOMETHING!
+                print(e)
+                tries += 1
+                if tries == 10: return None
+                time.sleep(1)
 
         data = s.recv(MAXBYTES)
         data = data.decode("utf-8")
@@ -425,8 +464,11 @@ def send_message_to_handler(msg:str):
             print("DATA IS MULTIPART, NEED TO RECIEVE MORE!")
             done = False
             while(not done):
-                break
+                data = s.recv(MAXBYTES)
+                data = data.decode("utf-8")
 
-        else:
-            print(f"data being returned is of type: {type(data)}")
-            return data
+                done = data != 'multi'
+
+        
+        print(f"data being returned is of type: {type(data)}")
+        return data

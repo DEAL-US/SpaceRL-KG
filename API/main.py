@@ -5,14 +5,14 @@ import multiprocessing as mp
 from subprocess import run
 from pathlib import Path
 
+import utils
+
 from utils import DATASETS, ALLOWED_EMBEDDINGS
 from utils import permanent_config, changeable_config
 from utils import Experiment, Test, Error, Triple, EmbGen, infodicttype
 from utils import validate_test, validate_experiment, add_dataset, get_agents, get_info_from, send_message_to_handler
 from utils import add_embedding, add_cache, add_experiment, add_test
 from utils import convert_var_to_config_type
-
-from threaded_elements_handler import main as t_handle
 
 # FastAPI imports
 from fastapi import FastAPI
@@ -35,19 +35,16 @@ embgen_process_queue = []
 @app.get("/", response_class=PlainTextResponse)
 def root() ->str:
     text = """
-         __             __          __                  __             __ 
-        /\ \           /\ \        / /\                /\ \           /\ \ 
-       /  \ \         /  \ \      / /  \              /  \ \         /  \ \ 
-      / /\ \_\       / /\ \ \    / / /\ \            / /\ \ \       / /\ \ \ 
-     / / /\/_/      / / /\ \_\  / / /\ \ \          / / /\ \ \     / / /\ \_\ 
-    / / / ______   / / /_/ / / / / /  \ \ \        / / /  \ \_\   / /_/_ \/_/ 
-   / / / /\_____\ / / /__\/ / / / /___/ /\ \      / / /    \/_/  / /____/\ 
-  / / /  \/____ // / /_____/ / / /_____/ /\ \    / / /          / /\____\/ 
- / / /_____/ / // / /\ \ \  / /_________/\ \ \  / / /________  / / /______ 
-/ / /______\/ // / /  \ \ \/ / /_       __\ \_\/ / /_________\/ / /_______\ 
-\/___________/ \/_/    \_\/\_\___\     /____/_/\/____________/\/__________/ 
 
-Hi! you are in the API for the GRACE Framework.
+   _____                       ____  __         __ ________
+  / ___/____  ____ _________  / __ \/ /        / //_/ ____/
+  \__ \/ __ \/ __ `/ ___/ _ \/ /_/ / /  ______/ /< / / __  
+ ___/ / /_/ / /_/ / /__/  __/ _, _/ /__/_____/ /| / /_/ /  
+/____/ .___/\__,_/\___/\___/_/ |_/_____/    /_/ |_\____/   
+    /_/                                                    
+
+
+Hi! you are in the API for the SpaceRL-KG Framework.
 try /docs to check all the things I can do!
 """
     return text
@@ -61,7 +58,12 @@ def get_config() -> dict:
 
 @app.put("/config/")
 def set_config(param:str, value) -> dict:
-    if param not in changeable_config.keys():
+    # for p in changeable_config.keys():
+    #     print(p, param)
+    #     if p == param:
+    #         print(f"these are equal {param}, {p}")
+
+    if param not in changeable_config.keys():        
         Error("ParameterDoesNotExist",
         f"{param} is not a config param.")
     
@@ -169,10 +171,5 @@ def remove_test(id:int):
 
 
 if __name__ == "__main__":
-    p = mp.Process(target = t_handle)
-    p.start()
-
-    atexit.register(send_message_to_handler, msg="quit")
-
     command = f"uvicorn main:app --reload".split()
     run(command, cwd = current_dir)
