@@ -1,4 +1,4 @@
-# RL-KG (Logo)
+# SpaceRL-KG (Logo)
 
 <p><img src="https://img.shields.io/badge/Python-3.8-blue"></p>
 
