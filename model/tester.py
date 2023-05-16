@@ -6,7 +6,7 @@ from GPUtil import GPUtil
 gpus = GPUtil.getGPUs()
 available_gpu = None
 for gpu in gpus:
-    if gpu.memoryUtil > 0.4:
+    if gpu.memoryFree/gpu.memoryTotal > 0.5:
         available_gpu = gpu
         break
 

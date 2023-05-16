@@ -158,7 +158,7 @@ class Test():
             print(f"Incoherent Test detected: {self.name}")
             self.to_delete = True
 
-# TODO: train wordnet for PPO embedding and compare vs single relations
+
 EXPERIMENTS = [
     Experiment("countries_reward_shaping", "COUNTRIES", ["TransE_l2"], 200),
 
@@ -185,8 +185,11 @@ EXPERIMENTS = [
 ]
 
 TESTS = [
-    Test("WN18_generic_PPO_simple_embedding_50", "WN18_generic_PPO_simple_embedding_50", ["TransE_l2"], 5000),
-    Test("film_genre_FB_PPO_distance_22", "film_genre_FB_PPO_distance_22", ["TransE_l2"], 5000),
+
+    Test("countries_reward_shaping", "countries_reward_shaping", ["TransE_l2"], 5000),
+
+    # Test("WN18_generic_PPO_simple_embedding_50", "WN18_generic_PPO_simple_embedding_50", ["TransE_l2"], 5000),
+    # Test("film_genre_FB_PPO_distance_22", "film_genre_FB_PPO_distance_22", ["TransE_l2"], 5000),
     
     #WN18 TESTS
     # Test("also-see-wn18-PPO-simple-emb-100", "_also_see_WN18_generic_PPO_simple_embedding_100", ["TransE_l2"], 5000),

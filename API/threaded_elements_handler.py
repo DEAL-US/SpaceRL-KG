@@ -1,5 +1,4 @@
-import sys, os, time
-import socket
+import sys, os, time, socket
 
 from pathlib import Path
 from random import randint

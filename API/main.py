@@ -10,7 +10,7 @@ import utils
 from utils import DATASETS, ALLOWED_EMBEDDINGS
 from utils import permanent_config, changeable_config
 from utils import Experiment, Test, Error, Triple, EmbGen, infodicttype
-from utils import validate_test, validate_experiment, add_dataset, get_agents, get_info_from, send_message_to_handler
+from utils import validate_test, validate_experiment, add_dataset, remove_dataset, get_agents, get_info_from, send_message_to_handler
 from utils import add_embedding, add_cache, add_experiment, add_test
 from utils import convert_var_to_config_type
 
@@ -50,7 +50,6 @@ try /docs to check all the things I can do!
     return text
 
 
-
 # CONFIG OPERATIONS
 @app.get("/config/")
 def get_config() -> dict:
@@ -58,21 +57,27 @@ def get_config() -> dict:
 
 @app.put("/config/")
 def set_config(param:str, value) -> dict:
-    # for p in changeable_config.keys():
-    #     print(p, param)
-    #     if p == param:
-    #         print(f"these are equal {param}, {p}")
+
+    print(f"recieved param value {value}")
 
     if param not in changeable_config.keys():        
         Error("ParameterDoesNotExist",
         f"{param} is not a config param.")
     
-    value = convert_var_to_config_type(param, value)    
+    value = convert_var_to_config_type(param, value)
 
-    if(len(get_info_from(infodicttype.EXPERIMENT)) != 0 
-       or len(get_info_from(infodicttype.TEST)) !=0):
+    print(f"value after conversion {value}")    
+
+    exp_info = get_info_from(infodicttype.EXPERIMENT)
+    test_info = get_info_from(infodicttype.TEST)
+
+    print(f"experiment information: {exp_info}, test information: {test_info}")
+
+    if(len(exp_info) != 0 or len(test_info) !=0):
         Error(name = "BusyResourcesError",
         desc = f"There are is an active test/train suite")
+
+    print(f"setting {param} config param to value: {value}")
 
     changeable_config[param] = value
 
@@ -89,10 +94,10 @@ def set_dataset(name:str, triples: List[Triple]):
     add_dataset(name, triples)
     return {"message":"dataset added successfully."}
 
-# PUT and DELETE require much more work than these, might be added later...
-# TODO: add background task that cleans up generated info for previous dataset.
-# Delete Chaches, embedding files, agents and tests related to the DATASET being edited or deleted.
-
+@app.delete("/datasets/")
+def delete_dataset(name:str):
+    remove_dataset(name)
+    return {"message":"dataset and all related content was removed successfully"}
 
 # EMBEDDING OPERATIONS
 @app.get("/embeddings/")

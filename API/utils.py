@@ -1,5 +1,5 @@
 # Local imports
-import sys, os, time, collections, json, re
+import sys, os, time, collections, json, re, shutil
 
 from enum import Enum
 from pathlib import Path
@@ -213,6 +213,20 @@ def add_dataset(dataset_name:str, triples: List[Triple]) -> Union[None, Error]:
         for t in triples:
             res += f"{t.e1}\t{t.r}\t{t.e2}\n"
         f.write(res)
+
+# remove dataset
+def remove_dataset(dataset_name:str) -> bool:
+    # TODO: Delete Chaches, embedding files, agents and tests related to the DATASET being edited or deleted.
+
+    p = Path(f"{datasets_path}/{dataset_name}")
+    try:
+        shutil.rmtree(p, ignore_errors=False, onerror=None)
+    except Exception as e:
+        print(e.args)
+        Error(name="DatasetRemovalError",
+        desc="There was a problem deleting that dataset...")
+    
+    return True
         
 def add_embedding(embedding:EmbGen):
     return send_message_to_handler(f"post;embedding;{embedding}")
@@ -257,14 +271,25 @@ def check_for_relation_in_dataset(dataset_name:str, relation_name:str):
 
 def convert_var_to_config_type(param:str, value):
     if param in ["seed", "available_cores", "path_length"]:
-        value = int(value)
+        try:
+            value = int(value)
+        except:
+            Error("InvalidValueError", f"The value '{value}' is not applicable to param '{param}'")
 
     elif param in ["guided_reward", "regenerate_embeddings",
     "normalize_embeddings", "use_LSTM", "random_seed"]:
-        value = bool(value)
+        if value.lower() == "false":
+            value = False
+        elif value.lower == "true":
+            value = True
+        else:
+            Error("InvalidValueError", f"The value '{value}' is not applicable to param '{param}'")
 
     elif param in ["alpha", "gamma", "learning_rate"]:
-        value = float(value)
+        try:
+            value = float(value)
+        except:
+            Error("InvalidValueError", f"The value '{value}' is not applicable to param '{param}'")
 
     elif param in ["guided_to_compute", "regularizers"]:
         rep = {"[":"", "]":"", "\"":"", "\'":""}
@@ -325,7 +350,6 @@ def validate_config_value(param:str, value):
                 Error("WrongValueError", f"param was not found.")
 
 
-    
 ######################
 #   CLIENT HANDLER   #
 ######################
@@ -387,7 +411,7 @@ def response_handler(r:str):
 
     if len(msg)==2: # recieved whole list of objects.
         resp = msg[1]
-        print(resp)
+
         if var == 'cache':
             pass
 
@@ -401,7 +425,6 @@ def response_handler(r:str):
 
     if len(msg)==3:
         idx, resp = msg[1], msg[2]
-        print(resp)
     
         return json.loads(resp)
 
@@ -438,20 +461,20 @@ def send_message_to_handler(msg:str):
     msg = bytes(msg, 'utf-8')
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        print(HOST, assigned_port)
-        print(type(HOST), type(assigned_port))
-
-        tries = 1
-        while(True):
-            print(f"TRY SENDING MESSAGE TO SERVER ({tries}/10): {msg}")
+        tries, done = 1, False
+        print(f"trying to connect to server...")
+        while(not done):
+            # print(f"TRY SENDING MESSAGE TO SERVER ({tries}/10): {msg}")
             try:
                 s.connect((HOST, assigned_port))
                 s.sendall(msg)
             except Exception as e:
-                # TODO: FIX THIS SOMETHING!
-                print(e)
                 tries += 1
-                if tries == 10: return None
+                if tries == 10:
+                    print(f"connection to server failed.")
+                    return None
+                if e.args[0] == 106: #server is connected
+                    done = True
                 time.sleep(1)
 
         data = s.recv(MAXBYTES)

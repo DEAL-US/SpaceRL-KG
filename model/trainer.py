@@ -5,8 +5,8 @@ from GPUtil import GPUtil
 # select avaliable GPU 
 gpus = GPUtil.getGPUs()
 available_gpu = None
-for gpu in gpus:
-    if gpu.memoryUtil > 0.4:
+for gpu in gpus:    
+    if gpu.memoryFree/gpu.memoryTotal > 0.66:
         available_gpu = gpu
         break
 
