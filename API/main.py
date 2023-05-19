@@ -2,15 +2,13 @@
 import sys, os, atexit
 import multiprocessing as mp
 
+from multiprocessing import Process
 from subprocess import run
-from pathlib import Path
-
-import utils
 
 from utils import DATASETS, ALLOWED_EMBEDDINGS
 from utils import permanent_config, changeable_config
 from utils import Experiment, Test, Error, Triple, EmbGen, infodicttype
-from utils import validate_test, validate_experiment, add_dataset, remove_dataset, get_agents, get_info_from, send_message_to_handler
+from utils import validate_test, validate_experiment, add_dataset, remove_dataset, get_agents, get_info_from
 from utils import add_embedding, add_cache, add_experiment, add_test
 from utils import convert_var_to_config_type
 
@@ -20,6 +18,7 @@ from fastapi.responses import PlainTextResponse
 from fastapi.exceptions import HTTPException
 
 from typing import Union, List, Dict
+from pathlib import Path
 
 app = FastAPI()
 
@@ -29,8 +28,6 @@ parent_path = current_dir.parent.resolve()
 agents_path = Path(f"{parent_path}/model/data/agents").resolve()
 datasets_path = Path(f"{parent_path}/datasets").resolve()
 
-# Local threads:
-embgen_process_queue = []
 
 @app.get("/", response_class=PlainTextResponse)
 def root() ->str:
@@ -114,7 +111,6 @@ def agents():
     return get_agents()
 
 
-
 # EXPERIMENTS OPERATIONS
 @app.get("/experiments/")
 def get_experiment(id:int = None) -> Union[Dict[(int, Experiment)], Experiment]:
@@ -145,7 +141,6 @@ def remove_experiment(id:int):
         desc = f"There is no experiment with id {id}")
 
 
-
 # TEST OPERATIONS
 @app.get("/tests/")
 def get_test(id:int = None) -> Union[Dict[(int, Test)], Test]:
@@ -173,6 +168,48 @@ def remove_test(id:int):
     except:
         Error(name="NonexistantTest",
         desc = f"There is no test with id {id}")
+
+
+# INITIALIZATION:
+# connection data.
+from multiprocessing import cpu_count, Process, Manager
+import multiprocessing as mp
+
+HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
+SERVER_PORT = 6539
+MAXBYTES = 4096
+
+# Client port handlling
+# CLIENT_PORTS = dict()  # The ports used by the server
+# for i in range(65336, 65435):
+#     CLIENT_PORTS[i] = False
+
+# def assign_first_available_port() -> int:
+#     for k, v in CLIENT_PORTS.items():
+#         if not v:
+#             CLIENT_PORTS[k] = True
+#             return k
+    
+#     Error("BusyError", "system is busy, try again later.")
+#     return None
+
+# def unassign_port(port:int):
+#     CLIENT_PORTS[port] = False
+
+# # response manager.
+
+manager = mp.Manager()
+
+from threaded_elements_handler import start_server, start_client, send_msg_to_server
+
+p = Process(target=start_server, args=(HOST, SERVER_PORT, MAXBYTES))
+p.start()
+
+# Testing...
+client_socket = start_client(HOST, SERVER_PORT)
+send_msg_to_server(client_socket, b"test_msg", MAXBYTES)
+
+send_msg_to_server(client_socket, b"another", MAXBYTES)
 
 
 if __name__ == "__main__":

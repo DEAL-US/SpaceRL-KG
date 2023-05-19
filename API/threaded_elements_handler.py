@@ -3,28 +3,24 @@ import sys, os, time, socket
 from pathlib import Path
 from random import randint
 
-embgen_queue, cache_queue, experiment_queue, test_queue = dict(), dict(), dict(), dict()
-embgen_idx, cache_idx, exp_idx, test_idx = 0,0,0,0
+import multiprocessing as mp
 
 # Folder paths:
 current_dir = Path(__file__).parent.resolve()
 parent_path = current_dir.parent.resolve()
 
 # RELATIVE IMPORTS.
-genpath = Path(f"{parent_path}/model/data/generator").resolve()
+modelpath = Path(f"{parent_path}/model/data/generator").resolve()
 
-sys.path.insert(0, os.path.abspath('../..'))
-sys.path.insert(0, str(genpath))
+sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, str(modelpath))
 
 import generate_trans_embeddings as embgen
 
-HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
-MAXBYTES = 4096
+# Server message handler
+def server_message_handler(data:str, MAXBYTES) -> str:
+    # THIS SHOULD ANSWER VERY FAST AND DO A PROCESS FOR HEAVY OPS.
 
-# Simple server code.
-def message_handler(data:str) -> str:
-    global embgen_queue, cache_queue, experiment_queue, test_queue
-    global embgen_idx, cache_idx, exp_idx, test_idx 
     multipart_idx = None
 
     if(data == "quit"):
@@ -32,8 +28,8 @@ def message_handler(data:str) -> str:
 
     msg = data.split(';', maxsplit=3)
     petition, variant = msg[0], msg[1]
-
-    embgen_queue, cache_queue, experiment_queue, test_queue
+    print(msg)
+    
     if(petition == 'get'):
         if(len(msg) == 2): # res = the complete dict 
             if(variant == 'caches'):
@@ -65,29 +61,32 @@ def message_handler(data:str) -> str:
                     res = f"error;IDNotFound;id \"{msg[2]}\" for test does not exist."
                 
     if(petition == 'post'):
-        if(variant == 'caches'):
+        if(variant == 'cache'):
             cache = msg[2]
             print(cache)
             cache_queue[cache_idx] = cache
             cache_idx += 1
 
-            return f"success;cache successfully added to queue."
+            res = f"success;cache successfully added to queue."
         
-        if(variant == 'embeddings'):
+        if(variant == 'embedding'):
             embedding = msg[2]
             print(embedding)
-            embgen_queue[embgen_idx] = embedding
-            embgen_idx += 1
+            print(msg)
 
-            return f"success;embedding successfully added to queue."
+            quit()
+            
+            embgen.generate_embedding(embedding)
 
-        elif(variant == 'experiments'):
+            res = f"success;embedding successfully added to queue."
+
+        elif(variant == 'experiment'):
             experiment = msg[2]
             print(experiment)
             experiment_queue[exp_idx] = experiment
             exp_idx += 1
 
-            return f"success;experiment successfully added to queue."
+            res = f"success;experiment successfully added to queue."
         
         elif(variant == 'tests'):
             test = msg[2]
@@ -126,21 +125,116 @@ def message_handler(data:str) -> str:
     
     return res
 
-def start_server(port):
+
+# Client message handling...
+def response_handler(r:str):
+    msg = r.split(';', maxsplit=3)
+    var = msg[0]
+
+    if var == 'error':
+        Error(msg[1], msg[2])
+    
+    if var == 'success':
+        return {"message":msg[1]}
+    
+    if var == 'multi':
+        multi_idx, part_idx, msg_part = msg[1], *msg[2].split(';', maxsplit=2)
+
+        if(part_idx == 'L'):
+            od = collections.OrderedDict(sorted(big_responses.items()))
+            reslist = list(od.values())
+            reslist.append(msg_part)
+            return response_handler("".join(reslist))
+
+        elif multi_idx not in big_responses:
+            big_responses[multi_idx] = dict()
+            big_responses[multi_idx][part_idx] = msg_part
+        
+        return 'multi'
+
+    if len(msg)==2: # recieved whole list of objects.
+        resp = msg[1]
+
+        if var == 'cache':
+            pass
+
+        if var == 'experiment':
+            pass
+            
+        if var == 'test':
+            pass
+            
+        return json.loads(resp)
+
+    if len(msg)==3:
+        idx, resp = msg[1], msg[2]
+    
+        return json.loads(resp)
+
+def start_client(host, port):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    tries = 0
+    print(f"trying to connect to server...")
+    while(True):
+        try:
+            tries += 1
+            s.connect((host, port))
+        except Exception as e:
+            print(e)            
+            if tries == 10:
+                print(f"Connection to server failed. Timeout.")
+                return None
+
+            if e.args[0] == 106: #server is connected
+                return s
+                print("Connection to server stablished.")
+            
+            time.sleep(1)
+
+def send_msg_to_server(client_socket, msg, MAXBYTES):
+    # send message to server
+    client_socket.sendall(msg)
+
+    # await server answer
+    data = client_socket.recv(MAXBYTES)
+    data = data.decode("utf-8")
+
+    # process server answer
+    print(f"GOT MESSAGE BACK FROM SERVER {data}")
+    data = response_handler(data)
+
+    if(data == 'multi'):
+        print("DATA IS MULTIPART, NEED TO RECIEVE MORE!")
+        done = False
+        while(not done):
+            data = s.recv(MAXBYTES)
+            data = data.decode("utf-8")
+            done = data != 'multi'
+
+    # TODO: when data is finished update the 
+    # shared dict of ports and get the message from there or something.
+
+    print(f"data being returned is of type: {type(data)}")
+    return data
+
+def start_server(host, port, MAXBYTES):
+    print("server has started")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((HOST, port))
+        s.bind((host, port))
         s.listen()
         conn, addr = s.accept()
-        
+        print(f"Connected by {addr}")
+
         with conn:
-            print(f"Connected by {addr}")
             while True:
-                print("ready to recieve data.")
+                print("server is ready to recieve data.")
+
                 data = conn.recv(MAXBYTES)
+
                 print(f"data has been recieved by server: {data}")
+
                 if not data:
-                    print(f"wrong data was sent {data}")
-                    break
+                    print(f"data recieved was wrong {data}")
                 else:
-                    response = message_handler(data.decode("utf-8"))                
+                    response = server_message_handler(data.decode("utf-8"), MAXBYTES)                
                     conn.sendall(bytes(response, 'utf-8'))

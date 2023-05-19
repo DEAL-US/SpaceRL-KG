@@ -7,10 +7,7 @@ from typing import Union, List
 from pydantic import BaseModel
 import GPUtil as gputil
 
-from multiprocessing import cpu_count, Process, Manager
-import multiprocessing as mp
-
-from threaded_elements_handler import start_server
+from multiprocessing import cpu_count
 
 from fastapi import HTTPException
 
@@ -240,8 +237,6 @@ def add_experiment(exp:Experiment):
 def add_test(test:Test):
     return send_message_to_handler(f"post;test;{test}")
 
-# removing from queue
-
 
 # Helper functions:
 def get_agents():
@@ -350,12 +345,6 @@ def validate_config_value(param:str, value):
                 Error("WrongValueError", f"param was not found.")
 
 
-######################
-#   CLIENT HANDLER   #
-######################
-
-import socket
-
 class infodicttype(Enum):
     CACHE = "cache"
     EXPERIMENT = "experiment"
@@ -378,120 +367,3 @@ def get_info_from(opt:infodicttype, id:int = None):
         msg += f";{id}"
 
     return send_message_to_handler(msg)
-
-# manager = Manager()
-# big_responses = manager.dict()
-
-big_responses = dict()
-
-def response_handler(r:str):
-    msg = r.split(';', maxsplit=3)
-    var = msg[0]
-
-    if var == 'error':
-        Error(msg[1], msg[2])
-    
-    if var == 'success':
-        return {"message":msg[1]}
-    
-    if var == 'multi':
-        multi_idx, part_idx, msg_part = msg[1], *msg[2].split(';', maxsplit=2)
-
-        if(part_idx == 'L'):
-            od = collections.OrderedDict(sorted(big_responses.items()))
-            reslist = list(od.values())
-            reslist.append(msg_part)
-            return response_handler("".join(reslist))
-
-        elif multi_idx not in big_responses:
-            big_responses[multi_idx] = dict()
-            big_responses[multi_idx][part_idx] = msg_part
-        
-        return 'multi'
-
-    if len(msg)==2: # recieved whole list of objects.
-        resp = msg[1]
-
-        if var == 'cache':
-            pass
-
-        if var == 'experiment':
-            pass
-            
-        if var == 'test':
-            pass
-            
-        return json.loads(resp)
-
-    if len(msg)==3:
-        idx, resp = msg[1], msg[2]
-    
-        return json.loads(resp)
-
-
-HOST = "127.0.0.1"  # The server's hostname or IP address
-PORTS = dict()  # The ports used by the server
-for i in range(65335, 65435):
-    PORTS[i] = False
-
-MAXBYTES = 4096
-
-def assign_first_available_port() -> int:
-    global PORTS    
-    for k, v in PORTS.items():
-        if not v:
-            PORTS[k] = True
-            return k
-    
-    Error("BusyError", "system is busy, try again later.")
-    return None
-
-def unassign_port(port:int):
-    global PORTS
-    PORTS[port] = False
-
-def send_message_to_handler(msg:str):
-    # create new process and server on it to handle request.
-    assigned_port = assign_first_available_port()
-    print(f"assigned port: {assigned_port}")
-
-    p = Process(target = start_server, args={assigned_port})
-    p.start()
-
-    msg = bytes(msg, 'utf-8')
-
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        tries, done = 1, False
-        print(f"trying to connect to server...")
-        while(not done):
-            # print(f"TRY SENDING MESSAGE TO SERVER ({tries}/10): {msg}")
-            try:
-                s.connect((HOST, assigned_port))
-                s.sendall(msg)
-            except Exception as e:
-                tries += 1
-                if tries == 10:
-                    print(f"connection to server failed.")
-                    return None
-                if e.args[0] == 106: #server is connected
-                    done = True
-                time.sleep(1)
-
-        data = s.recv(MAXBYTES)
-        data = data.decode("utf-8")
-
-        print(f"GOT MESSAGE BACK FROM SERVER {data}")
-        data = response_handler(data)
-
-        if(data == 'multi'):
-            print("DATA IS MULTIPART, NEED TO RECIEVE MORE!")
-            done = False
-            while(not done):
-                data = s.recv(MAXBYTES)
-                data = data.decode("utf-8")
-
-                done = data != 'multi'
-
-        
-        print(f"data being returned is of type: {type(data)}")
-        return data
