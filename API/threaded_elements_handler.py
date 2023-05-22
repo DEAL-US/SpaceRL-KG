@@ -3,6 +3,13 @@ import sys, os, time, socket
 from pathlib import Path
 from random import randint
 
+from fastapi import HTTPException
+
+class Error():
+    def __init__(self, name:str, desc:str):
+        raise HTTPException(status_code=400, 
+        detail=f"{name} - {desc}")
+
 import multiprocessing as mp
 
 # Folder paths:
@@ -24,11 +31,14 @@ def server_message_handler(data:str, MAXBYTES) -> str:
     multipart_idx = None
 
     if(data == "quit"):
-        quit()
+        return None
 
     msg = data.split(';', maxsplit=3)
-    petition, variant = msg[0], msg[1]
-    print(msg)
+    try:
+        petition, variant = msg[0], msg[1]
+    except:
+        return f"error;BadRequest;recieved message was malformed, please check the docs."
+    
     
     if(petition == 'get'):
         if(len(msg) == 2): # res = the complete dict 
@@ -40,6 +50,9 @@ def server_message_handler(data:str, MAXBYTES) -> str:
             
             elif(variant == 'tests'):
                 res = f"test;{test_queue}"
+            
+            else:
+                return f"error;MalformedGetRequest;get request does not match expected input, please check spelling..."
             
         if(len(msg) == 3): #res = requested id.
             if(variant == 'caches'):
@@ -59,7 +72,10 @@ def server_message_handler(data:str, MAXBYTES) -> str:
                     res = f"test;{msg[2]};{test_queue[msg[2]]}"
                 except:
                     res = f"error;IDNotFound;id \"{msg[2]}\" for test does not exist."
-                
+            
+            else:
+                return f"error;MalformedGetRequest;get request does not match expected input, please check spelling..."
+
     if(petition == 'post'):
         if(variant == 'cache'):
             cache = msg[2]
@@ -69,7 +85,7 @@ def server_message_handler(data:str, MAXBYTES) -> str:
 
             res = f"success;cache successfully added to queue."
         
-        if(variant == 'embedding'):
+        elif(variant == 'embedding'):
             embedding = msg[2]
             print(embedding)
             print(msg)
@@ -95,6 +111,9 @@ def server_message_handler(data:str, MAXBYTES) -> str:
             test_idx += 1
 
             return f"success;test successfully added to queue."
+
+        else:
+            return f"error;MalformedPostRequest;request does not match expected input, please check spelling..."
 
     if (len(res) > MAXBYTES): #msg is multipart.
         multipart_idx = randint(0, sys.maxsize) # we believe in a 0 collision world here.
@@ -191,7 +210,9 @@ def start_client(host, port):
             
             time.sleep(1)
 
-def send_msg_to_server(client_socket, msg, MAXBYTES):
+def send_msg_to_server(client_socket, msg, MAXBYTES = 4096):
+    msg = bytes(msg, 'utf-8')
+
     # send message to server
     client_socket.sendall(msg)
 
@@ -211,16 +232,18 @@ def send_msg_to_server(client_socket, msg, MAXBYTES):
             data = data.decode("utf-8")
             done = data != 'multi'
 
-    # TODO: when data is finished update the 
-    # shared dict of ports and get the message from there or something.
-
     print(f"data being returned is of type: {type(data)}")
     return data
 
 def start_server(host, port, MAXBYTES):
-    print("server has started")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((host, port))
+        try:
+            s.bind((host, port))
+        except:
+            print("Port is busy... Maybe there is an instance running?")
+            quit()
+
+        print("server has started")
         s.listen()
         conn, addr = s.accept()
         print(f"Connected by {addr}")
@@ -237,4 +260,8 @@ def start_server(host, port, MAXBYTES):
                     print(f"data recieved was wrong {data}")
                 else:
                     response = server_message_handler(data.decode("utf-8"), MAXBYTES)                
-                    conn.sendall(bytes(response, 'utf-8'))
+                    if (response is None):
+                        s.close()
+                        quit()
+                    else:
+                        conn.sendall(bytes(response, 'utf-8'))

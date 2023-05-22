@@ -20,14 +20,48 @@ from fastapi.exceptions import HTTPException
 from typing import Union, List, Dict
 from pathlib import Path
 
+from threaded_elements_handler import start_server, start_client, send_msg_to_server
+from multiprocessing import Process, Manager
+
+import atexit
+
 app = FastAPI()
+
+class ConnectionManager():
+    def __init__(self):
+        # Server constants.
+        HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
+        SERVER_PORT = 6539
+        MAXBYTES = 4096
+
+        p = Process(target=start_server, args=(HOST, SERVER_PORT, MAXBYTES))
+        p.start()
+
+        self.client_socket = start_client(HOST, SERVER_PORT)
+
+        if(self.client_socket is None):
+            quit("exiting...")
+
+# print("ARGUMENTS\n\n")
+# print(sys.argv)
+# print("\n\n")
+
+if('main:app' in sys.argv):    
+    conn = ConnectionManager()
+
+def exit_handler():
+    try:
+        close_server()
+    except Exception as e :
+        print(f"unable to close server before exiting, related exception was: {e}")   
+
+atexit.register(exit_handler)
 
 # Folder paths:
 current_dir = Path(__file__).parent.resolve()
 parent_path = current_dir.parent.resolve()
 agents_path = Path(f"{parent_path}/model/data/agents").resolve()
 datasets_path = Path(f"{parent_path}/datasets").resolve()
-
 
 @app.get("/", response_class=PlainTextResponse)
 def root() ->str:
@@ -65,8 +99,8 @@ def set_config(param:str, value) -> dict:
 
     print(f"value after conversion {value}")    
 
-    exp_info = get_info_from(infodicttype.EXPERIMENT)
-    test_info = get_info_from(infodicttype.TEST)
+    exp_info = get_info_from(infodicttype.EXPERIMENT, conn.client_socket)
+    test_info = get_info_from(infodicttype.TEST, conn.client_socket)
 
     print(f"experiment information: {exp_info}, test information: {test_info}")
 
@@ -127,12 +161,11 @@ def get_experiment(id:int = None) -> Union[Dict[(int, Experiment)], Experiment]:
 def add_exp(experiment:Experiment) -> Dict[(int, Experiment)]:
     validate_experiment(experiment)
     add_experiment(experiment)
-
     
 @app.delete("/experiments/") 
 def remove_experiment(id:int):
     try:
-        send_message_to_handler(f"delete;experiment;{id}")
+        send_msg_to_server(client_socket,f"delete;experiment;{id}")
         # del experiment_queue[id]
         return {"message":"experiment was removed successfully."}
 
@@ -161,7 +194,7 @@ def add_tst(test:Test) -> Dict[(int, Test)]:
 @app.delete("/tests/") 
 def remove_test(id:int):
     try:
-        send_message_to_handler(f"delete;test;{id}")
+        send_msg_to_server(conn.client_socket,f"delete;test;{id}")
 
         # del test_queue[id]
         return {"message":"test was removed successfully."}
@@ -169,49 +202,11 @@ def remove_test(id:int):
         Error(name="NonexistantTest",
         desc = f"There is no test with id {id}")
 
-
-# INITIALIZATION:
-# connection data.
-from multiprocessing import cpu_count, Process, Manager
-import multiprocessing as mp
-
-HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
-SERVER_PORT = 6539
-MAXBYTES = 4096
-
-# Client port handlling
-# CLIENT_PORTS = dict()  # The ports used by the server
-# for i in range(65336, 65435):
-#     CLIENT_PORTS[i] = False
-
-# def assign_first_available_port() -> int:
-#     for k, v in CLIENT_PORTS.items():
-#         if not v:
-#             CLIENT_PORTS[k] = True
-#             return k
-    
-#     Error("BusyError", "system is busy, try again later.")
-#     return None
-
-# def unassign_port(port:int):
-#     CLIENT_PORTS[port] = False
-
-# # response manager.
-
-manager = mp.Manager()
-
-from threaded_elements_handler import start_server, start_client, send_msg_to_server
-
-p = Process(target=start_server, args=(HOST, SERVER_PORT, MAXBYTES))
-p.start()
-
-# Testing...
-client_socket = start_client(HOST, SERVER_PORT)
-send_msg_to_server(client_socket, b"test_msg", MAXBYTES)
-
-send_msg_to_server(client_socket, b"another", MAXBYTES)
+@app.get("/close/")
+def close_server():
+    send_msg_to_server(conn.client_socket, "quit")
 
 
 if __name__ == "__main__":
-    command = f"uvicorn main:app --reload".split()
+    command = f"uvicorn main:app".split()
     run(command, cwd = current_dir)

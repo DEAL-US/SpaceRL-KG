@@ -11,6 +11,8 @@ from multiprocessing import cpu_count
 
 from fastapi import HTTPException
 
+from threaded_elements_handler import send_msg_to_server
+
 # Folder paths:
 current_dir = Path(__file__).parent.resolve()
 parent_path = current_dir.parent.resolve()
@@ -125,7 +127,7 @@ def validate_experiment(exp: Experiment):
     if len(exp.name) > 200 and len(exp.name) < 10:
         reasons.append("Experiment name must be between 10-200 characters\n")
 
-    experiment_queue = send_message_to_handler("get;experiments")
+    experiment_queue = send_msg_to_server("get;experiments")
     f = list(filter(lambda l_exp: True if l_exp.name == exp.name else False, experiment_queue.values()))
 
     if exp.name in agents or len(f) != 0:
@@ -152,7 +154,7 @@ def validate_test(tst: Test):
     if len(tst.name) > 200 and len(tst.name) < 10:
         reasons.append("Test name must be between 10-200 characters\n")
 
-    test_queue = send_message_to_handler("get;tests")
+    test_queue = send_msg_to_server("get;tests")
     f = list(filter(lambda l_tst: True if l_tst.name == tst.name else False, test_queue.values()))
 
     if tst.name in tests or len(f) != 0:
@@ -226,16 +228,16 @@ def remove_dataset(dataset_name:str) -> bool:
     return True
         
 def add_embedding(embedding:EmbGen):
-    return send_message_to_handler(f"post;embedding;{embedding}")
+    return send_msg_to_server(f"post;embedding;{embedding}")
 
 def add_cache():
     pass
 
 def add_experiment(exp:Experiment):
-    return send_message_to_handler(f"post;experiment;{exp}")
+    return send_msg_to_server(f"post;experiment;{exp}")
 
 def add_test(test:Test):
-    return send_message_to_handler(f"post;test;{test}")
+    return send_msg_to_server(f"post;test;{test}")
 
 
 # Helper functions:
@@ -350,7 +352,7 @@ class infodicttype(Enum):
     EXPERIMENT = "experiment"
     TEST = "test"
 
-def get_info_from(opt:infodicttype, id:int = None):
+def get_info_from(opt:infodicttype, socket, id:int = None):
     if(opt == infodicttype.CACHE):
         msg = f"get;caches"
 
@@ -366,4 +368,4 @@ def get_info_from(opt:infodicttype, id:int = None):
     if(id is not None):
         msg += f";{id}"
 
-    return send_message_to_handler(msg)
+    return send_msg_to_server(socket, msg)
