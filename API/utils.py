@@ -120,14 +120,14 @@ class EmbGen(BaseModel):
 
 # Main Functions
 # Validation
-def validate_experiment(exp: Experiment):
+def validate_experiment(socket, exp: Experiment):
     reasons = []
     agents = get_agents()
     
     if len(exp.name) > 200 and len(exp.name) < 10:
         reasons.append("Experiment name must be between 10-200 characters\n")
 
-    experiment_queue = send_msg_to_server("get;experiments")
+    experiment_queue = send_msg_to_server(socket, "get;experiments")
     f = list(filter(lambda l_exp: True if l_exp.name == exp.name else False, experiment_queue.values()))
 
     if exp.name in agents or len(f) != 0:
@@ -227,17 +227,17 @@ def remove_dataset(dataset_name:str) -> bool:
     
     return True
         
-def add_embedding(embedding:EmbGen):
-    return send_msg_to_server(f"post;embedding;{embedding}")
+def add_embedding(socket, embedding:EmbGen):
+    return send_msg_to_server(socket, f"post;embedding;{embedding}")
 
 def add_cache():
     pass
 
-def add_experiment(exp:Experiment):
-    return send_msg_to_server(f"post;experiment;{exp}")
+def add_experiment(socket, exp:Experiment):
+    return send_msg_to_server(socket, f"post;experiment;{exp}")
 
 def add_test(test:Test):
-    return send_msg_to_server(f"post;test;{test}")
+    return send_msg_to_server(socket, f"post;test;{test}")
 
 
 # Helper functions:
@@ -266,7 +266,7 @@ def check_for_relation_in_dataset(dataset_name:str, relation_name:str):
     
     return relation_in_graph
 
-def convert_var_to_config_type(param:str, value):
+def convert_var_to_config_type(param:str, value:str):
     if param in ["seed", "available_cores", "path_length"]:
         try:
             value = int(value)
@@ -275,9 +275,9 @@ def convert_var_to_config_type(param:str, value):
 
     elif param in ["guided_reward", "regenerate_embeddings",
     "normalize_embeddings", "use_LSTM", "random_seed"]:
-        if value.lower() == "false":
+        if value.strip().lower() == "false":
             value = False
-        elif value.lower == "true":
+        elif value.strip().lower() == "true":
             value = True
         else:
             Error("InvalidValueError", f"The value '{value}' is not applicable to param '{param}'")

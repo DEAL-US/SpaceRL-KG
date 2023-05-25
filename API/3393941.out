@@ -1,0 +1,4 @@
+stdout initialized
+datafolder is: /home/usuario/Reinforcement Learning/datasets/COUNTRIES
+generating embeddings for dataset COUNTRIES and models ['DistMult']
+running command DGLBACKEND=pytorch dglke_train --model_name DistMult --data_path "/home/usuario/Reinforcement Learning/model/data/generator/raw_data" --save_path "/home/usuario/Reinforcement Learning/datasets/COUNTRIES/embeddings/" --dataset COUNTRIES --data_files COUNTRIES-raw.txt --format raw_udd_hrt --delimiter , --batch_size 1000 --neg_sample_size 200 --hidden_dim 200 --log_interval 100 --batch_size_eval 16 -adv --regularization_coef 1.00E-09 --gamma 19.9 --lr 0.25 --max_step 6000 --gpu 0

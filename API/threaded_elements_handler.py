@@ -1,37 +1,93 @@
-import sys, os, time, socket
+import sys, os, time, socket, json, ast
 
 from pathlib import Path
 from random import randint
 
 from fastapi import HTTPException
+import multiprocessing as mp
 
 class Error():
     def __init__(self, name:str, desc:str):
         raise HTTPException(status_code=400, 
         detail=f"{name} - {desc}")
 
-import multiprocessing as mp
+# def mute():
+#     sys.stdout = open(os.devnull, 'w')
+
+# def handle_error(error):
+# 	print(error, flush=True)
+
+# class ProcessPool():
+#     def __init__(self):
+#         self.process_pool = mp.Pool(1)# , initializer=mute
+
+#     def start_process_in_pool(self, process, args):
+#         # print(f"starting process; {process} in async pool with arguments: {args}")
+#         ar = self.process_pool.apply_async(func=process, args=args, error_callback=handle_error)
+#         # tasks.append(ar)
+        
+# pool = ProcessPool()
+
+class Process(mp.Process):
+    def __init__(self, *args, **kwargs):
+        mp.Process.__init__(self, *args, **kwargs)
+        self._pconn, self._cconn = mp.Pipe()
+        self._exception = None
+
+    def run(self):
+        self.initialize_logging()
+
+        try:
+            mp.Process.run(self)
+            self._cconn.send(None)
+        except Exception as e:
+            tb = traceback.format_exc()
+            self._cconn.send((e, tb))
+            # raise e  # You can still rise this exception if you need to
+
+    def initialize_logging(self):
+        sys.stdout = open(str(os.getpid()) + ".out", "a", buffering=-1)
+        sys.stderr = open(str(os.getpid()) + "_error.out", "a", buffering=-1)
+
+        print('stdout initialized')
+
+    @property
+    def exception(self):
+        if self._pconn.poll():
+            self._exception = self._pconn.recv()
+        return self._exception
+
 
 # Folder paths:
 current_dir = Path(__file__).parent.resolve()
 parent_path = current_dir.parent.resolve()
 
 # RELATIVE IMPORTS.
-modelpath = Path(f"{parent_path}/model/data/generator").resolve()
+genpath = Path(f"{parent_path}/model/data/generator").resolve()
+modelpath = Path(f"{parent_path}/model/data").resolve()
 
 sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, str(genpath))
 sys.path.insert(0, str(modelpath))
 
 import generate_trans_embeddings as embgen
+import tester, trainer
+
+embgen_queue, cache_queue, experiment_queue, test_queue = dict(), dict(), dict(), dict()
+embgen_idx, cache_idx, exp_idx, test_idx = 0,0,0,0
 
 # Server message handler
 def server_message_handler(data:str, MAXBYTES) -> str:
     # THIS SHOULD ANSWER VERY FAST AND DO A PROCESS FOR HEAVY OPS.
-
+    global embgen_queue, cache_queue, experiment_queue, test_queue, embgen_idx, cache_idx, exp_idx, test_idx
     multipart_idx = None
 
     if(data == "quit"):
         return None
+
+    if(data == "check"):
+        print(f"live children processes: {mp.active_children()}")
+        return f"success;live"
 
     msg = data.split(';', maxsplit=3)
     try:
@@ -86,15 +142,29 @@ def server_message_handler(data:str, MAXBYTES) -> str:
             res = f"success;cache successfully added to queue."
         
         elif(variant == 'embedding'):
-            embedding = msg[2]
-            print(embedding)
-            print(msg)
+            data = ast.literal_eval(msg[2])
 
-            quit()
+            dataset = data['dataset']
+            models = data['models']
+            gpu = data['use_gpu']
+            regen = data['regenerate_existing']
+            normalize = data['normalize']
+            inverse = data['add_inverse_path']
+            mode = data['fast_mode']
+
+            # embgen.generate_embedding(dataset, models, gpu, regen, normalize, inverse, mode)
             
-            embgen.generate_embedding(embedding)
+            proc = Process(target=embgen.generate_embedding, 
+            args=[dataset, models, gpu, regen, normalize, inverse, mode], 
+            name=f"Embedding Process {embgen_idx}")
+            proc.start()
+            embgen_queue[embgen_idx] = proc
 
-            res = f"success;embedding successfully added to queue."
+            # pool.start_process_in_pool(embgen.generate_embedding, [dataset, models, gpu, regen, normalize, inverse, mode])
+
+            res = f"success;emb_index:{embgen_idx}"
+
+            embgen_idx += 1
 
         elif(variant == 'experiment'):
             experiment = msg[2]
@@ -145,6 +215,7 @@ def server_message_handler(data:str, MAXBYTES) -> str:
     return res
 
 
+
 # Client message handling...
 def response_handler(r:str):
     msg = r.split(';', maxsplit=3)
@@ -189,6 +260,8 @@ def response_handler(r:str):
         idx, resp = msg[1], msg[2]
     
         return json.loads(resp)
+
+
 
 def start_client(host, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

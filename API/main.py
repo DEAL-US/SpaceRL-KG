@@ -21,7 +21,7 @@ from typing import Union, List, Dict
 from pathlib import Path
 
 from threaded_elements_handler import start_server, start_client, send_msg_to_server
-from multiprocessing import Process, Manager
+from multiprocessing import Process, Manager, Pool
 
 import atexit
 
@@ -42,20 +42,15 @@ class ConnectionManager():
         if(self.client_socket is None):
             quit("exiting...")
 
-# print("ARGUMENTS\n\n")
-# print(sys.argv)
-# print("\n\n")
-
-if('main:app' in sys.argv):    
-    conn = ConnectionManager()
-
 def exit_handler():
     try:
+        print("SERVER IS CLOSING")
         close_server()
     except Exception as e :
         print(f"unable to close server before exiting, related exception was: {e}")   
-
+   
 atexit.register(exit_handler)
+conn = ConnectionManager()
 
 # Folder paths:
 current_dir = Path(__file__).parent.resolve()
@@ -89,7 +84,7 @@ def get_config() -> dict:
 @app.put("/config/")
 def set_config(param:str, value) -> dict:
 
-    print(f"recieved param value {value}")
+    # print(f"recieved param value {value}")
 
     if param not in changeable_config.keys():        
         Error("ParameterDoesNotExist",
@@ -97,18 +92,18 @@ def set_config(param:str, value) -> dict:
     
     value = convert_var_to_config_type(param, value)
 
-    print(f"value after conversion {value}")    
+    # print(f"value after conversion {value}")    
 
     exp_info = get_info_from(infodicttype.EXPERIMENT, conn.client_socket)
     test_info = get_info_from(infodicttype.TEST, conn.client_socket)
 
-    print(f"experiment information: {exp_info}, test information: {test_info}")
+    # print(f"experiment information: {exp_info}, test information: {test_info}")
 
     if(len(exp_info) != 0 or len(test_info) !=0):
         Error(name = "BusyResourcesError",
         desc = f"There are is an active test/train suite")
 
-    print(f"setting {param} config param to value: {value}")
+    # print(f"setting {param} config param to value: {value}")
 
     changeable_config[param] = value
 
@@ -137,7 +132,15 @@ def get_embeddings():
 
 @app.post("/embeddings/")
 def gen_embedding(embedding: EmbGen):
-    add_embedding(embedding)
+    emb = embedding.dict()
+    emb['dataset'] = emb['dataset'].value
+    aux = []
+    for e in emb['models']:
+        aux.append(e.value)
+
+    emb['models'] = aux
+
+    add_embedding(conn.client_socket, emb)
 
 # AGENTS
 @app.get("/agents/")
@@ -149,18 +152,22 @@ def agents():
 @app.get("/experiments/")
 def get_experiment(id:int = None) -> Union[Dict[(int, Experiment)], Experiment]:
     if id is None:
-        return get_info_from(infodicttype.EXPERIMENT)
+        return get_info_from(infodicttype.EXPERIMENT, conn.client_socket)
     else:
         try:
-            return get_info_from(infodicttype.EXPERIMENT, id)
+            return get_info_from(infodicttype.EXPERIMENT, conn.client_socket, id)
         except:
             Error(name="NonexistantExperiment",
             desc = f"There is no experiment with id {id}")
 
 @app.post("/experiments/") 
 def add_exp(experiment:Experiment) -> Dict[(int, Experiment)]:
-    validate_experiment(experiment)
-    add_experiment(experiment)
+    validate_experiment(conn.client_socket, experiment)
+
+    exp = experiment.dict()
+    exp['dataset'] = exp['dataset'].value
+    exp['embedding'] = exp['embedding'].value
+    add_experiment(conn.client_socket, exp)
     
 @app.delete("/experiments/") 
 def remove_experiment(id:int):
@@ -206,7 +213,14 @@ def remove_test(id:int):
 def close_server():
     send_msg_to_server(conn.client_socket, "quit")
 
+@app.get("/check/")
+def close_server():
+    send_msg_to_server(conn.client_socket, "check")
+
 
 if __name__ == "__main__":
-    command = f"uvicorn main:app".split()
-    run(command, cwd = current_dir)
+    # command = f"uvicorn main:app".split()
+    # run(command, cwd = current_dir)
+
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8080)
