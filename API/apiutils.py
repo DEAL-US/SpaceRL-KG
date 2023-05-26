@@ -240,6 +240,12 @@ def add_test(test:Test):
     return send_msg_to_server(socket, f"post;test;{test}")
 
 
+def run_experiments(socket, ids):
+    return send_msg_to_server(socket, f"post;experiment;run;{ids}")
+
+def run_tests(socket, ids):
+    return send_msg_to_server(socket, f"post;tests;run;{ids}")
+
 # Helper functions:
 def get_agents():
     agent_list = os.listdir(agents_path)

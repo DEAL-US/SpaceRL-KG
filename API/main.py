@@ -5,12 +5,12 @@ import multiprocessing as mp
 from multiprocessing import Process
 from subprocess import run
 
-from utils import DATASETS, ALLOWED_EMBEDDINGS
-from utils import permanent_config, changeable_config
-from utils import Experiment, Test, Error, Triple, EmbGen, infodicttype
-from utils import validate_test, validate_experiment, add_dataset, remove_dataset, get_agents, get_info_from
-from utils import add_embedding, add_cache, add_experiment, add_test
-from utils import convert_var_to_config_type
+# from apiutils import DATASETS, ALLOWED_EMBEDDINGS
+# from apiutils import permanent_config, changeable_config, convert_var_to_config_type
+# from apiutils import Experiment, Test, Error, Triple, EmbGen, infodicttype
+# from apiutils import validate_test, validate_experiment, add_dataset, remove_dataset, get_agents, get_info_from
+# from apiutils import add_embedding, add_cache, add_experiment, add_test, run_experiments, run_tests
+from apiutils import *
 
 # FastAPI imports
 from fastapi import FastAPI
@@ -167,7 +167,11 @@ def add_exp(experiment:Experiment) -> Dict[(int, Experiment)]:
     exp = experiment.dict()
     exp['dataset'] = exp['dataset'].value
     exp['embedding'] = exp['embedding'].value
-    add_experiment(conn.client_socket, exp)
+    add_experiment(conn.client_socket, id)
+
+@app.post("/experiments/run/") 
+def run_exp(ids:List[int] = None) -> Union[Dict[(int, Experiment)], Experiment]:
+    run_experiments(conn.client_socket, ids)
     
 @app.delete("/experiments/") 
 def remove_experiment(id:int):
@@ -197,6 +201,10 @@ def get_test(id:int = None) -> Union[Dict[(int, Test)], Test]:
 def add_tst(test:Test) -> Dict[(int, Test)]:
     validate_test(test)
     add_test(test)
+
+@app.post("/tests/run/") 
+def run_exp(ids:List[int] = []) -> Union[Dict[(int, Test)], Test]:
+    run_tests(conn.client_socket, ids)
     
 @app.delete("/tests/") 
 def remove_test(id:int):
@@ -217,6 +225,10 @@ def close_server():
 def close_server():
     send_msg_to_server(conn.client_socket, "check")
 
+
+# Helper functions:
+def get_updated_config():
+    return permanent_config, changeable_config
 
 if __name__ == "__main__":
     # command = f"uvicorn main:app".split()

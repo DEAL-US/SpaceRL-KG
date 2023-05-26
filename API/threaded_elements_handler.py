@@ -2,6 +2,7 @@ import sys, os, time, socket, json, ast
 
 from pathlib import Path
 from random import randint
+from main import getUpdatedConfig
 
 from fastapi import HTTPException
 import multiprocessing as mp
@@ -29,10 +30,11 @@ class Error():
 # pool = ProcessPool()
 
 class Process(mp.Process):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, name, *args, **kwargs):
         mp.Process.__init__(self, *args, **kwargs)
         self._pconn, self._cconn = mp.Pipe()
         self._exception = None
+        self._name = name
 
     def run(self):
         self.initialize_logging()
@@ -46,8 +48,8 @@ class Process(mp.Process):
             # raise e  # You can still rise this exception if you need to
 
     def initialize_logging(self):
-        sys.stdout = open(str(os.getpid()) + ".out", "a", buffering=-1)
-        sys.stderr = open(str(os.getpid()) + "_error.out", "a", buffering=-1)
+        sys.stdout = open(f"p_{name}.out", "a", buffering=-1)
+        sys.stderr = open(f"p_{name}.err", "a", buffering=-1)
 
         print('stdout initialized')
 
@@ -57,14 +59,13 @@ class Process(mp.Process):
             self._exception = self._pconn.recv()
         return self._exception
 
-
 # Folder paths:
 current_dir = Path(__file__).parent.resolve()
 parent_path = current_dir.parent.resolve()
 
 # RELATIVE IMPORTS.
 genpath = Path(f"{parent_path}/model/data/generator").resolve()
-modelpath = Path(f"{parent_path}/model/data").resolve()
+modelpath = Path(f"{parent_path}/model").resolve()
 
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, str(genpath))
@@ -72,6 +73,8 @@ sys.path.insert(0, str(modelpath))
 
 import generate_trans_embeddings as embgen
 import tester, trainer
+
+from config import Experiment, Test
 
 embgen_queue, cache_queue, experiment_queue, test_queue = dict(), dict(), dict(), dict()
 embgen_idx, cache_idx, exp_idx, test_idx = 0,0,0,0
@@ -133,57 +136,95 @@ def server_message_handler(data:str, MAXBYTES) -> str:
                 return f"error;MalformedGetRequest;get request does not match expected input, please check spelling..."
 
     if(petition == 'post'):
-        if(variant == 'cache'):
-            cache = msg[2]
-            print(cache)
-            cache_queue[cache_idx] = cache
-            cache_idx += 1
+        if(len(msg) == 3):
+            if(variant == 'cache'):
+                cache = msg[2]
+                print(cache)
+                cache_queue[cache_idx] = cache
+                cache_idx += 1
 
-            res = f"success;cache successfully added to queue."
-        
-        elif(variant == 'embedding'):
-            data = ast.literal_eval(msg[2])
-
-            dataset = data['dataset']
-            models = data['models']
-            gpu = data['use_gpu']
-            regen = data['regenerate_existing']
-            normalize = data['normalize']
-            inverse = data['add_inverse_path']
-            mode = data['fast_mode']
-
-            # embgen.generate_embedding(dataset, models, gpu, regen, normalize, inverse, mode)
+                res = f"success;cache successfully added to queue."
             
-            proc = Process(target=embgen.generate_embedding, 
-            args=[dataset, models, gpu, regen, normalize, inverse, mode], 
-            name=f"Embedding Process {embgen_idx}")
-            proc.start()
-            embgen_queue[embgen_idx] = proc
+            elif(variant == 'embedding'):
+                data = ast.literal_eval(msg[2])
 
-            # pool.start_process_in_pool(embgen.generate_embedding, [dataset, models, gpu, regen, normalize, inverse, mode])
+                dataset = data['dataset']
+                models = data['models']
+                gpu = data['use_gpu']
+                regen = data['regenerate_existing']
+                normalize = data['normalize']
+                inverse = data['add_inverse_path']
+                mode = data['fast_mode']
 
-            res = f"success;emb_index:{embgen_idx}"
+                # embgen.generate_embedding(dataset, models, gpu, regen, normalize, inverse, mode)
+                
+                proc = Process(target=embgen.generate_embedding, 
+                args=[dataset, models, gpu, regen, normalize, inverse, mode], 
+                name=f"Embedding Process {embgen_idx}")
+                proc.start()
+                embgen_queue[embgen_idx] = proc
 
-            embgen_idx += 1
+                # pool.start_process_in_pool(embgen.generate_embedding, [dataset, models, gpu, regen, normalize, inverse, mode])
 
-        elif(variant == 'experiment'):
-            experiment = msg[2]
-            print(experiment)
-            experiment_queue[exp_idx] = experiment
-            exp_idx += 1
+                res = f"success;emb_index:{embgen_idx}"
 
-            res = f"success;experiment successfully added to queue."
-        
-        elif(variant == 'tests'):
-            test = msg[2]
-            print(test)
-            test_queue[test_idx] = test
-            test_idx += 1
+                embgen_idx += 1
 
-            return f"success;test successfully added to queue."
+            elif(variant == 'experiment'):
+                experiment = msg[2]
+                print(experiment)
+                experiment_queue[exp_idx] = experiment
+                exp_idx += 1
 
-        else:
-            return f"error;MalformedPostRequest;request does not match expected input, please check spelling..."
+                res = f"success;experiment successfully added to queue."
+            
+            elif(variant == 'tests'):
+                test = msg[2]
+                print(test)
+                test_queue[test_idx] = test
+                test_idx += 1
+
+                return f"success;test successfully added to queue."
+
+            else:
+                return f"error;MalformedPostRequest;request does not match expected input, please check spelling..."
+       
+        if(len(msg) == 4 and msg[3] == "run"):
+            # expects post;experiment;run;all/[id1, id2]
+            
+            if(variant == 'experiment'):
+                #TODO: if contains id, run that one. if all run all.
+                if(msg[1] == "all"):
+
+                    
+                    return f"success;ExperimentsLaunched."
+                else:
+                    try:
+                        exp_id = int(msg[1])
+                        # api_conn = dict()
+                        # api_conn["config"] = 
+                        # api_conn["experiments"] = 
+
+                        trainer.main(false, )
+
+                        return f"success;Experiment with id {exp_id} Launched."
+                    except:
+                        return f"error;MalformedPostRequest;request does not match expected input, please check spelling..."
+
+            
+            elif(variant == 'tests'):
+                #TODO: if contains id, run that one. if all run all.
+                if(msg[1] == "all"):
+                    pass
+                else:
+                    try:
+                        exp_id = int(msg[1])
+                        
+                    except:
+                        return f"error;MalformedPostRequest;request does not match expected input, please check spelling..."
+
+                res = f"success;experiment successfully added to queue."
+
 
     if (len(res) > MAXBYTES): #msg is multipart.
         multipart_idx = randint(0, sys.maxsize) # we believe in a 0 collision world here.
