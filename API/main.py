@@ -1,5 +1,5 @@
 # Local imports
-import sys, os, atexit, ast
+import sys, os, atexit, ast, traceback
 import multiprocessing as mp
 
 from multiprocessing import Process
@@ -158,7 +158,8 @@ def get_experiment(id:int = None) -> Union[Dict[(int, Experiment)], Experiment]:
         try:
             exp = get_info_from(infodicttype.EXPERIMENT, conn.client_socket, id)
             return exp
-        except:
+        except Exception:
+            print(traceback.format_exc())
             Error(name="NonexistantExperiment",
             desc = f"There is no experiment with id {id}")
 
@@ -180,10 +181,8 @@ def run_exp(ids:List[int] = None) -> Union[Dict[(int, Experiment)], Experiment]:
 @app.delete("/experiments/") 
 def remove_experiment(id:int):
     try:
-        send_msg_to_server(client_socket,f"delete;experiment;{id}")
-        # del experiment_queue[id]
-        return {"message":"experiment was removed successfully."}
-
+        res = delete_experiment(conn.client_socket, id)
+        return res
     except:
         Error(name="NonexistantExperiment",
         desc = f"There is no experiment with id {id}")
@@ -213,10 +212,8 @@ def run_exp(ids:List[int] = []) -> Union[Dict[(int, Test)], Test]:
 @app.delete("/tests/") 
 def remove_test(id:int):
     try:
-        send_msg_to_server(conn.client_socket,f"delete;test;{id}")
-
-        # del test_queue[id]
-        return {"message":"test was removed successfully."}
+        res = delete_test(conn.client_socket, id)
+        return res
     except:
         Error(name="NonexistantTest",
         desc = f"There is no test with id {id}")
@@ -235,8 +232,10 @@ def get_updated_config():
     return permanent_config, changeable_config
 
 if __name__ == "__main__":
-    # command = f"uvicorn main:app".split()
-    # run(command, cwd = current_dir)
-
     import uvicorn
+
+    # command = f"lsof -t -i tcp:8000 | xargs kill -9"
+    # # run(command, cwd = current_dir, shell=True)
+    # os.system(command)
+
     uvicorn.run(app, host="127.0.0.1", port=8080)

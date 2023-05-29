@@ -82,7 +82,7 @@ embgen_idx, cache_idx, exp_idx, test_idx = 0,0,0,0
 
 # Server message handler
 def server_message_handler(data:str, MAXBYTES) -> str:
-    # THIS SHOULD ANSWER VERY FAST AND DO A PROCESS FOR HEAVY OPS.
+    # THIS SHOULD ANSWER VERY FAST AND DO A PROCESS FOR SLOW OPS.
     global embgen_queue, cache_queue, experiment_queue, test_queue, embgen_idx, cache_idx, exp_idx, test_idx
     multipart_idx = None
 
@@ -117,26 +117,26 @@ def server_message_handler(data:str, MAXBYTES) -> str:
         if(len(msg) == 3): #res = requested id.
             if(variant == 'caches'):
                 try:
-                    res = f"dict;{msg[2]};{cache_queue[msg[2]]}"
+                    res = f"dict;{msg[2]};{cache_queue[int(msg[2])]}"
                 except:
                     res = f"error;IDNotFound;id \"{msg[2]}\" for cache does not exist."
             
             elif(variant == 'experiments'):
                 try:
-                    res = f"dict;{msg[2]};{experiment_queue[msg[2]]}"
-                except:
+                    res = f"dict;{msg[2]};{experiment_queue[int(msg[2])]}"
+                except Exception as e:
                     res = f"error;IDNotFound;id \"{msg[2]}\" for experiment does not exist."
             
             elif(variant == 'tests'):
                 try:
-                    res = f"dict;{msg[2]};{test_queue[msg[2]]}"
+                    res = f"dict;{msg[2]};{test_queue[int(msg[2])]}"
                 except:
                     res = f"error;IDNotFound;id \"{msg[2]}\" for test does not exist."
             
             else:
                 return f"error;MalformedGetRequest;get request does not match expected input, please check spelling..."
 
-    if(petition == 'post'):
+    elif(petition == 'post'):
         if(len(msg) == 3):
             if(variant == 'cache'):
                 cache = msg[2]
@@ -224,6 +224,17 @@ def server_message_handler(data:str, MAXBYTES) -> str:
 
                 res = f"success;experiment successfully added to queue."
 
+    elif(petition == 'delete'):
+        if(variant == 'experiment'):
+            del experiment_queue[int(msg[2])]
+            res = f"success;removed expetiment successfully"
+
+        elif(variant == 'test'):
+            del test_queue[int(msg[2])]
+            res = f"success;removed test successfully"
+    else:
+        return f"error;MalformedGetRequest;petition type is unknown."
+
 
     if (len(res) > MAXBYTES): #msg is multipart.
         multipart_idx = randint(0, sys.maxsize) # we believe in a 0 collision world here.
@@ -283,23 +294,14 @@ def response_handler(r:str):
         return 'multi'
 
     if var == 'dict': # recieved whole list of objects.
-        resp = msg[1]
+        if len(msg) == 3: # returning dict with ID associated.
+            return ast.literal_eval(msg[2])
 
-        if var == 'cache':
-            pass
-
-        if var == 'experiment':
-            pass
-            
-        if var == 'test':
-            pass
-            
-        return ast.literal_eval(msg[1])
-
-    if len(msg)==3:
-        idx, resp = msg[1], msg[2]
-    
-        return json.loads(resp)
+        elif len(msg) == 2: # returning all entries.
+            aux = ast.literal_eval(msg[1])
+            for k, v in aux.items():
+                aux[k] = ast.literal_eval(v)
+            return aux
 
 
 

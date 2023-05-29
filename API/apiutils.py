@@ -246,6 +246,12 @@ def run_experiments(socket, ids):
 def run_tests(socket, ids):
     return send_msg_to_server(socket, f"post;tests;run;{ids}")
 
+def delete_experiment(socket, id):
+    return send_msg_to_server(socket, f"delete;experiment;{id}")
+
+def delete_test(socket, id):
+    return send_msg_to_server(socket, f"delete;test;{id}")
+
 # Helper functions:
 def get_agents():
     agent_list = os.listdir(agents_path)
@@ -372,9 +378,16 @@ def get_info_from(opt:infodicttype, socket, id:int = None):
 
     elif(opt == infodicttype.EXPERIMENT):
         msg = f"get;experiments"
+        if(id is not None):
+            msg += f";{id}"
+
         res = send_msg_to_server(socket, msg)
-        for e in res.items():
-            res[e[0]] = dict_to_exp(ast.literal_eval(e[1]))
+
+        if(id is None):
+            for e in res.items():
+                res[e[0]] = dict_to_exp(e[1])
+        else:
+            res = dict_to_exp(res)
 
         return res
 
@@ -383,8 +396,5 @@ def get_info_from(opt:infodicttype, socket, id:int = None):
 
     else:
         Error("BadRequestError",f"you asked for the wrong thing bucko!\n{opt}")
-
-    if(id is not None):
-        msg += f";{id}"
 
     return send_msg_to_server(socket, msg)
