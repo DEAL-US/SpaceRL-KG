@@ -1,5 +1,5 @@
 # Local imports
-import sys, os, atexit
+import sys, os, atexit, ast
 import multiprocessing as mp
 
 from multiprocessing import Process
@@ -152,22 +152,26 @@ def agents():
 @app.get("/experiments/")
 def get_experiment(id:int = None) -> Union[Dict[(int, Experiment)], Experiment]:
     if id is None:
-        return get_info_from(infodicttype.EXPERIMENT, conn.client_socket)
+        exps = get_info_from(infodicttype.EXPERIMENT, conn.client_socket)
+        return exps
     else:
         try:
-            return get_info_from(infodicttype.EXPERIMENT, conn.client_socket, id)
+            exp = get_info_from(infodicttype.EXPERIMENT, conn.client_socket, id)
+            return exp
         except:
             Error(name="NonexistantExperiment",
             desc = f"There is no experiment with id {id}")
 
 @app.post("/experiments/") 
-def add_exp(experiment:Experiment) -> Dict[(int, Experiment)]:
+def add_exp(experiment:Experiment) -> int:
     validate_experiment(conn.client_socket, experiment)
 
     exp = experiment.dict()
     exp['dataset'] = exp['dataset'].value
     exp['embedding'] = exp['embedding'].value
-    add_experiment(conn.client_socket, id)
+    add_experiment(conn.client_socket, exp)
+
+    return 0
 
 @app.post("/experiments/run/") 
 def run_exp(ids:List[int] = None) -> Union[Dict[(int, Experiment)], Experiment]:

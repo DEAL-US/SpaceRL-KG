@@ -1,5 +1,5 @@
 # Local imports
-import sys, os, time, collections, json, re, shutil
+import sys, os, time, collections, json, re, shutil, ast
 
 from enum import Enum
 from pathlib import Path
@@ -127,7 +127,7 @@ def validate_experiment(socket, exp: Experiment):
     if len(exp.name) > 200 and len(exp.name) < 10:
         reasons.append("Experiment name must be between 10-200 characters\n")
 
-    experiment_queue = send_msg_to_server(socket, "get;experiments")
+    experiment_queue = get_info_from(infodicttype.EXPERIMENT, socket)
     f = list(filter(lambda l_exp: True if l_exp.name == exp.name else False, experiment_queue.values()))
 
     if exp.name in agents or len(f) != 0:
@@ -352,6 +352,14 @@ def validate_config_value(param:str, value):
             if param not in changeable_config:
                 Error("WrongValueError", f"param was not found.")
 
+def dict_to_exp(exp_dict: dict) -> Experiment:
+    dtst = [e for e in DATASETS if e.value == exp_dict['dataset']][0]
+    emb = [e for e in ALLOWED_EMBEDDINGS if e.value == exp_dict['embedding']][0]
+
+    res = Experiment(name=exp_dict['name'], dataset=dtst, single_relation=exp_dict['single_relation'],
+    embedding=emb, laps=exp_dict['laps'], relation_to_train=exp_dict['relation_to_train'])
+
+    return res
 
 class infodicttype(Enum):
     CACHE = "cache"
@@ -364,6 +372,11 @@ def get_info_from(opt:infodicttype, socket, id:int = None):
 
     elif(opt == infodicttype.EXPERIMENT):
         msg = f"get;experiments"
+        res = send_msg_to_server(socket, msg)
+        for e in res.items():
+            res[e[0]] = dict_to_exp(ast.literal_eval(e[1]))
+
+        return res
 
     elif(opt == infodicttype.TEST):
         msg = f"get;tests"

@@ -2,7 +2,8 @@ import sys, os, time, socket, json, ast
 
 from pathlib import Path
 from random import randint
-from main import getUpdatedConfig
+
+# from main import get_updated_config
 
 from fastapi import HTTPException
 import multiprocessing as mp
@@ -102,13 +103,13 @@ def server_message_handler(data:str, MAXBYTES) -> str:
     if(petition == 'get'):
         if(len(msg) == 2): # res = the complete dict 
             if(variant == 'caches'):
-                res = f"cache;{cache_queue}"
+                res = f"dict;{cache_queue}"
             
             elif(variant == 'experiments'):
-                res = f"experiment;{experiment_queue}"
+                res = f"dict;{experiment_queue}"
             
             elif(variant == 'tests'):
-                res = f"test;{test_queue}"
+                res = f"dict;{test_queue}"
             
             else:
                 return f"error;MalformedGetRequest;get request does not match expected input, please check spelling..."
@@ -116,19 +117,19 @@ def server_message_handler(data:str, MAXBYTES) -> str:
         if(len(msg) == 3): #res = requested id.
             if(variant == 'caches'):
                 try:
-                    res = f"cache;{msg[2]};{cache_queue[msg[2]]}"
+                    res = f"dict;{msg[2]};{cache_queue[msg[2]]}"
                 except:
                     res = f"error;IDNotFound;id \"{msg[2]}\" for cache does not exist."
             
             elif(variant == 'experiments'):
                 try:
-                    res = f"experiment;{msg[2]};{experiment_queue[msg[2]]}"
+                    res = f"dict;{msg[2]};{experiment_queue[msg[2]]}"
                 except:
                     res = f"error;IDNotFound;id \"{msg[2]}\" for experiment does not exist."
             
             elif(variant == 'tests'):
                 try:
-                    res = f"test;{msg[2]};{test_queue[msg[2]]}"
+                    res = f"dict;{msg[2]};{test_queue[msg[2]]}"
                 except:
                     res = f"error;IDNotFound;id \"{msg[2]}\" for test does not exist."
             
@@ -172,7 +173,6 @@ def server_message_handler(data:str, MAXBYTES) -> str:
 
             elif(variant == 'experiment'):
                 experiment = msg[2]
-                print(experiment)
                 experiment_queue[exp_idx] = experiment
                 exp_idx += 1
 
@@ -180,7 +180,6 @@ def server_message_handler(data:str, MAXBYTES) -> str:
             
             elif(variant == 'tests'):
                 test = msg[2]
-                print(test)
                 test_queue[test_idx] = test
                 test_idx += 1
 
@@ -283,7 +282,7 @@ def response_handler(r:str):
         
         return 'multi'
 
-    if len(msg)==2: # recieved whole list of objects.
+    if var == 'dict': # recieved whole list of objects.
         resp = msg[1]
 
         if var == 'cache':
@@ -295,7 +294,7 @@ def response_handler(r:str):
         if var == 'test':
             pass
             
-        return json.loads(resp)
+        return ast.literal_eval(msg[1])
 
     if len(msg)==3:
         idx, resp = msg[1], msg[2]
