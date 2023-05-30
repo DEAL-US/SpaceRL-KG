@@ -1,9 +1,10 @@
 # Local imports
-import sys, os, atexit, ast, traceback
-import multiprocessing as mp
+import sys, os, atexit, ast, traceback, atexit
 
-from multiprocessing import Process
+import multiprocessing as mp
+from multiprocessing import Process, Manager, Pool
 from subprocess import run
+from pathlib import Path
 
 # from apiutils import DATASETS, ALLOWED_EMBEDDINGS
 # from apiutils import permanent_config, changeable_config, convert_var_to_config_type
@@ -12,26 +13,24 @@ from subprocess import run
 # from apiutils import add_embedding, add_cache, add_experiment, add_test, run_experiments, run_tests
 from apiutils import *
 
+from threaded_elements_handler import start_server, start_client
+
+
 # FastAPI imports
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
 from fastapi.exceptions import HTTPException
 
 from typing import Union, List, Dict
-from pathlib import Path
-
-from threaded_elements_handler import start_server, start_client, send_msg_to_server
-from multiprocessing import Process, Manager, Pool
-
-import atexit
 
 app = FastAPI()
 
+# manages client connetions
 class ConnectionManager():
     def __init__(self):
         # Server constants.
         HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
-        SERVER_PORT = 6539
+        SERVER_PORT = 6544
         MAXBYTES = 4096
 
         p = Process(target=start_server, args=(HOST, SERVER_PORT, MAXBYTES))
@@ -42,15 +41,16 @@ class ConnectionManager():
         if(self.client_socket is None):
             quit("exiting...")
 
+conn = ConnectionManager()
+
 def exit_handler():
     try:
         print("SERVER IS CLOSING")
-        close_server()
+        send_msg_to_server(conn.client_socket, b'quit')
     except Exception as e :
         print(f"unable to close server before exiting, related exception was: {e}")   
    
 atexit.register(exit_handler)
-conn = ConnectionManager()
 
 # Folder paths:
 current_dir = Path(__file__).parent.resolve()
@@ -125,6 +125,7 @@ def delete_dataset(name:str):
     remove_dataset(name)
     return {"message":"dataset and all related content was removed successfully"}
 
+
 # EMBEDDING OPERATIONS
 @app.get("/embeddings/")
 def get_embeddings():
@@ -141,6 +142,7 @@ def gen_embedding(embedding: EmbGen):
     emb['models'] = aux
 
     add_embedding(conn.client_socket, emb)
+
 
 # AGENTS
 @app.get("/agents/")
@@ -175,15 +177,17 @@ def add_exp(experiment:Experiment) -> int:
     return 0
 
 @app.post("/experiments/run/") 
-def run_exp(ids:List[int] = None) -> Union[Dict[(int, Experiment)], Experiment]:
-    run_experiments(conn.client_socket, ids)
+def run_exp(ids:List[int] = None) -> Dict:
+    return run_experiments(conn.client_socket, ids)
     
 @app.delete("/experiments/") 
 def remove_experiment(id:int):
     try:
+        exp = get_info_from(infodicttype.EXPERIMENT, conn.client_socket, id)
         res = delete_experiment(conn.client_socket, id)
         return res
     except:
+        print(traceback.format_exc())
         Error(name="NonexistantExperiment",
         desc = f"There is no experiment with id {id}")
 
@@ -218,18 +222,9 @@ def remove_test(id:int):
         Error(name="NonexistantTest",
         desc = f"There is no test with id {id}")
 
-@app.get("/close/")
-def close_server():
-    send_msg_to_server(conn.client_socket, "quit")
-
 @app.get("/check/")
-def close_server():
+def check_processes():
     send_msg_to_server(conn.client_socket, "check")
-
-
-# Helper functions:
-def get_updated_config():
-    return permanent_config, changeable_config
 
 if __name__ == "__main__":
     import uvicorn

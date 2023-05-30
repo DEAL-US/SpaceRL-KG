@@ -11,7 +11,7 @@ from multiprocessing import cpu_count
 
 from fastapi import HTTPException
 
-from threaded_elements_handler import send_msg_to_server
+# from threaded_elements_handler import start_server, start_client, send_msg_to_server
 
 # Folder paths:
 current_dir = Path(__file__).parent.resolve()
@@ -25,7 +25,7 @@ tests_path = Path(f"{parent_path}/model/data/results").resolve()
 datasets_path = Path(f"{parent_path}/datasets").resolve()
 
 # Helper function required before definition of pydantic models.
-# As it defines the dataset Enum.
+# It generates the dataset Enum which is used a return type.
 def get_datasets() -> Enum:
     res = {}
     for name in os.listdir(datasets_path):
@@ -83,6 +83,7 @@ changeable_config = {
 # FastAPI is built with these pydantic models models in mind as a return,
 # the idea is to define one of these for each response type you provide.
 class Error():
+    # Exceptionally this error class automatically raises an HTTP exception
     def __init__(self, name:str, desc:str):
         raise HTTPException(status_code=400, 
         detail=f"{name} - {desc}")
@@ -154,7 +155,7 @@ def validate_test(tst: Test):
     if len(tst.name) > 200 and len(tst.name) < 10:
         reasons.append("Test name must be between 10-200 characters\n")
 
-    test_queue = send_msg_to_server("get;tests")
+    test_queue = send_msg_to_server(f"get;{infodicttype.TEST}")
     f = list(filter(lambda l_tst: True if l_tst.name == tst.name else False, test_queue.values()))
 
     if tst.name in tests or len(f) != 0:
@@ -198,7 +199,11 @@ def validate_test(tst: Test):
 
     return tst
 
-# Adding to queue.
+
+# CRUD
+
+# datasets
+
 def add_dataset(dataset_name:str, triples: List[Triple]) -> Union[None, Error]:
     p = Path(f"{datasets_path}/{dataset_name}")
     try:
@@ -213,7 +218,6 @@ def add_dataset(dataset_name:str, triples: List[Triple]) -> Union[None, Error]:
             res += f"{t.e1}\t{t.r}\t{t.e2}\n"
         f.write(res)
 
-# remove dataset
 def remove_dataset(dataset_name:str) -> bool:
     # TODO: Delete Chaches, embedding files, agents and tests related to the DATASET being edited or deleted.
 
@@ -226,31 +230,37 @@ def remove_dataset(dataset_name:str) -> bool:
         desc="There was a problem deleting that dataset...")
     
     return True
-        
+
+
+# embeddings are computed directly
 def add_embedding(socket, embedding:EmbGen):
     return send_msg_to_server(socket, f"post;embedding;{embedding}")
 
+# Cache, experiment and tests are added to a queue and triggered 
+# to run if the system is not busy.
 def add_cache():
     pass
 
 def add_experiment(socket, exp:Experiment):
-    return send_msg_to_server(socket, f"post;experiment;{exp}")
+    return send_msg_to_server(socket, f"post;{infodicttype.EXPERIMENT.value};{exp}")
 
 def add_test(test:Test):
-    return send_msg_to_server(socket, f"post;test;{test}")
+    return send_msg_to_server(socket, f"post;{infodicttype.TEST.value};{test}")
+
+
+def delete_experiment(socket, id):
+    return send_msg_to_server(socket, f"delete;{infodicttype.EXPERIMENT.value};{id}")
+
+def delete_test(socket, id):
+    return send_msg_to_server(socket, f"delete;{infodicttype.TEST.value};{id}")
 
 
 def run_experiments(socket, ids):
-    return send_msg_to_server(socket, f"post;experiment;run;{ids}")
+    return send_msg_to_server(socket, f"post;{infodicttype.EXPERIMENT.value};run;{ids}")
 
 def run_tests(socket, ids):
-    return send_msg_to_server(socket, f"post;tests;run;{ids}")
+    return send_msg_to_server(socket, f"post;{infodicttype.TEST.value};run;{ids}")
 
-def delete_experiment(socket, id):
-    return send_msg_to_server(socket, f"delete;experiment;{id}")
-
-def delete_test(socket, id):
-    return send_msg_to_server(socket, f"delete;test;{id}")
 
 # Helper functions:
 def get_agents():
@@ -374,10 +384,10 @@ class infodicttype(Enum):
 
 def get_info_from(opt:infodicttype, socket, id:int = None):
     if(opt == infodicttype.CACHE):
-        msg = f"get;caches"
+        msg = f"get;{infodicttype.CACHE.value}"
 
     elif(opt == infodicttype.EXPERIMENT):
-        msg = f"get;experiments"
+        msg = f"get;{infodicttype.EXPERIMENT.value}"
         if(id is not None):
             msg += f";{id}"
 
@@ -392,9 +402,73 @@ def get_info_from(opt:infodicttype, socket, id:int = None):
         return res
 
     elif(opt == infodicttype.TEST):
-        msg = f"get;tests"
+        msg = f"get;{infodicttype.TEST.value}"
 
     else:
         Error("BadRequestError",f"you asked for the wrong thing bucko!\n{opt}")
 
     return send_msg_to_server(socket, msg)
+
+def get_updated_config():
+    return permanent_config, changeable_config
+
+# Server OPS:
+
+def send_msg_to_server(client_socket, msg, MAXBYTES = 4096):
+    msg = bytes(msg, 'utf-8')
+
+    # send message to server
+    client_socket.sendall(msg)
+
+    # await server answer
+    data = client_socket.recv(MAXBYTES)
+    data = data.decode("utf-8")
+
+    # process server answer
+    print(f"GOT MESSAGE BACK FROM SERVER {data}")
+    data = response_handler(data)
+
+    if(data == 'multi'):
+        print("DATA IS MULTIPART, NEED TO RECIEVE MORE!")
+        done = False
+        while(not done):
+            data = s.recv(MAXBYTES)
+            data = data.decode("utf-8")
+            done = data != 'multi'
+
+    return data
+
+def response_handler(r:str):
+    msg = r.split(';', maxsplit=3)
+    var = msg[0]
+
+    if var == 'error':
+        Error(msg[1], msg[2])
+    
+    if var == 'success':
+        return {"Success" : msg[1]}
+    
+    if var == 'multi':
+        multi_idx, part_idx, msg_part = msg[1], *msg[2].split(';', maxsplit=2)
+
+        if(part_idx == 'L'):
+            od = collections.OrderedDict(sorted(big_responses.items()))
+            reslist = list(od.values())
+            reslist.append(msg_part)
+            return response_handler("".join(reslist))
+
+        elif multi_idx not in big_responses:
+            big_responses[multi_idx] = dict()
+            big_responses[multi_idx][part_idx] = msg_part
+        
+        return 'multi'
+
+    if var == 'dict': # recieved whole list of objects.
+        if len(msg) == 3: # returning dict with ID associated.
+            return ast.literal_eval(msg[2])
+
+        elif len(msg) == 2: # returning all entries.
+            aux = ast.literal_eval(msg[1])
+            for k, v in aux.items():
+                aux[k] = ast.literal_eval(v)
+            return aux

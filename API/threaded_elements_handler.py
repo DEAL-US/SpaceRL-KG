@@ -1,17 +1,25 @@
 import sys, os, time, socket, json, ast
 
+from typing import List
+
 from pathlib import Path
 from random import randint
-
-# from main import get_updated_config
+from enum import Enum
 
 from fastapi import HTTPException
 import multiprocessing as mp
+from apiutils import get_updated_config
+
 
 class Error():
     def __init__(self, name:str, desc:str):
         raise HTTPException(status_code=400, 
         detail=f"{name} - {desc}")
+
+class infodicttype(Enum):
+    CACHE = "cache"
+    EXPERIMENT = "experiment"
+    TEST = "test"
 
 # def mute():
 #     sys.stdout = open(os.devnull, 'w')
@@ -86,6 +94,8 @@ def server_message_handler(data:str, MAXBYTES) -> str:
     global embgen_queue, cache_queue, experiment_queue, test_queue, embgen_idx, cache_idx, exp_idx, test_idx
     multipart_idx = None
 
+    res = ""
+
     if(data == "quit"):
         return None
 
@@ -102,32 +112,32 @@ def server_message_handler(data:str, MAXBYTES) -> str:
     
     if(petition == 'get'):
         if(len(msg) == 2): # res = the complete dict 
-            if(variant == 'caches'):
+            if(variant == infodicttype.CACHE.value):
                 res = f"dict;{cache_queue}"
             
-            elif(variant == 'experiments'):
+            elif(variant == infodicttype.EXPERIMENT.value):
                 res = f"dict;{experiment_queue}"
             
-            elif(variant == 'tests'):
+            elif(variant == infodicttype.TEST.value):
                 res = f"dict;{test_queue}"
             
             else:
                 return f"error;MalformedGetRequest;get request does not match expected input, please check spelling..."
             
-        if(len(msg) == 3): #res = requested id.
-            if(variant == 'caches'):
+        elif(len(msg) == 3): #res = requested id.
+            if(variant == infodicttype.CACHE.value):
                 try:
                     res = f"dict;{msg[2]};{cache_queue[int(msg[2])]}"
                 except:
                     res = f"error;IDNotFound;id \"{msg[2]}\" for cache does not exist."
             
-            elif(variant == 'experiments'):
+            elif(variant == infodicttype.EXPERIMENT.value):
                 try:
                     res = f"dict;{msg[2]};{experiment_queue[int(msg[2])]}"
                 except Exception as e:
                     res = f"error;IDNotFound;id \"{msg[2]}\" for experiment does not exist."
             
-            elif(variant == 'tests'):
+            elif(variant == infodicttype.TEST.value):
                 try:
                     res = f"dict;{msg[2]};{test_queue[int(msg[2])]}"
                 except:
@@ -136,9 +146,13 @@ def server_message_handler(data:str, MAXBYTES) -> str:
             else:
                 return f"error;MalformedGetRequest;get request does not match expected input, please check spelling..."
 
+        else:
+            return f"error;MalformedGetRequest;couldn't parse petition."
+
     elif(petition == 'post'):
-        if(len(msg) == 3):
-            if(variant == 'cache'):
+
+        if(len(msg) == 3): 
+            if(variant == infodicttype.CACHE.value):
                 cache = msg[2]
                 print(cache)
                 cache_queue[cache_idx] = cache
@@ -171,14 +185,14 @@ def server_message_handler(data:str, MAXBYTES) -> str:
 
                 embgen_idx += 1
 
-            elif(variant == 'experiment'):
+            elif(variant == infodicttype.EXPERIMENT.value):
                 experiment = msg[2]
-                experiment_queue[exp_idx] = experiment
+                experiment_queue[exp_idx] = ast.literal_eval(experiment)
                 exp_idx += 1
 
                 res = f"success;experiment successfully added to queue."
             
-            elif(variant == 'tests'):
+            elif(variant == infodicttype.TEST.value):
                 test = msg[2]
                 test_queue[test_idx] = test
                 test_idx += 1
@@ -188,30 +202,53 @@ def server_message_handler(data:str, MAXBYTES) -> str:
             else:
                 return f"error;MalformedPostRequest;request does not match expected input, please check spelling..."
        
-        if(len(msg) == 4 and msg[3] == "run"):
-            # expects post;experiment;run;all/[id1, id2]
-            
-            if(variant == 'experiment'):
-                #TODO: if contains id, run that one. if all run all.
-                if(msg[1] == "all"):
+        elif(len(msg) == 4 and msg[2] == "run"):
+            # expects post;experiment;run;[id1, id2]
+            # if list is empty run all queued.            
+            # return f"success;Experiments Launched."
 
-                    
-                    return f"success;ExperimentsLaunched."
+            if(variant == infodicttype.EXPERIMENT.value):
+                exp_list = ast.literal_eval(msg[3])
+                
+                print(f"recieved experiments to run: {exp_list}")
+
+                if type(exp_list) != list:
+                    return f"error;UnparseableIdList; you sent something that wasnt a list of ids."
+                
+                to_run = []
+                if len(exp_list) == 0:
+                    to_run = list(experiment_queue.items())
+                
                 else:
-                    try:
-                        exp_id = int(msg[1])
-                        # api_conn = dict()
-                        # api_conn["config"] = 
-                        # api_conn["experiments"] = 
+                    to_run = [(p[0], p[1]) for p in experiment_queue.items() if p[0] in exp_list]
 
-                        trainer.main(false, )
+                if len(to_run) == 0:
+                    return f"error;NonExistentID;none of the provided ids match to any experiment.."
+                
+                cnfg = get_updated_config()
 
-                        return f"success;Experiment with id {exp_id} Launched."
-                    except:
-                        return f"error;MalformedPostRequest;request does not match expected input, please check spelling..."
+                print(f"recieved config {cnfg}")
+
+                return f"success;Experiments Launched."
+
+                aux = []
+                for e in to_run:
+                    ex = Experiment()
+                    aux.append(ex)
+
+                exp_id = int(msg[1])
+                # api_conn = dict()
+                # api_conn["config"] = 
+                # api_conn["experiments"] = 
+
+                trainer.main(false, )
+
+                return f"success;Experiments Launched."
+                    
+            
 
             
-            elif(variant == 'tests'):
+            elif(variant == infodicttype.TEST.value):
                 #TODO: if contains id, run that one. if all run all.
                 if(msg[1] == "all"):
                     pass
@@ -224,17 +261,26 @@ def server_message_handler(data:str, MAXBYTES) -> str:
 
                 res = f"success;experiment successfully added to queue."
 
+        else:
+            return f"error;MalformedPostRequest;couldn't parse petition."
+
     elif(petition == 'delete'):
-        if(variant == 'experiment'):
+        if(variant == infodicttype.EXPERIMENT.value):
             del experiment_queue[int(msg[2])]
             res = f"success;removed expetiment successfully"
 
-        elif(variant == 'test'):
+        elif(variant == infodicttype.TEST.value):
             del test_queue[int(msg[2])]
             res = f"success;removed test successfully"
+        
+        else:
+            return f"error;MalformedDeleteRequest;couldn't parse petition."
+
     else:
         return f"error;MalformedGetRequest;petition type is unknown."
 
+    if (res == ""):
+        return f"error;UnkownError;Something went wrong... Please try again. {msg}"
 
     if (len(res) > MAXBYTES): #msg is multipart.
         multipart_idx = randint(0, sys.maxsize) # we believe in a 0 collision world here.
@@ -266,43 +312,66 @@ def server_message_handler(data:str, MAXBYTES) -> str:
     return res
 
 
-
 # Client message handling...
-def response_handler(r:str):
-    msg = r.split(';', maxsplit=3)
-    var = msg[0]
+# def response_handler(r:str):
+#     msg = r.split(';', maxsplit=3)
+#     var = msg[0]
 
-    if var == 'error':
-        Error(msg[1], msg[2])
+#     if var == 'error':
+#         Error(msg[1], msg[2])
     
-    if var == 'success':
-        return {"message":msg[1]}
+#     if var == 'success':
+#         return {"Success" : msg[1]}
     
-    if var == 'multi':
-        multi_idx, part_idx, msg_part = msg[1], *msg[2].split(';', maxsplit=2)
+#     if var == 'multi':
+#         multi_idx, part_idx, msg_part = msg[1], *msg[2].split(';', maxsplit=2)
 
-        if(part_idx == 'L'):
-            od = collections.OrderedDict(sorted(big_responses.items()))
-            reslist = list(od.values())
-            reslist.append(msg_part)
-            return response_handler("".join(reslist))
+#         if(part_idx == 'L'):
+#             od = collections.OrderedDict(sorted(big_responses.items()))
+#             reslist = list(od.values())
+#             reslist.append(msg_part)
+#             return response_handler("".join(reslist))
 
-        elif multi_idx not in big_responses:
-            big_responses[multi_idx] = dict()
-            big_responses[multi_idx][part_idx] = msg_part
+#         elif multi_idx not in big_responses:
+#             big_responses[multi_idx] = dict()
+#             big_responses[multi_idx][part_idx] = msg_part
         
-        return 'multi'
+#         return 'multi'
 
-    if var == 'dict': # recieved whole list of objects.
-        if len(msg) == 3: # returning dict with ID associated.
-            return ast.literal_eval(msg[2])
+#     if var == 'dict': # recieved whole list of objects.
+#         if len(msg) == 3: # returning dict with ID associated.
+#             return ast.literal_eval(msg[2])
 
-        elif len(msg) == 2: # returning all entries.
-            aux = ast.literal_eval(msg[1])
-            for k, v in aux.items():
-                aux[k] = ast.literal_eval(v)
-            return aux
+#         elif len(msg) == 2: # returning all entries.
+#             aux = ast.literal_eval(msg[1])
+#             for k, v in aux.items():
+#                 aux[k] = ast.literal_eval(v)
+#             return aux
 
+
+# def send_msg_to_server(client_socket, msg, MAXBYTES = 4096):
+#     msg = bytes(msg, 'utf-8')
+
+#     # send message to server
+#     client_socket.sendall(msg)
+
+#     # await server answer
+#     data = client_socket.recv(MAXBYTES)
+#     data = data.decode("utf-8")
+
+#     # process server answer
+#     print(f"GOT MESSAGE BACK FROM SERVER {data}")
+#     data = response_handler(data)
+
+#     if(data == 'multi'):
+#         print("DATA IS MULTIPART, NEED TO RECIEVE MORE!")
+#         done = False
+#         while(not done):
+#             data = s.recv(MAXBYTES)
+#             data = data.decode("utf-8")
+#             done = data != 'multi'
+
+#     return data
 
 
 def start_client(host, port):
@@ -325,30 +394,6 @@ def start_client(host, port):
             
             time.sleep(1)
 
-def send_msg_to_server(client_socket, msg, MAXBYTES = 4096):
-    msg = bytes(msg, 'utf-8')
-
-    # send message to server
-    client_socket.sendall(msg)
-
-    # await server answer
-    data = client_socket.recv(MAXBYTES)
-    data = data.decode("utf-8")
-
-    # process server answer
-    print(f"GOT MESSAGE BACK FROM SERVER {data}")
-    data = response_handler(data)
-
-    if(data == 'multi'):
-        print("DATA IS MULTIPART, NEED TO RECIEVE MORE!")
-        done = False
-        while(not done):
-            data = s.recv(MAXBYTES)
-            data = data.decode("utf-8")
-            done = data != 'multi'
-
-    print(f"data being returned is of type: {type(data)}")
-    return data
 
 def start_server(host, port, MAXBYTES):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
