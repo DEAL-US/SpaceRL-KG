@@ -5,7 +5,7 @@ import pickle
 import shutil
 import pandas as pd
 import torch
-
+import subprocess
 
 def generate_embedding(dataset: str, models = [], use_gpu :bool = True, regenerate_existing:bool = False,
 normalize:bool = False,  add_inverse_path:bool = True, fast_mode:bool = True, available_cores:int = 1):
@@ -163,14 +163,14 @@ def process_embeddings(entity_file: str, relation_file:str, dataset_dir:str, dat
         ent = l.split(",")[1].replace("\"", "").replace("\n","") #clean tsv
         entities_dict[ent] = entity_embedding_array[i]
 
-    print(str(len(entities_dict)) + " total entities")
+    # print(str(len(entities_dict)) + " total entities")
 
     relations_dict = {}
     for i, l in enumerate(relations):
         rel = l.split(",")[1].replace("\"", "").replace("\n","") #clean tsv
         relations_dict[rel] = relation_embedding_array[i]
 
-    print(str(len(relations_dict)) + " total relations")
+    # print(str(len(relations_dict)) + " total relations")
 
     f = open(f"{base_folder}/embeddings/{model}_entities.pkl","wb")
     pickle.dump(entities_dict, f)

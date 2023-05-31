@@ -11,10 +11,8 @@ for gpu in gpus:
         break
 
 if(available_gpu is None):
-    print("NO GPUS AVAILABLE")
     GPUtil.showUtilization()
 else:
-    print(f"USING AVAILABLE GPU {available_gpu}")
     os.environ["CUDA_VISIBLE_DEVICES"]=str(available_gpu.id)
 
 import tensorflow as tf
@@ -397,7 +395,7 @@ def get_gui_values():
     return tst_total_iterations, tst_current_iteration, tst_total_iter_steps, tst_current_iter_steps, tst_current_progress_text
 
 ################## START ####################
-def main(from_file:bool, gui_connector: TesterGUIconnector = None):
+def main(from_file:bool, api_connector = None, gui_connector: TesterGUIconnector = None):
     """
     Entry function for the tester module.
 
@@ -407,8 +405,16 @@ def main(from_file:bool, gui_connector: TesterGUIconnector = None):
     if(from_file):
         config, TESTS = get_config(train=False)
     else:
-        print(gui_connector.tests)
-        config, TESTS = gui_connector.config, gui_connector.tests
+        if(gui_connector is not None):
+            print(gui_connector.tests)
+            config, TESTS = gui_connector.config, gui_connector.tests
+        
+        elif(api_connector is not None):
+            config, TESTS = api_connector["config"], api_connector["tests"]
+        
+        else:
+            print("Tester config is wrong, if not being run from file, either and API or a GUI connector should be provided.")
+            quit()
 
     config ["use_episodes"] = True
 
@@ -460,5 +466,5 @@ def main(from_file:bool, gui_connector: TesterGUIconnector = None):
             print(dataframes[i])
             dataframes[i].to_csv(f"{respaths[i]}/metrics.csv")
 
-if __name__ == "__main__":
+if __name__ == "__main__":       
     main(True)

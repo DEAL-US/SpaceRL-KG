@@ -121,6 +121,12 @@ class Experiment():
             self.relation_to_train = relation
         else:
             self.relation_to_train = None
+    
+    def __str__(self):
+        return f"{self.name}, {self.dataset}, {self.single_relation}, {self.embeddings}, {self.laps}, {self.single_relation}, {self.relation_to_train}" 
+
+    def __repr__(self):
+        return f"{self.name}, {self.dataset}, {self.single_relation}, {self.embeddings}, {self.laps}, {self.single_relation}, {self.relation_to_train}" 
 
 current_dir = pathlib.Path(__file__).parent.resolve()
 agents_folder = pathlib.Path(f"{current_dir}/data/agents").resolve()

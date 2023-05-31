@@ -11,10 +11,8 @@ for gpu in gpus:
         break
 
 if(available_gpu is None):
-    print("NO GPUS AVAILABLE")
     GPUtil.showUtilization()
 else:
-    print(f"USING AVAILABLE GPU {available_gpu}")
     os.environ["CUDA_VISIBLE_DEVICES"]=str(available_gpu.id)
 
 import tensorflow as tf
@@ -326,18 +324,29 @@ def get_gui_values():
     """
     return tr_total_iterations, tr_current_iteration, tr_total_iter_steps, tr_current_iter_steps, tr_current_progress_text
 
-def main(from_file:bool, gui_connector : TrainerGUIconnector = None):
+def main(from_file:bool, api_connector = None, gui_connector : TrainerGUIconnector = None):
     """
     Entry function for the trainer module.
 
     :param from_file: Indicates if the trainer module is being run with or without GUI capabilities. (with GUI if value is False)
     :param gui_connector: a gui connector instance to use if needed.
     """
+
+    print(from_file, api_connector, gui_connector)
+    
     if(from_file):
         config, EXPERIMENTS = get_config(train=True)
     else:
-        print(gui_connector.experiments)
-        config, EXPERIMENTS = gui_connector.config, gui_connector.experiments
+        if(gui_connector is not None):
+            print(gui_connector.experiments)
+            config, EXPERIMENTS = gui_connector.config, gui_connector.experiments
+
+        elif(api_connector is not None):
+            config, EXPERIMENTS = api_connector["config"], api_connector["experiments"]
+        
+        else:
+            print("Trainer config is wrong, if not being run from file, either and API or a GUI connector should be provided.")
+            quit()
 
     global tr_total_iterations
     global tr_current_iteration
