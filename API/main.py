@@ -30,7 +30,7 @@ class ConnectionManager():
     def __init__(self):
         # Server constants.
         HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
-        SERVER_PORT = 6544
+        SERVER_PORT = 6539
         MAXBYTES = 4096
 
         p = Process(target=start_server, args=(HOST, SERVER_PORT, MAXBYTES))
@@ -46,7 +46,7 @@ conn = ConnectionManager()
 def exit_handler():
     try:
         print("SERVER IS CLOSING")
-        send_msg_to_server(conn.client_socket, b'quit')
+        send_msg_to_server(conn.client_socket, "quit")
     except Exception as e :
         print(f"unable to close server before exiting, related exception was: {e}")   
    
@@ -94,14 +94,12 @@ def set_config(param:str, value) -> dict:
 
     # print(f"value after conversion {value}")    
 
-    exp_info = get_info_from(infodicttype.EXPERIMENT, conn.client_socket)
-    test_info = get_info_from(infodicttype.TEST, conn.client_socket)
+    # exp_info = get_info_from(infodicttype.EXPERIMENT, conn.client_socket)
+    # test_info = get_info_from(infodicttype.TEST, conn.client_socket)
 
-    # print(f"experiment information: {exp_info}, test information: {test_info}")
-
-    if(len(exp_info) != 0 or len(test_info) !=0):
-        Error(name = "BusyResourcesError",
-        desc = f"There are is an active test/train suite")
+    # if(len(exp_info) != 0 or len(test_info) !=0):
+    #     Error(name = "BusyResourcesError",
+    #     desc = f"There are is an active test/train suite")
 
     # print(f"setting {param} config param to value: {value}")
 

@@ -409,7 +409,7 @@ def get_info_from(opt:infodicttype, socket, id:int = None):
 
     return send_msg_to_server(socket, msg)
 
-def get_updated_config():
+def get_config():
     return permanent_config, changeable_config
 
 # Server OPS:
@@ -469,6 +469,7 @@ def response_handler(r:str):
 
         elif len(msg) == 2: # returning all entries.
             aux = ast.literal_eval(msg[1])
-            for k, v in aux.items():
-                aux[k] = ast.literal_eval(v)
+            print(aux)
+            # for k, v in aux.items():
+            #     aux[k] = ast.literal_eval(v)
             return aux

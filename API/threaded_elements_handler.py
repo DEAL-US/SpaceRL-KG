@@ -8,8 +8,8 @@ from enum import Enum
 
 from fastapi import HTTPException
 import multiprocessing as mp
-from apiutils import get_updated_config
 
+from apiutils import get_config
 
 class Error():
     def __init__(self, name:str, desc:str):
@@ -85,13 +85,13 @@ import tester, trainer
 
 from config import Experiment, Test
 
-embgen_queue, cache_queue, experiment_queue, test_queue = dict(), dict(), dict(), dict()
-embgen_idx, cache_idx, exp_idx, test_idx = 0,0,0,0
+cache_queue, experiment_queue, test_queue = dict(), dict(), dict(), dict()
+cache_idx, exp_idx, test_idx = 0,0,0,0
 
 # Server message handler
 def server_message_handler(data:str, MAXBYTES) -> str:
     # THIS SHOULD ANSWER VERY FAST AND DO A PROCESS FOR SLOW OPS.
-    global embgen_queue, cache_queue, experiment_queue, test_queue, embgen_idx, cache_idx, exp_idx, test_idx
+    global cache_queue, experiment_queue, test_queue, cache_idx, exp_idx, test_idx
     multipart_idx = None
 
     res = ""
@@ -177,13 +177,16 @@ def server_message_handler(data:str, MAXBYTES) -> str:
                 args=[dataset, models, gpu, regen, normalize, inverse, mode], 
                 name=f"Embedding Process {embgen_idx}")
                 proc.start()
-                embgen_queue[embgen_idx] = proc
+
+                # embgen_queue[embgen_idx] = proc
 
                 # pool.start_process_in_pool(embgen.generate_embedding, [dataset, models, gpu, regen, normalize, inverse, mode])
 
-                res = f"success;emb_index:{embgen_idx}"
+                # res = f"success;emb_index:{embgen_idx}"
 
-                embgen_idx += 1
+                res = f"success; Embedding Calculation Launched"
+
+                # embgen_idx += 1
 
             elif(variant == infodicttype.EXPERIMENT.value):
                 experiment = msg[2]
@@ -225,28 +228,31 @@ def server_message_handler(data:str, MAXBYTES) -> str:
                 if len(to_run) == 0:
                     return f"error;NonExistentID;none of the provided ids match to any experiment.."
                 
-                cnfg = get_updated_config()
+                per_cnfg, mut_config = get_config()
 
-                print(f"recieved config {cnfg}")
+                # print(f"configs are: \n{per_cnfg}\n\n{mut_config}\n")
 
-                return f"success;Experiments Launched."
+                cnfg = {**per_cnfg, **mut_config}
 
-                aux = []
+                # print(f"the complete config is: \n{cnfg}")
+
+                exp_list_to_run = []
                 for e in to_run:
-                    ex = Experiment()
-                    aux.append(ex)
+                    del experiment_queue[e[0]]
+                    ex = e[1]
+                    exp_list_to_run.append(Experiment(experiment_name=ex['name'],
+                    dataset_name=ex['dataset'], embeddings = [ex['embedding']],
+                    laps=ex['laps'], single_relation = ex['single_relation'],
+                    relation = ex['relation_to_train'] if ex['single_relation'] else ''))
 
-                exp_id = int(msg[1])
-                # api_conn = dict()
-                # api_conn["config"] = 
-                # api_conn["experiments"] = 
+                api_conn = dict()
+                api_conn["config"] = cnfg
+                api_conn["experiments"] = exp_list_to_run
 
-                trainer.main(false, )
+                p = Process(target=trainer.main, args=[False, api_conn, None])
+                p.start()
 
                 return f"success;Experiments Launched."
-                    
-            
-
             
             elif(variant == infodicttype.TEST.value):
                 #TODO: if contains id, run that one. if all run all.
@@ -260,9 +266,6 @@ def server_message_handler(data:str, MAXBYTES) -> str:
                         return f"error;MalformedPostRequest;request does not match expected input, please check spelling..."
 
                 res = f"success;experiment successfully added to queue."
-
-        else:
-            return f"error;MalformedPostRequest;couldn't parse petition."
 
     elif(petition == 'delete'):
         if(variant == infodicttype.EXPERIMENT.value):
@@ -310,69 +313,6 @@ def server_message_handler(data:str, MAXBYTES) -> str:
         return "".join[reslist]
     
     return res
-
-
-# Client message handling...
-# def response_handler(r:str):
-#     msg = r.split(';', maxsplit=3)
-#     var = msg[0]
-
-#     if var == 'error':
-#         Error(msg[1], msg[2])
-    
-#     if var == 'success':
-#         return {"Success" : msg[1]}
-    
-#     if var == 'multi':
-#         multi_idx, part_idx, msg_part = msg[1], *msg[2].split(';', maxsplit=2)
-
-#         if(part_idx == 'L'):
-#             od = collections.OrderedDict(sorted(big_responses.items()))
-#             reslist = list(od.values())
-#             reslist.append(msg_part)
-#             return response_handler("".join(reslist))
-
-#         elif multi_idx not in big_responses:
-#             big_responses[multi_idx] = dict()
-#             big_responses[multi_idx][part_idx] = msg_part
-        
-#         return 'multi'
-
-#     if var == 'dict': # recieved whole list of objects.
-#         if len(msg) == 3: # returning dict with ID associated.
-#             return ast.literal_eval(msg[2])
-
-#         elif len(msg) == 2: # returning all entries.
-#             aux = ast.literal_eval(msg[1])
-#             for k, v in aux.items():
-#                 aux[k] = ast.literal_eval(v)
-#             return aux
-
-
-# def send_msg_to_server(client_socket, msg, MAXBYTES = 4096):
-#     msg = bytes(msg, 'utf-8')
-
-#     # send message to server
-#     client_socket.sendall(msg)
-
-#     # await server answer
-#     data = client_socket.recv(MAXBYTES)
-#     data = data.decode("utf-8")
-
-#     # process server answer
-#     print(f"GOT MESSAGE BACK FROM SERVER {data}")
-#     data = response_handler(data)
-
-#     if(data == 'multi'):
-#         print("DATA IS MULTIPART, NEED TO RECIEVE MORE!")
-#         done = False
-#         while(not done):
-#             data = s.recv(MAXBYTES)
-#             data = data.decode("utf-8")
-#             done = data != 'multi'
-
-#     return data
-
 
 def start_client(host, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
