@@ -1,14 +1,10 @@
+import pathlib, os, sys, pickle, shutil, torch, subprocess
 import numpy as np
-import pathlib
-import os
-import pickle
-import shutil
 import pandas as pd
-import torch
-import subprocess
+
 
 def generate_embedding(dataset: str, models = [], use_gpu :bool = True, regenerate_existing:bool = False,
-normalize:bool = False,  add_inverse_path:bool = True, fast_mode:bool = True, available_cores:int = 1):
+normalize:bool = False,  add_inverse_path:bool = True, fast_mode:bool = True, available_cores:int = 1, silent: bool = False):
     """
     Generates any number of embeddings for the specified dataset in their relevant folders.
 
@@ -28,11 +24,11 @@ normalize:bool = False,  add_inverse_path:bool = True, fast_mode:bool = True, av
     local_dir = pathlib.Path(__file__).parent.resolve()
     dataset_dir = str(pathlib.Path(local_dir).parent.parent.parent.absolute()) + "/datasets"
     datafolder = f"{dataset_dir}/{dataset}"
-    print(f"datafolder is: {datafolder}")
 
     if(len(models) == 0):
         models =  ["TransE_l2","DistMult", "ComplEx", "TransR"]
 
+    print(f"datafolder is: {datafolder}")
     print(f"generating embeddings for dataset {dataset} and models {models}")
 
     for model in models:
@@ -53,6 +49,9 @@ normalize:bool = False,  add_inverse_path:bool = True, fast_mode:bool = True, av
             command += " --gpu 0"
         else:
             command += f" --num_thread {available_cores}" #--num_proc {available_cores}
+
+        if silent:
+            command += " > /dev/null 2>&1"
 
         # Structural checks:
         
@@ -86,9 +85,18 @@ normalize:bool = False,  add_inverse_path:bool = True, fast_mode:bool = True, av
         if(not os.path.isfile(entity_file) and not os.path.isfile(relation_file)):
             # if the embeddings are not present, generate and process them
             generate_raw(dataset, local_dir, dataset_dir, add_inverse_path)
-
+           
             print(f"running command {command}")
+
+            # else:
+            #     original_stdout = sys.stdout
+            #     sys.stdout = open(os.devnull, 'w')
+
             os.system(command)
+
+            # if(silent):
+            #     sys.stdout = original_stdout
+            
        
             shutil.copy(f"{local_dir}/raw_data/entities.tsv", f"{datafolder}/entities.tsv")
             shutil.copy(f"{local_dir}/raw_data/relations.tsv", f"{datafolder}/relations.tsv")
