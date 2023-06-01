@@ -21,46 +21,22 @@ class infodicttype(Enum):
     EXPERIMENT = "experiment"
     TEST = "test"
 
-# def mute():
-#     sys.stdout = open(os.devnull, 'w')
-
-# def handle_error(error):
-# 	print(error, flush=True)
-
-# class ProcessPool():
-#     def __init__(self):
-#         self.process_pool = mp.Pool(1)# , initializer=mute
-
-#     def start_process_in_pool(self, process, args):
-#         # print(f"starting process; {process} in async pool with arguments: {args}")
-#         ar = self.process_pool.apply_async(func=process, args=args, error_callback=handle_error)
-#         # tasks.append(ar)
-        
-# pool = ProcessPool()
-
 class Process(mp.Process):
-    def __init__(self, name, *args, **kwargs):
+    def __init__(self, logs: bool,  *args, **kwargs):
         mp.Process.__init__(self, *args, **kwargs)
-        self._pconn, self._cconn = mp.Pipe()
-        self._exception = None
-        self._name = name
+        self.logs = logs
 
     def run(self):
         self.initialize_logging()
-
-        try:
-            mp.Process.run(self)
-            self._cconn.send(None)
-        except Exception as e:
-            tb = traceback.format_exc()
-            self._cconn.send((e, tb))
-            # raise e  # You can still rise this exception if you need to
-
+        mp.Process.run(self)
+        
     def initialize_logging(self):
-        sys.stdout = open(f"p_{name}.out", "a", buffering=-1)
-        sys.stderr = open(f"p_{name}.err", "a", buffering=-1)
-
-        print('stdout initialized')
+        if self.logs:
+            sys.stdout = open(f"./logs/p_{self.name}.out", "a", buffering=-1)
+            sys.stderr = open(f"./logs/p_{self.name}.err", "a", buffering=-1)
+        else:
+            sys.stdout = open(os.devnull, "w", buffering=-1)
+            sys.stderr = open(os.devnull, "w", buffering=-1)
 
     @property
     def exception(self):
@@ -85,8 +61,11 @@ import tester, trainer
 
 from config import Experiment, Test
 
-cache_queue, experiment_queue, test_queue = dict(), dict(), dict(), dict()
-cache_idx, exp_idx, test_idx = 0,0,0,0
+cache_queue, experiment_queue, test_queue = dict(), dict(), dict()
+cache_idx, exp_idx, test_idx = 0,0,0
+
+# CHANGE TO REDIRECT OUTPUT OF CHILD PROCESSES TO LOGS FOLDER.
+use_logs = False
 
 # Server message handler
 def server_message_handler(data:str, MAXBYTES) -> str:
@@ -171,22 +150,13 @@ def server_message_handler(data:str, MAXBYTES) -> str:
                 inverse = data['add_inverse_path']
                 mode = data['fast_mode']
 
-                # embgen.generate_embedding(dataset, models, gpu, regen, normalize, inverse, mode)
-                
                 proc = Process(target=embgen.generate_embedding, 
-                args=[dataset, models, gpu, regen, normalize, inverse, mode], 
-                name=f"Embedding Process {embgen_idx}")
+                args=[dataset, models, gpu, regen, normalize, inverse, mode, 1, True], 
+                name=f"EmbeddingGenerator", logs=use_logs)
                 proc.start()
-
-                # embgen_queue[embgen_idx] = proc
-
-                # pool.start_process_in_pool(embgen.generate_embedding, [dataset, models, gpu, regen, normalize, inverse, mode])
-
-                # res = f"success;emb_index:{embgen_idx}"
 
                 res = f"success; Embedding Calculation Launched"
 
-                # embgen_idx += 1
 
             elif(variant == infodicttype.EXPERIMENT.value):
                 experiment = msg[2]
@@ -249,7 +219,8 @@ def server_message_handler(data:str, MAXBYTES) -> str:
                 api_conn["config"] = cnfg
                 api_conn["experiments"] = exp_list_to_run
 
-                p = Process(target=trainer.main, args=[False, api_conn, None])
+                p = Process(target=trainer.main, args=[False, api_conn, None],
+                name=f"ExperimentRunner", logs=use_logs)
                 p.start()
 
                 return f"success;Experiments Launched."

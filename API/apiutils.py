@@ -143,8 +143,8 @@ def validate_experiment(socket, exp: Experiment):
         elif not check_for_relation_in_dataset(exp.dataset, exp.relation_to_train):
             reasons.append("Provided relation is not in dataset.\n")
     
-    if exp.laps < 10 or exp.laps > 10_000:
-        reasons.append("laps must be from 10-10.000\n")
+    if exp.laps < 1 or exp.laps > 10_000:
+        reasons.append("laps must be from 1-10.000\n")
 
     if len(reasons) !=0: Error(name = "ExperimentError", desc = "".join(reasons))
     
@@ -163,8 +163,8 @@ def validate_test(tst: Test):
 
     # dataset value can't be outside of enum scope, no need for extra validation
 
-    if tst.episodes < 10 or tst.episodes > 10_000:
-        reasons.append("episodes must be from 10-10.000\n")
+    if tst.episodes < 1 or tst.episodes > 10_000:
+        reasons.append("episodes must be from 1-10.000\n")
     
     try:
         config_used = open(f"{agents_path}/{tst.agent_name}/config_used.txt")
