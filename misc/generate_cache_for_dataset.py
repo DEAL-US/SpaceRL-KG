@@ -9,21 +9,16 @@ parent_dir = current_dir.parent.resolve()
 dataset_path = Path(f"{parent_dir}/datasets").resolve()
 cache_dir = Path(f"{parent_dir}/model/data/caches").resolve()
 
-datasets = [name for name in os.listdir(dataset_path) if os.path.isdir(f"{dataset_path}/{name}")]
 
-
-def main(exclude, max_depth):
+def main(datasets, max_depth):
     """
-    Generates distance cache for all datasets excepts the ones indicated.
+    Generates distance cache for indicated datasets.
 
-    :param exclude: datasets to ignore when generating caches.
+    :param datasets: datasets to use
     :param max_depth: cutoff point for distance calculation.
     """
     # ignores these datasets to generate
     for dataset in datasets:
-        if dataset in exclude:
-            continue
-
         G = nx.MultiDiGraph()
         file = Path(f"{dataset_path}/{dataset}/graph.txt").resolve()
         f = open(file)
@@ -50,7 +45,10 @@ def main(exclude, max_depth):
         
 
 if __name__ == "__main__":
-    # Datasets = ["COUNTRIES", "FB15K-237","KINSHIP", "UMLS", "WN18RR", "NELL-995"] 
+    # Datasets = ["COUNTRIES", "FB15K-237","KINSHIP", "UMLS", "WN18RR", "NELL-995"]
+    all_datasets = [name for name in os.listdir(dataset_path) if os.path.isdir(f"{dataset_path}/{name}")] 
     exclude = ["KINSHIP", "COUNTRIES"] 
+    datasets = [x for x in all_datasets if x not in exclude]
+    
     max_depth = 3
-    main(exclude, max_depth)
+    main(datasets, max_depth)

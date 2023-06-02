@@ -23,7 +23,7 @@ from fastapi.exceptions import HTTPException
 
 from typing import Union, List, Dict
 
-app = FastAPI()
+app = FastAPI(title="SpaceRL-KG", version="1.0.0", contact={"deault": "mail@xyz.com"})
 
 # manages client connetions
 class ConnectionManager():
@@ -71,9 +71,12 @@ def root() ->str:
 
 
 Hi! you are in the API for the SpaceRL-KG Framework.
-try /docs to check all the things I can do!
+try /redoc to check all the things I can do or docs, to try it out!
+we are OpenAPI compliant, check /openapi.json.
 """
     return text
+
+
 
 
 # CONFIG OPERATIONS
@@ -83,29 +86,17 @@ def get_config() -> dict:
 
 @app.put("/config/")
 def set_config(param:str, value) -> dict:
-
-    # print(f"recieved param value {value}")
-
     if param not in changeable_config.keys():        
         Error("ParameterDoesNotExist",
         f"{param} is not a config param.")
     
     value = convert_var_to_config_type(param, value)
 
-    # print(f"value after conversion {value}")    
-
-    # exp_info = get_info_from(infodicttype.EXPERIMENT, conn.client_socket)
-    # test_info = get_info_from(infodicttype.TEST, conn.client_socket)
-
-    # if(len(exp_info) != 0 or len(test_info) !=0):
-    #     Error(name = "BusyResourcesError",
-    #     desc = f"There are is an active test/train suite")
-
-    # print(f"setting {param} config param to value: {value}")
-
     changeable_config[param] = value
 
     return changeable_config
+
+
 
 
 # DATASET OPERATIONS
@@ -122,6 +113,24 @@ def set_dataset(name:str, triples: List[Triple]):
 def delete_dataset(name:str):
     remove_dataset(name)
     return {"message":"dataset and all related content was removed successfully"}
+
+
+# DATASET CACHE GENERATION.
+@app.get("/cache/")
+def get_caches():
+    return get_all_caches()
+
+@app.post("/cache/", description = "Generates chosen cache for a particular dataset.") 
+def generate_cache(cache: CacheGen):
+    ch = cache.dict()
+    ch['dataset'] = ch['dataset'].value
+    aux = []
+    for e in ch['models']:
+        aux.append(e.value)
+
+    ch['models'] = aux
+
+    add_cache(conn.client_socket, emb)
 
 
 # EMBEDDING OPERATIONS
@@ -142,24 +151,24 @@ def gen_embedding(embedding: EmbGen):
     add_embedding(conn.client_socket, emb)
 
 
+
 # AGENTS
 @app.get("/agents/")
 def agents():
     return get_agents()
 
 
+
+
 # EXPERIMENTS OPERATIONS
 @app.get("/experiments/")
 def get_experiment(id:int = None) -> Union[Dict[(int, Experiment)], Experiment]:
     if id is None:
-        exps = get_info_from(infodicttype.EXPERIMENT, conn.client_socket)
-        return exps
+        return get_info_from(infodicttype.EXPERIMENT, conn.client_socket)
     else:
         try:
-            exp = get_info_from(infodicttype.EXPERIMENT, conn.client_socket, id)
-            return exp
+            return get_info_from(infodicttype.EXPERIMENT, conn.client_socket, id)
         except Exception:
-            print(traceback.format_exc())
             Error(name="NonexistantExperiment",
             desc = f"There is no experiment with id {id}")
 
@@ -170,11 +179,9 @@ def add_exp(experiment:Experiment) -> int:
     exp = experiment.dict()
     exp['dataset'] = exp['dataset'].value
     exp['embedding'] = exp['embedding'].value
-    add_experiment(conn.client_socket, exp)
+    return add_experiment(conn.client_socket, exp)
 
-    return 0
-
-@app.post("/experiments/run/") 
+@app.post("/experiments/run/", description = "Provide list of experiment ids to run them or an empty list to run all currently in queue.") 
 def run_exp(ids:List[int] = None) -> Dict:
     return run_experiments(conn.client_socket, ids)
     
@@ -182,43 +189,50 @@ def run_exp(ids:List[int] = None) -> Dict:
 def remove_experiment(id:int):
     try:
         exp = get_info_from(infodicttype.EXPERIMENT, conn.client_socket, id)
-        res = delete_experiment(conn.client_socket, id)
-        return res
+        return delete_experiment(conn.client_socket, id)
     except:
-        print(traceback.format_exc())
         Error(name="NonexistantExperiment",
         desc = f"There is no experiment with id {id}")
+
+
 
 
 # TEST OPERATIONS
 @app.get("/tests/")
 def get_test(id:int = None) -> Union[Dict[(int, Test)], Test]:
     if id is None:
-        return get_info_from(infodicttype.TEST)
+        return get_info_from(infodicttype.TEST, conn.client_socket)
     else:
         try:
-            return get_info_from(infodicttype.TEST, id)
+            return get_info_from(infodicttype.TEST, conn.client_socket, id)
         except:
             Error(name="NonexistantTest",
             desc = f"There is no test with id {id}")
 
 @app.post("/tests/") 
-def add_tst(test:Test) -> Dict[(int, Test)]:
-    validate_test(test)
-    add_test(test)
+def add_tst(test:Test) -> int:
+    validate_test(conn.client_socket, test)
 
-@app.post("/tests/run/") 
-def run_exp(ids:List[int] = []) -> Union[Dict[(int, Test)], Test]:
-    run_tests(conn.client_socket, ids)
+    test.dict()
+    test['dataset'] = test['dataset'].value if test['dataset'] is not None else None
+    test['embedding'] = test['embedding'].value if test['embedding'] is not None else None
+    
+    return add_test(conn.client_socket, test)
+
+@app.post("/tests/run/", description = "Provide list of test ids to run them or an empty list to run all currently in queue.") 
+def run_tst(ids:List[int] = []) -> Dict:
+    return run_tests(conn.client_socket, ids)
     
 @app.delete("/tests/") 
 def remove_test(id:int):
     try:
-        res = delete_test(conn.client_socket, id)
-        return res
+        tst = get_info_from(infodicttype.TEST, conn.client_socket, id)
+        return delete_test(conn.client_socket, id)
     except:
         Error(name="NonexistantTest",
         desc = f"There is no test with id {id}")
+
+
 
 @app.get("/check/")
 def check_processes():

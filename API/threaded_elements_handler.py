@@ -51,18 +51,22 @@ parent_path = current_dir.parent.resolve()
 # RELATIVE IMPORTS.
 genpath = Path(f"{parent_path}/model/data/generator").resolve()
 modelpath = Path(f"{parent_path}/model").resolve()
+miscpath = Path(f"{parent_path}/misc/").resolve()
 
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, str(genpath))
 sys.path.insert(0, str(modelpath))
+sys.path.insert(0, str(miscpath))
+
 
 import generate_trans_embeddings as embgen
 import tester, trainer
 
+from generate_cache_for_dataset import main
 from config import Experiment, Test
 
-cache_queue, experiment_queue, test_queue = dict(), dict(), dict()
-cache_idx, exp_idx, test_idx = 0,0,0
+experiment_queue, test_queue = dict(), dict()
+exp_idx, test_idx = 0,0
 
 # CHANGE TO REDIRECT OUTPUT OF CHILD PROCESSES TO LOGS FOLDER.
 use_logs = False
@@ -70,8 +74,7 @@ use_logs = False
 # Server message handler
 def server_message_handler(data:str, MAXBYTES) -> str:
     # THIS SHOULD ANSWER VERY FAST AND DO A PROCESS FOR SLOW OPS.
-    global cache_queue, experiment_queue, test_queue, cache_idx, exp_idx, test_idx
-    multipart_idx = None
+    global experiment_queue, test_queue, exp_idx, test_idx
 
     res = ""
 
@@ -132,12 +135,11 @@ def server_message_handler(data:str, MAXBYTES) -> str:
 
         if(len(msg) == 3): 
             if(variant == infodicttype.CACHE.value):
-                cache = msg[2]
-                print(cache)
-                cache_queue[cache_idx] = cache
-                cache_idx += 1
+                data = ast.literal_eval(msg[2])
 
-                res = f"success;cache successfully added to queue."
+                generate_cache_for_dataset(data['datasets'], data['depth'])
+
+                res = f"success;cache is being generated, please be patient"
             
             elif(variant == 'embedding'):
                 data = ast.literal_eval(msg[2])
@@ -288,23 +290,18 @@ def server_message_handler(data:str, MAXBYTES) -> str:
 def start_client(host, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tries = 0
-    print(f"trying to connect to server...")
     while(True):
         try:
             tries += 1
             s.connect((host, port))
         except Exception as e:
-            print(e)            
             if tries == 10:
-                print(f"Connection to server failed. Timeout.")
                 return None
 
             if e.args[0] == 106: #server is connected
                 return s
-                print("Connection to server stablished.")
             
             time.sleep(1)
-
 
 def start_server(host, port, MAXBYTES):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -314,17 +311,15 @@ def start_server(host, port, MAXBYTES):
             print("Port is busy... Maybe there is an instance running?")
             quit()
 
-        print("server has started")
         s.listen()
+        print("Server is listening")
+
         conn, addr = s.accept()
         print(f"Connected by {addr}")
 
         with conn:
             while True:
-                print("server is ready to recieve data.")
-
                 data = conn.recv(MAXBYTES)
-
                 print(f"data has been recieved by server: {data}")
 
                 if not data:
@@ -336,3 +331,4 @@ def start_server(host, port, MAXBYTES):
                         quit()
                     else:
                         conn.sendall(bytes(response, 'utf-8'))
+

@@ -22,6 +22,7 @@ current_dir = Path(__file__).parent.resolve()
 parent_path = current_dir.parent.resolve()
 agents_path = Path(f"{parent_path}/model/data/agents").resolve()
 tests_path = Path(f"{parent_path}/model/data/results").resolve()
+caches_path = Path(f"{parent_path}/model/data/caches").resolve()
 datasets_path = Path(f"{parent_path}/datasets").resolve()
 
 # Helper function required before definition of pydantic models.
@@ -119,6 +120,12 @@ class EmbGen(BaseModel):
     add_inverse_path:bool = True
     fast_mode:bool = False
 
+class CacheGen(BaseModel):
+    datasets: List[DATASETS]
+    depth: int = 3
+
+
+
 # Main Functions
 # Validation
 def validate_experiment(socket, exp: Experiment):
@@ -148,14 +155,14 @@ def validate_experiment(socket, exp: Experiment):
 
     if len(reasons) !=0: Error(name = "ExperimentError", desc = "".join(reasons))
     
-def validate_test(tst: Test):
+def validate_test(socket, tst: Test):
     reasons = []
     tests = get_tests()
     
     if len(tst.name) > 200 and len(tst.name) < 10:
         reasons.append("Test name must be between 10-200 characters\n")
 
-    test_queue = send_msg_to_server(f"get;{infodicttype.TEST}")
+    test_queue = send_msg_to_server(socket, f"get;{infodicttype.TEST}")
     f = list(filter(lambda l_tst: True if l_tst.name == tst.name else False, test_queue.values()))
 
     if tst.name in tests or len(f) != 0:
@@ -191,7 +198,8 @@ def validate_test(tst: Test):
         reasons.append(f"test is marked as single relation and None was provided.\n")
 
     # Raises error if reasons is not empty.
-    if len(reasons) !=0: Error(name = "ExperimentError", desc = "".join(reasons))
+    if len(reasons) !=0: Error(name = "TestError", desc = "".join(reasons))
+    
     tst.embedding = embedding
     tst.dataset = dataset
     tst.single_relation = single_relation
@@ -232,19 +240,26 @@ def remove_dataset(dataset_name:str) -> bool:
     return True
 
 
-# embeddings are computed directly
+# embeddings are computed directly if the system is not busy.
 def add_embedding(socket, embedding:EmbGen):
     return send_msg_to_server(socket, f"post;embedding;{embedding}")
 
-# Cache, experiment and tests are added to a queue and triggered 
-# to run if the system is not busy.
-def add_cache():
-    pass
+# caches are run directly if ths sytem is not busy.
+def add_cache(socket, cache:CacheGen):
+    return send_msg_to_server(socket, f"post;cache;{cache}")
 
+def get_all_caches():
+    cache_lst = os.listdir(caches_path)
+    cache_lst.remove('.gitkeep')
+    cache_lst = list(map(lambda x: x.replace(".pkl", ""), cache_lst))
+    return cache_lst
+
+# Experiment and Tests are added to a queue and triggered 
+# to run if the system is not busy.
 def add_experiment(socket, exp:Experiment):
     return send_msg_to_server(socket, f"post;{infodicttype.EXPERIMENT.value};{exp}")
 
-def add_test(test:Test):
+def add_test(socket, test:Test):
     return send_msg_to_server(socket, f"post;{infodicttype.TEST.value};{test}")
 
 
@@ -369,6 +384,25 @@ def validate_config_value(param:str, value):
                 Error("WrongValueError", f"param was not found.")
 
 def dict_to_exp(exp_dict: dict) -> Experiment:
+
+    # class Test(BaseModel):
+    #     name: str
+    #     agent_name :str
+    #     episodes: int
+    #     embedding : Union[ALLOWED_EMBEDDINGS, None]
+    #     dataset: Union[DATASETS, None]
+    #     single_relation: Union[bool, None]
+    #     relation_to_train : Union[str, None]
+
+    dtst = [e for e in DATASETS if e.value == exp_dict['dataset']][0]
+    emb = [e for e in ALLOWED_EMBEDDINGS if e.value == exp_dict['embedding']][0]
+
+    res = Experiment(name=exp_dict['name'], dataset=dtst, single_relation=exp_dict['single_relation'],
+    embedding=emb, laps=exp_dict['laps'], relation_to_train=exp_dict['relation_to_train'])
+
+    return res
+
+def dict_to_tst(tst_dict: dict) -> Test:
     dtst = [e for e in DATASETS if e.value == exp_dict['dataset']][0]
     emb = [e for e in ALLOWED_EMBEDDINGS if e.value == exp_dict['embedding']][0]
 
@@ -388,26 +422,33 @@ def get_info_from(opt:infodicttype, socket, id:int = None):
 
     elif(opt == infodicttype.EXPERIMENT):
         msg = f"get;{infodicttype.EXPERIMENT.value}"
-        if(id is not None):
-            msg += f";{id}"
-
-        res = send_msg_to_server(socket, msg)
-
-        if(id is None):
-            for e in res.items():
-                res[e[0]] = dict_to_exp(e[1])
-        else:
-            res = dict_to_exp(res)
-
-        return res
 
     elif(opt == infodicttype.TEST):
         msg = f"get;{infodicttype.TEST.value}"
 
     else:
         Error("BadRequestError",f"you asked for the wrong thing bucko!\n{opt}")
+    
 
-    return send_msg_to_server(socket, msg)
+    if(id is not None):
+        msg += f";{id}"
+
+    res = send_msg_to_server(socket, msg)
+
+    if(id is None):
+        for e in res.items():
+            if opt == infodicttype.EXPERIMENT:
+                res[e[0]] = dict_to_exp(e[1])
+            elif opt == infodicttype.TEST:
+                res[e[0]] = dict_to_tst(e[1])
+
+    else:
+        if opt == infodicttype.EXPERIMENT:
+            res = dict_to_exp(res)
+        elif opt == infodicttype.TEST:
+            res = dict_to_tst(res)
+
+    return res
 
 def get_config():
     return permanent_config, changeable_config
