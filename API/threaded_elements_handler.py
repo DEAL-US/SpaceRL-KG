@@ -62,14 +62,14 @@ sys.path.insert(0, str(miscpath))
 import generate_trans_embeddings as embgen
 import tester, trainer
 
-from generate_cache_for_dataset import main
+from generate_cache_for_dataset import main as cache_generator
 from config import Experiment, Test
 
 experiment_queue, test_queue = dict(), dict()
 exp_idx, test_idx = 0,0
 
 # CHANGE TO REDIRECT OUTPUT OF CHILD PROCESSES TO LOGS FOLDER.
-use_logs = False
+use_logs = True
 
 # Server message handler
 def server_message_handler(data:str, MAXBYTES) -> str:
@@ -137,7 +137,12 @@ def server_message_handler(data:str, MAXBYTES) -> str:
             if(variant == infodicttype.CACHE.value):
                 data = ast.literal_eval(msg[2])
 
-                generate_cache_for_dataset(data['datasets'], data['depth'])
+                proc = Process(target=cache_generator, 
+                args=[data['datasets'], data['depth']], 
+                name=f"CacheGenerator", logs=use_logs)
+                proc.start()
+
+                # cache_generator(data['datasets'], data['depth'])
 
                 res = f"success;cache is being generated, please be patient"
             

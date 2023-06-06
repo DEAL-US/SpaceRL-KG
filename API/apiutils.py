@@ -3,7 +3,7 @@ import sys, os, time, collections, json, re, shutil, ast
 
 from enum import Enum
 from pathlib import Path
-from typing import Union, List
+from typing import Union, List, Dict
 from pydantic import BaseModel
 import GPUtil as gputil
 

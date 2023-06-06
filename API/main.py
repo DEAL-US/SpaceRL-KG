@@ -120,17 +120,16 @@ def delete_dataset(name:str):
 def get_caches():
     return get_all_caches()
 
-@app.post("/cache/", description = "Generates chosen cache for a particular dataset.") 
+@app.post("/cache/", 
+description = "Generates a node distance cache for the selected datasets with the desired depth.") 
 def generate_cache(cache: CacheGen):
     ch = cache.dict()
-    ch['dataset'] = ch['dataset'].value
     aux = []
-    for e in ch['models']:
+    for e in ch['datasets']:
         aux.append(e.value)
+    ch['datasets'] = aux
 
-    ch['models'] = aux
-
-    add_cache(conn.client_socket, emb)
+    add_cache(conn.client_socket, ch)
 
 
 # EMBEDDING OPERATIONS
