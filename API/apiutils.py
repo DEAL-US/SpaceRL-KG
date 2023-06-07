@@ -106,10 +106,10 @@ class Test(BaseModel):
     name: str
     agent_name :str
     episodes: int
-    embedding : Union[ALLOWED_EMBEDDINGS, None]
-    dataset: Union[DATASETS, None]
-    single_relation: Union[bool, None]
-    relation_to_train : Union[str, None]
+    # embedding : Union[ALLOWED_EMBEDDINGS, None]
+    # dataset: Union[DATASETS, None]
+    # single_relation: Union[bool, None]
+    # relation_to_train : Union[str, None]
 
 class EmbGen(BaseModel):
     dataset: DATASETS
@@ -124,91 +124,14 @@ class CacheGen(BaseModel):
     datasets: List[DATASETS]
     depth: int = 3
 
+# helper class
+class infodicttype(Enum):
+    CACHE = "cache"
+    EXPERIMENT = "experiment"
+    TEST = "test"
 
 
 # Main Functions
-# Validation
-def validate_experiment(socket, exp: Experiment):
-    reasons = []
-    agents = get_agents()
-    
-    if len(exp.name) > 200 and len(exp.name) < 10:
-        reasons.append("Experiment name must be between 10-200 characters\n")
-
-    experiment_queue = get_info_from(infodicttype.EXPERIMENT, socket)
-    f = list(filter(lambda l_exp: True if l_exp.name == exp.name else False, experiment_queue.values()))
-
-    if exp.name in agents or len(f) != 0:
-        reasons.append("Agent already exists, try a different name.\n")
-
-    # dataset value can't be outside of enum scope, no need for extra validation
-    
-    if exp.single_relation == True:
-        if exp.relation_to_train is None:
-            reasons.append("Provide a relation name if you wish to train for it.\n")
-        
-        elif not check_for_relation_in_dataset(exp.dataset, exp.relation_to_train):
-            reasons.append("Provided relation is not in dataset.\n")
-    
-    if exp.laps < 1 or exp.laps > 10_000:
-        reasons.append("laps must be from 1-10.000\n")
-
-    if len(reasons) !=0: Error(name = "ExperimentError", desc = "".join(reasons))
-    
-def validate_test(socket, tst: Test):
-    reasons = []
-    tests = get_tests()
-    
-    if len(tst.name) > 200 and len(tst.name) < 10:
-        reasons.append("Test name must be between 10-200 characters\n")
-
-    test_queue = send_msg_to_server(socket, f"get;{infodicttype.TEST}")
-    f = list(filter(lambda l_tst: True if l_tst.name == tst.name else False, test_queue.values()))
-
-    if tst.name in tests or len(f) != 0:
-        reasons.append("Test with that name already exists, try again.\n")
-
-    # dataset value can't be outside of enum scope, no need for extra validation
-
-    if tst.episodes < 1 or tst.episodes > 10_000:
-        reasons.append("episodes must be from 1-10.000\n")
-    
-    try:
-        config_used = open(f"{agents_path}/{tst.agent_name}/config_used.txt")
-        for ln in config_used.readlines():
-            if ln.startswith("dataset: "):
-                dataset = ln.lstrip("dataset: ").strip()
-
-            if ln.startswith("embedding: "):
-                embedding = ln.lstrip("embedding: ").strip()
-
-            if ln.startswith("single_relation_pair: "):
-                aux = ln.lstrip("single_relation_pair: ").strip()
-                aux = aux.replace("[", "").replace("]","").replace(" ", "").replace("\'", "").strip().split(",")
-                single_relation, relation_to_train = [aux[0]=="True", None if aux[1] == "None" else aux[1]]
-    except:
-        reasons.append(f"Incoherent Test detected, agent name was: {tst.agent_name}\n")
-    
-    f = list(filter(lambda dtst: True if dataset == dtst.value else False, DATASETS))
-
-    if(len(f) == 0):
-        reasons.append(f"no valid dataset detected for test, have you deleted it?\n")
-
-    if(single_relation and relation_to_train is None):
-        reasons.append(f"test is marked as single relation and None was provided.\n")
-
-    # Raises error if reasons is not empty.
-    if len(reasons) !=0: Error(name = "TestError", desc = "".join(reasons))
-    
-    tst.embedding = embedding
-    tst.dataset = dataset
-    tst.single_relation = single_relation
-    tst.relation_to_train = relation_to_train
-
-    return tst
-
-
-# CRUD
 
 # datasets
 
@@ -233,7 +156,6 @@ def remove_dataset(dataset_name:str) -> bool:
     try:
         shutil.rmtree(p, ignore_errors=False, onerror=None)
     except Exception as e:
-        print(e.args)
         Error(name="DatasetRemovalError",
         desc="There was a problem deleting that dataset...")
     
@@ -275,6 +197,89 @@ def run_experiments(socket, ids):
 
 def run_tests(socket, ids):
     return send_msg_to_server(socket, f"post;{infodicttype.TEST.value};run;{ids}")
+
+
+# Validation
+def validate_experiment(socket, exp: Experiment):
+    reasons = []
+    agents = get_agents()
+    
+    if len(exp.name) > 200 and len(exp.name) < 10:
+        reasons.append("Experiment name must be between 10-200 characters\n")
+
+    experiment_queue = get_info_from(infodicttype.EXPERIMENT, socket)
+    f = list(filter(lambda l_exp: True if l_exp.name == exp.name else False, experiment_queue.values()))
+
+    if exp.name in agents or len(f) != 0:
+        reasons.append("Agent already exists, try a different name.\n")
+    
+    if exp.single_relation == True:
+        if exp.relation_to_train is None:
+            reasons.append("Provide a relation name if you wish to train for it.\n")
+        
+        elif not check_for_relation_in_dataset(exp.dataset, exp.relation_to_train):
+            reasons.append("Provided relation is not in dataset.\n")
+    
+    if exp.laps < 1 or exp.laps > 10_000:
+        reasons.append("laps must be from 1-10.000\n")
+
+    if len(reasons) !=0: Error(name = "ExperimentError", desc = "".join(reasons))
+    
+def validate_test(socket, tst: Test):
+    reasons = []
+    tests = get_tests()
+    
+    if len(tst.name) > 200 and len(tst.name) < 10:
+        reasons.append("Test name must be between 10-200 characters \n")
+
+    test_queue = get_info_from(infodicttype.TEST, socket)
+    f = list(filter(lambda l_tst: True if l_tst.name == tst.name else False, test_queue.values()))
+
+    if tst.name in tests or len(f) != 0:
+        reasons.append("Test with that name already exists, try again. \n")
+
+    if not os.path.isdir(f"{agents_path}/{tst.agent_name}"):
+        reasons.append("No agent with that name exists, cant proceed. \n")
+
+    if tst.episodes < 1 or tst.episodes > 10_000:
+        reasons.append("episodes must be from 1-10.000\n")
+    
+    try:
+        config_used = open(f"{agents_path}/{tst.agent_name}/config_used.txt")
+        for ln in config_used.readlines():
+            if ln.startswith("dataset: "):
+                dataset = ln.replace("dataset: ", "").strip()
+
+            if ln.startswith("embedding: "):
+                embedding = ln.replace("embedding: ", "").strip()
+
+            if ln.startswith("single_relation_pair: "):
+                aux = ln.replace("single_relation_pair: ", "").strip()
+                aux = aux.replace("[", "").replace("]","").replace(" ", "").replace("\'", "").strip().split(",")
+                single_relation, relation_to_train = [aux[0]=="True", None if aux[1] == "None" else aux[1]]
+    
+        f = list(filter(lambda dtst: True if dataset == dtst.value else False, DATASETS))
+
+        if(len(f) == 0):
+            reasons.append(f"no valid dataset detected for test, have you deleted it?\n")
+
+        if(single_relation and relation_to_train is None):
+            reasons.append(f"test is marked as single relation and None was provided.\n")
+
+    except:
+        reasons.append(f"Incoherent Test detected, agent name was: {tst.agent_name}\n")
+    
+    # Raises error if reasons is not empty.
+    if len(reasons) !=0: Error(name = "TestError", desc = "Reason(s):\n".join(reasons))
+    
+    tst = tst.dict()
+
+    tst['embedding'] = embedding
+    tst['dataset'] = dataset
+    tst['single_relation'] = single_relation
+    tst['relation_to_train'] = relation_to_train
+
+    return tst
 
 
 # Helper functions:
@@ -402,19 +407,12 @@ def dict_to_exp(exp_dict: dict) -> Experiment:
 
     return res
 
-def dict_to_tst(tst_dict: dict) -> Test:
-    dtst = [e for e in DATASETS if e.value == exp_dict['dataset']][0]
-    emb = [e for e in ALLOWED_EMBEDDINGS if e.value == exp_dict['embedding']][0]
-
-    res = Experiment(name=exp_dict['name'], dataset=dtst, single_relation=exp_dict['single_relation'],
-    embedding=emb, laps=exp_dict['laps'], relation_to_train=exp_dict['relation_to_train'])
+def dict_to_tst(tst_dict: dict) -> Test:    
+    res = Test(name=tst_dict['name'],
+    episodes=tst_dict['episodes'], 
+    agent_name=tst_dict['agent_name'])
 
     return res
-
-class infodicttype(Enum):
-    CACHE = "cache"
-    EXPERIMENT = "experiment"
-    TEST = "test"
 
 def get_info_from(opt:infodicttype, socket, id:int = None):
     if(opt == infodicttype.CACHE):
@@ -439,6 +437,7 @@ def get_info_from(opt:infodicttype, socket, id:int = None):
         for e in res.items():
             if opt == infodicttype.EXPERIMENT:
                 res[e[0]] = dict_to_exp(e[1])
+
             elif opt == infodicttype.TEST:
                 res[e[0]] = dict_to_tst(e[1])
 
@@ -453,8 +452,9 @@ def get_info_from(opt:infodicttype, socket, id:int = None):
 def get_config():
     return permanent_config, changeable_config
 
-# Server OPS:
 
+
+# Server OPS:
 def send_msg_to_server(client_socket, msg, MAXBYTES = 4096):
     msg = bytes(msg, 'utf-8')
 
@@ -510,7 +510,6 @@ def response_handler(r:str):
 
         elif len(msg) == 2: # returning all entries.
             aux = ast.literal_eval(msg[1])
-            print(aux)
             # for k, v in aux.items():
             #     aux[k] = ast.literal_eval(v)
             return aux

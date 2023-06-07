@@ -91,6 +91,7 @@ def server_message_handler(data:str, MAXBYTES) -> str:
     except:
         return f"error;BadRequest;recieved message was malformed, please check the docs."
     
+    # print(f"PROCESSING MESSAGE:\n {data} \n")
     
     if(petition == 'get'):
         if(len(msg) == 2): # res = the complete dict 
@@ -142,10 +143,9 @@ def server_message_handler(data:str, MAXBYTES) -> str:
                 name=f"CacheGenerator", logs=use_logs)
                 proc.start()
 
-                # cache_generator(data['datasets'], data['depth'])
-
                 res = f"success;cache is being generated, please be patient"
             
+
             elif(variant == 'embedding'):
                 data = ast.literal_eval(msg[2])
 
@@ -172,12 +172,13 @@ def server_message_handler(data:str, MAXBYTES) -> str:
 
                 res = f"success;experiment successfully added to queue."
             
+
             elif(variant == infodicttype.TEST.value):
                 test = msg[2]
-                test_queue[test_idx] = test
+                test_queue[test_idx] = ast.literal_eval(test)
                 test_idx += 1
 
-                return f"success;test successfully added to queue."
+                res = f"success;test successfully added to queue."
 
             else:
                 return f"error;MalformedPostRequest;request does not match expected input, please check spelling..."
@@ -190,7 +191,7 @@ def server_message_handler(data:str, MAXBYTES) -> str:
             if(variant == infodicttype.EXPERIMENT.value):
                 exp_list = ast.literal_eval(msg[3])
                 
-                print(f"recieved experiments to run: {exp_list}")
+                # print(f"recieved experiments to run: {exp_list}")
 
                 if type(exp_list) != list:
                     return f"error;UnparseableIdList; you sent something that wasnt a list of ids."
@@ -233,17 +234,49 @@ def server_message_handler(data:str, MAXBYTES) -> str:
                 return f"success;Experiments Launched."
             
             elif(variant == infodicttype.TEST.value):
-                #TODO: if contains id, run that one. if all run all.
-                if(msg[1] == "all"):
-                    pass
-                else:
-                    try:
-                        exp_id = int(msg[1])
-                        
-                    except:
-                        return f"error;MalformedPostRequest;request does not match expected input, please check spelling..."
+                tst_list = ast.literal_eval(msg[3])
+                
+                # print(f"recieved experiments to run: {exp_list}")
 
-                res = f"success;experiment successfully added to queue."
+                if type(tst_list) != list:
+                    return f"error;UnparseableIdList; you sent something that wasnt a list of ids."
+                
+                to_run = []
+                if len(tst_list) == 0:
+                    to_run = list(test_queue.items())
+                
+                else:
+                    to_run = [(p[0], p[1]) for p in experiment_queue.items() if p[0] in exp_list]
+
+                if len(to_run) == 0:
+                    return f"error;NonExistentID;none of the provided ids match to any experiment.."
+                
+                per_cnfg, mut_config = get_config()
+
+                # print(f"configs are: \n{per_cnfg}\n\n{mut_config}\n")
+
+                cnfg = {**per_cnfg, **mut_config}
+
+                # print(f"the complete config is: \n{cnfg}")
+
+                exp_list_to_run = []
+                for e in to_run:
+                    del experiment_queue[e[0]]
+                    ex = e[1]
+                    exp_list_to_run.append(Experiment(experiment_name=ex['name'],
+                    dataset_name=ex['dataset'], embeddings = [ex['embedding']],
+                    laps=ex['laps'], single_relation = ex['single_relation'],
+                    relation = ex['relation_to_train'] if ex['single_relation'] else ''))
+
+                api_conn = dict()
+                api_conn["config"] = cnfg
+                api_conn["experiments"] = exp_list_to_run
+
+                p = Process(target=trainer.main, args=[False, api_conn, None],
+                name=f"ExperimentRunner", logs=use_logs)
+                p.start()
+
+                return f"success;Experiments Launched."
 
     elif(petition == 'delete'):
         if(variant == infodicttype.EXPERIMENT.value):
@@ -258,7 +291,7 @@ def server_message_handler(data:str, MAXBYTES) -> str:
             return f"error;MalformedDeleteRequest;couldn't parse petition."
 
     else:
-        return f"error;MalformedGetRequest;petition type is unknown."
+        return f"error;MalformedRequest;petition type is unknown."
 
     if (res == ""):
         return f"error;UnkownError;Something went wrong... Please try again. {msg}"

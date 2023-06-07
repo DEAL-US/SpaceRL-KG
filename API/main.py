@@ -121,7 +121,7 @@ def get_caches():
     return get_all_caches()
 
 @app.post("/cache/", 
-description = "Generates a node distance cache for the selected datasets with the desired depth.") 
+description = "Generates a node distance cache for the selected datasets with the desired depth.\nWARNING: this may hoard a LOT of ram and WILL crash your system for large datasets and depth, proceed with caution.") 
 def generate_cache(cache: CacheGen):
     ch = cache.dict()
     aux = []
@@ -172,7 +172,7 @@ def get_experiment(id:int = None) -> Union[Dict[(int, Experiment)], Experiment]:
             desc = f"There is no experiment with id {id}")
 
 @app.post("/experiments/") 
-def add_exp(experiment:Experiment) -> int:
+def add_exp(experiment:Experiment):
     validate_experiment(conn.client_socket, experiment)
 
     exp = experiment.dict()
@@ -181,7 +181,7 @@ def add_exp(experiment:Experiment) -> int:
     return add_experiment(conn.client_socket, exp)
 
 @app.post("/experiments/run/", description = "Provide list of experiment ids to run them or an empty list to run all currently in queue.") 
-def run_exp(ids:List[int] = None) -> Dict:
+def run_exp(ids:List[int] = None):
     return run_experiments(conn.client_socket, ids)
     
 @app.delete("/experiments/") 
@@ -209,17 +209,13 @@ def get_test(id:int = None) -> Union[Dict[(int, Test)], Test]:
             desc = f"There is no test with id {id}")
 
 @app.post("/tests/") 
-def add_tst(test:Test) -> int:
-    validate_test(conn.client_socket, test)
-
-    test.dict()
-    test['dataset'] = test['dataset'].value if test['dataset'] is not None else None
-    test['embedding'] = test['embedding'].value if test['embedding'] is not None else None
+def add_tst(test:Test):
+    t = validate_test(conn.client_socket, test)
     
-    return add_test(conn.client_socket, test)
+    return add_test(conn.client_socket, t)
 
 @app.post("/tests/run/", description = "Provide list of test ids to run them or an empty list to run all currently in queue.") 
-def run_tst(ids:List[int] = []) -> Dict:
+def run_tst(ids:List[int] = []):
     return run_tests(conn.client_socket, ids)
     
 @app.delete("/tests/") 
