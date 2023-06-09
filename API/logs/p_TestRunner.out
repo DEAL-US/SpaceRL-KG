@@ -1,0 +1,20 @@
+
+TESTING FOR <config.Test object at 0x7fe6d557b6a0>
+ WITH AGENTS: 
+{'TransE_l2': [<keras.engine.functional.Functional object at 0x7fe7619d9790>, <keras.engine.functional.Functional object at 0x7fe6d557ba90>]}
+
+RUNNING FOR EMBEDDING TransE_l2
+
+running integrity checks
+datafolder is: /home/usuario/Reinforcement Learning/datasets/COUNTRIES
+generating embeddings for dataset COUNTRIES and models ['TransE_l2']
+Selected embedding TransE_l2 is already generated for COUNTRIES dataset, if you want to regenerate use the regenerate boolean option
+calculating embedding minimums and maximums...
+triples: 1159, nodes:271, edges:2587
+restoring model...
+                  COUNTRIES
+hits@1  TransE_l2      0.25
+hits@3  TransE_l2      0.57
+hits@5  TransE_l2      0.74
+hits@10 TransE_l2      0.88
+MRR     TransE_l2   0.44702

@@ -22,7 +22,7 @@ class infodicttype(Enum):
     TEST = "test"
 
 class Process(mp.Process):
-    def __init__(self, logs: bool,  *args, **kwargs):
+    def __init__(self, logs: bool, *args, **kwargs):
         mp.Process.__init__(self, *args, **kwargs)
         self.logs = logs
 
@@ -83,7 +83,7 @@ def server_message_handler(data:str, MAXBYTES) -> str:
 
     if(data == "check"):
         print(f"live children processes: {mp.active_children()}")
-        return f"success;live"
+        return f"success;{mp.active_children()}"
 
     msg = data.split(';', maxsplit=3)
     try:
@@ -136,6 +136,9 @@ def server_message_handler(data:str, MAXBYTES) -> str:
 
         if(len(msg) == 3): 
             if(variant == infodicttype.CACHE.value):
+                if not enough_free_resources():
+                    return f"error;SystemBusy;not enough resources free to run the requested process..."
+
                 data = ast.literal_eval(msg[2])
 
                 proc = Process(target=cache_generator, 
@@ -147,6 +150,9 @@ def server_message_handler(data:str, MAXBYTES) -> str:
             
 
             elif(variant == 'embedding'):
+                if not enough_free_resources():
+                    return f"error;SystemBusy;not enough resources free to run the requested process..."
+
                 data = ast.literal_eval(msg[2])
 
                 dataset = data['dataset']
@@ -184,9 +190,8 @@ def server_message_handler(data:str, MAXBYTES) -> str:
                 return f"error;MalformedPostRequest;request does not match expected input, please check spelling..."
        
         elif(len(msg) == 4 and msg[2] == "run"):
-            # expects post;experiment;run;[id1, id2]
-            # if list is empty run all queued.            
-            # return f"success;Experiments Launched."
+            if not enough_free_resources():
+                    return f"error;SystemBusy;not enough resources free to run the requested process..."
 
             if(variant == infodicttype.EXPERIMENT.value):
                 exp_list = ast.literal_eval(msg[3])
@@ -235,8 +240,6 @@ def server_message_handler(data:str, MAXBYTES) -> str:
             
             elif(variant == infodicttype.TEST.value):
                 tst_list = ast.literal_eval(msg[3])
-                
-                # print(f"recieved experiments to run: {exp_list}")
 
                 if type(tst_list) != list:
                     return f"error;UnparseableIdList; you sent something that wasnt a list of ids."
@@ -246,37 +249,38 @@ def server_message_handler(data:str, MAXBYTES) -> str:
                     to_run = list(test_queue.items())
                 
                 else:
-                    to_run = [(p[0], p[1]) for p in experiment_queue.items() if p[0] in exp_list]
+                    to_run = [(p[0], p[1]) for p in test_queue.items() if p[0] in tst_list]
+
+                print(f" tests to run: {to_run}")
 
                 if len(to_run) == 0:
-                    return f"error;NonExistentID;none of the provided ids match to any experiment.."
+                    return f"error;NonExistentID;none of the provided ids match to any test.."
                 
                 per_cnfg, mut_config = get_config()
-
-                # print(f"configs are: \n{per_cnfg}\n\n{mut_config}\n")
-
                 cnfg = {**per_cnfg, **mut_config}
 
-                # print(f"the complete config is: \n{cnfg}")
-
-                exp_list_to_run = []
+                tst_list_to_run = []
                 for e in to_run:
-                    del experiment_queue[e[0]]
-                    ex = e[1]
-                    exp_list_to_run.append(Experiment(experiment_name=ex['name'],
-                    dataset_name=ex['dataset'], embeddings = [ex['embedding']],
-                    laps=ex['laps'], single_relation = ex['single_relation'],
-                    relation = ex['relation_to_train'] if ex['single_relation'] else ''))
+                    del test_queue[e[0]]
+                    t = e[1]
+                    tst_list_to_run.append(
+                    Test(
+                        test_name=t['name'],
+                        agent_name=t['agent_name'],
+                        embeddings = [t['embedding']],
+                        episodes=t['episodes']
+                        )
+                    )
 
                 api_conn = dict()
                 api_conn["config"] = cnfg
-                api_conn["experiments"] = exp_list_to_run
+                api_conn["tests"] = tst_list_to_run
 
-                p = Process(target=trainer.main, args=[False, api_conn, None],
-                name=f"ExperimentRunner", logs=use_logs)
+                p = Process(target=tester.main, args=[False, api_conn, None],
+                name=f"TestRunner", logs=use_logs)
                 p.start()
 
-                return f"success;Experiments Launched."
+                return f"success;Tests Launched."
 
     elif(petition == 'delete'):
         if(variant == infodicttype.EXPERIMENT.value):
@@ -370,3 +374,7 @@ def start_server(host, port, MAXBYTES):
                     else:
                         conn.sendall(bytes(response, 'utf-8'))
 
+
+def enough_free_resources():
+    active = mp.active_children()
+    return active < 2

@@ -389,16 +389,6 @@ def validate_config_value(param:str, value):
                 Error("WrongValueError", f"param was not found.")
 
 def dict_to_exp(exp_dict: dict) -> Experiment:
-
-    # class Test(BaseModel):
-    #     name: str
-    #     agent_name :str
-    #     episodes: int
-    #     embedding : Union[ALLOWED_EMBEDDINGS, None]
-    #     dataset: Union[DATASETS, None]
-    #     single_relation: Union[bool, None]
-    #     relation_to_train : Union[str, None]
-
     dtst = [e for e in DATASETS if e.value == exp_dict['dataset']][0]
     emb = [e for e in ALLOWED_EMBEDDINGS if e.value == exp_dict['embedding']][0]
 
