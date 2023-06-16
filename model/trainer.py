@@ -331,8 +331,6 @@ def main(from_file:bool, api_connector = None, gui_connector : TrainerGUIconnect
     :param from_file: Indicates if the trainer module is being run with or without GUI capabilities. (with GUI if value is False)
     :param gui_connector: a gui connector instance to use if needed.
     """
-
-    print(from_file, api_connector, gui_connector)
     
     if(from_file):
         config, EXPERIMENTS = get_config(train=True)
