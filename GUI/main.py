@@ -192,7 +192,7 @@ class mainmenu(object):
         """
         savebefore = messagebox.askyesnocancel(
             message='Save changes before closing window?',
-            icon='warning', title='Closeing warning')
+            icon='warning', title='Closing warning')
 
         if(savebefore is not None):#if user canceled we do nothing
             if(savebefore):
@@ -321,9 +321,9 @@ class mainmenu(object):
         :param is_train: if True it starts the training thread, it starts the testing thread otherwise.
         """
         if(is_train):
-            tr_main(False, self.tr_conn)
+            tr_main(False, gui_connector = self.tr_conn)
         else:
-            tst_main(False, self.tst_conn)
+            tst_main(False, gui_connector = self.tst_conn)
 
     # ERROR HANDLING
 
@@ -453,9 +453,12 @@ Wait for it to finish or abort the execution.")
 
         # x11, win32 or aqua
         if(self.OSNAME == 'x11'): #linux
-            try:
-                subprocess.run(['xdg-open', os.path.realpath(folder_to_open)])
-            except:
+        
+            # subprocess.check_output(['xdg-open', os.path.realpath(folder_to_open)])
+            p = subprocess.Popen(['xdg-open', os.path.realpath(folder_to_open)], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+            output, error = p.communicate()
+            
+            if error != b'': 
                 # WSL support
                 result = subprocess.run(["wslpath", "-w", folder_to_open], text=True, capture_output=True)
                 windows_path = result.stdout

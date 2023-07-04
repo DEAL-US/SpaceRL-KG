@@ -50,16 +50,28 @@ class menu():
 
         
     def add_elements(self):
+
+        self.maxnumpaths_label = ttk.Label(self.mainframe, text='Maximum number of paths to display:')
+        
+        vcmd = (self.root.register(lambda value: self.validation(value, "maxnumpath")), '%P')
+        ivcmd = (self.root.register(lambda: self.invalid("maxnumpath")),)
+
+        maxnumpathsvar = IntVar()
+        self.maxnumpaths = ttk.Entry(self.mainframe, textvariable=maxnumpathsvar, text="max # of paths",
+        validate='focusout', validatecommand=vcmd, invalidcommand=ivcmd)
+
+
         self.testselect_label = ttk.Label(self.mainframe, text='Select test')
         testselect_strvar = StringVar(value=self.testnames)
-        # testselect_strvar = StringVar(value=["a","a","a","a","a"])
-        self.testselect_listbox = Listbox(self.mainframe, listvariable=testselect_strvar, height=4, exportselection=False)
+        self.testselect_listbox = Listbox(self.mainframe, listvariable=testselect_strvar, height=8, width=50, exportselection=False)
         
         self.testselect_scrollbar = ttk.Scrollbar(self.mainframe)
         self.testselect_listbox.config(yscrollcommand=self.testselect_scrollbar.set)
         self.testselect_scrollbar.config(command=self.testselect_listbox.yview)
 
         self.start_display = ttk.Button(self.mainframe, text="View", command= lambda: self.launch_visualizer())
+
+        self.errors = Label(self.mainframe, text='', fg='red', bg="#FFFFFF")
 
         self.grid_elements()
 
@@ -80,6 +92,61 @@ class menu():
 
         # row 2 
         self.start_display.grid(row=2, column=0)
+
+    def validation(self, value:str, origin:str):
+        int_origins = ["maxnumpath"]
+        ranges = [(1,1000)]
+
+        if(value.replace('.','',1).isdigit()): #check for any non-negative number
+            if(origin in int_origins):
+                v = int(value)
+            else:
+                print(f"bad origin {origin}")
+                return False
+        else:
+            self.errors["text"] = f"{origin} must be a number"
+            return False
+        
+        if(v < a or v > b):
+            self.errors["text"] = f"{origin} must in range [{a}-{b}]"
+            return False
+        else:
+            return True
+
+    def invalid(self, origin:str):
+        """
+        If the validation of the field didn't pass, what actions to take.
+
+        :param origin: the origin of the validation trigger it represents one of the text fields in the window. 
+
+        """
+        print(f"the origin of the validation error is: {origin}")
+        if(origin == "seed"):  
+            self.seed_entry.delete(0,END)          
+            self.seed_entry.insert(0, str(self.config["seed"]))
+
+        elif(origin == "path"):
+            self.path_entry.delete(0,END)          
+            self.path_entry.insert(0, str(self.config["path_length"]))
+        
+        elif(origin == "alpha"):
+            self.alpha_entry.delete(0,END)          
+            self.alpha_entry.insert(0, str(self.config["alpha"]))
+
+        elif(origin == "gamma"):
+            self.gamma_entry.delete(0,END)          
+            self.gamma_entry.insert(0, str(self.config["gamma"]))
+        
+        elif(origin == "lr"):
+            self.lr_entry.delete(0,END)          
+            self.lr_entry.insert(0, str(self.config["learning_rate"]))
+
+        elif(origin == "cpu"):
+            self.cores_entry.delete(0,END)          
+            self.cores_entry.insert(0, str(self.config["available_cores"]))
+
+        else:         
+            self.errors["text"] = "an unexpected error ocurred"
 
     def launch_visualizer(self):
         i = self.testselect_listbox.curselection()
