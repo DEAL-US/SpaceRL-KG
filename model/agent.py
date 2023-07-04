@@ -733,7 +733,6 @@ class Agent(object):
             try:
                 self.critic.train_on_batch([state_mem, self.advantages, self.old_pred], rew)
             except:
-                print("AAAAAA")
                 self.critic.train_on_batch([state_mem], rew)
 
             self.update_target_network()

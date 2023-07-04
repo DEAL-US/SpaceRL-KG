@@ -347,5 +347,5 @@ class DataManager(object):
             print(f"removing path {path_abs}")
             shutil.rmtree(path_abs)
 
-if __name__ == "__main__":
-    dm = DataManager()
+# if __name__ == "__main__":
+#     dm = DataManager()
