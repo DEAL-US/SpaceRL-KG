@@ -27,6 +27,10 @@ sys.path.pop(0)
 NODERADIUS = 15
 
 class menu():
+    #########################
+    # TKINTER MENU OPTIONS: #
+    #########################
+
     def __init__(self, root):
         self.root = Toplevel(root)
         self.root.title('View Paths')
@@ -51,15 +55,16 @@ class menu():
         
     def add_elements(self):
 
-        self.maxnumpaths_label = ttk.Label(self.mainframe, text='Maximum number of paths to display:')
+        self.maxnumpathsframe = ttk.Frame(self.mainframe)
+
+        self.maxnumpaths_label = ttk.Label(self.maxnumpathsframe, text='Maximum number of paths to display:')
         
         vcmd = (self.root.register(lambda value: self.validation(value, "maxnumpath")), '%P')
         ivcmd = (self.root.register(lambda: self.invalid("maxnumpath")),)
 
         maxnumpathsvar = IntVar()
-        self.maxnumpaths = ttk.Entry(self.mainframe, textvariable=maxnumpathsvar, text="max # of paths",
-        validate='focusout', validatecommand=vcmd, invalidcommand=ivcmd)
-
+        self.maxnumpaths = ttk.Entry(self.maxnumpathsframe, textvariable=maxnumpathsvar, text="max # of paths",
+        validate='key', validatecommand=vcmd, invalidcommand=ivcmd)
 
         self.testselect_label = ttk.Label(self.mainframe, text='Select test')
         testselect_strvar = StringVar(value=self.testnames)
@@ -76,13 +81,19 @@ class menu():
         self.grid_elements()
 
     def grid_elements(self):
+
         # row 0
-        self.testselect_label.grid(row=0, column=0)
+        self.maxnumpathsframe.grid(row=0, column=0)
+        self.maxnumpaths_label.grid(row=0, column=0)
+        self.maxnumpaths.grid(row=0, column=1)
 
         # row 1
-        self.testselect_listbox.grid(row=1, column=0)
+        self.testselect_label.grid(row=1, column=0)
 
-        self.testselect_scrollbar.grid(row=1, column=0)
+        # row 2
+        self.testselect_listbox.grid(row=2, column=0)
+
+        self.testselect_scrollbar.grid(row=2, column=0)
         self.testselect_listbox.update()
         l_width = self.testselect_listbox.winfo_width()
         l_height = self.testselect_listbox.winfo_height()
@@ -90,8 +101,11 @@ class menu():
         posy = self.testselect_listbox.winfo_y()
         self.testselect_scrollbar.place(x = posx + l_width - 15, y = posy -10, height=l_height-3)
 
-        # row 2 
-        self.start_display.grid(row=2, column=0)
+        # row 3
+        self.start_display.grid(row=3, column=0)
+
+        # row 4
+        self.errors.grid(row=4, column=0)
 
     def validation(self, value:str, origin:str):
         int_origins = ["maxnumpath"]
@@ -147,6 +161,11 @@ class menu():
 
         else:         
             self.errors["text"] = "an unexpected error ocurred"
+
+    def
+    ##############################
+    # PYGAME GRAPH VISUALIZATION #
+    ##############################
 
     def launch_visualizer(self):
         i = self.testselect_listbox.curselection()
