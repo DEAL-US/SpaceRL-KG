@@ -52,7 +52,6 @@ class menu():
         self.datasets_dir = pathlib.Path(f"{self.maindir}/datasets")
         self.agents_dir = pathlib.Path(f"{self.maindir}/model/data/agents/")
 
-        
     def add_elements(self):
 
         self.maxnumpathsframe = ttk.Frame(self.mainframe)
@@ -74,7 +73,7 @@ class menu():
         self.testselect_listbox.config(yscrollcommand=self.testselect_scrollbar.set)
         self.testselect_scrollbar.config(command=self.testselect_listbox.yview)
 
-        self.start_display = ttk.Button(self.mainframe, text="View", command= lambda: self.launch_visualizer())
+        self.start_display = ttk.Button(self.mainframe, text="View", state='disabled', command= lambda: self.launch_visualizer())
 
         self.errors = Label(self.mainframe, text='', fg='red', bg="#FFFFFF")
 
@@ -110,13 +109,18 @@ class menu():
     def validation(self, value:str, origin:str):
         int_origins = ["maxnumpath"]
         ranges = [(1,1000)]
+        a, b = ranges[0][0], ranges[0][1]
 
-        if(value.replace('.','',1).isdigit()): #check for any non-negative number
-            if(origin in int_origins):
-                v = int(value)
-            else:
-                print(f"bad origin {origin}")
-                return False
+        if(origin != int_origins[0]):
+            print(f"bad origin {origin}")
+            return False
+
+        if(value == ""):
+            self.change_button_status(False)
+            return True
+
+        if(value.isdigit()): #check for any non-negative number, non float number
+            v = int(value)
         else:
             self.errors["text"] = f"{origin} must be a number"
             return False
@@ -124,45 +128,22 @@ class menu():
         if(v < a or v > b):
             self.errors["text"] = f"{origin} must in range [{a}-{b}]"
             return False
-        else:
-            return True
+        
+        self.change_button_status(True)
+        self.MAX_PATHS_TO_DISPLAY = v
+        return True
 
     def invalid(self, origin:str):
         """
         If the validation of the field didn't pass, what actions to take.
-
         :param origin: the origin of the validation trigger it represents one of the text fields in the window. 
-
         """
-        print(f"the origin of the validation error is: {origin}")
-        if(origin == "seed"):  
-            self.seed_entry.delete(0,END)          
-            self.seed_entry.insert(0, str(self.config["seed"]))
+        self.change_button_status(False)
+        # self.errors["text"] = "an unexpected error ocurred"
 
-        elif(origin == "path"):
-            self.path_entry.delete(0,END)          
-            self.path_entry.insert(0, str(self.config["path_length"]))
-        
-        elif(origin == "alpha"):
-            self.alpha_entry.delete(0,END)          
-            self.alpha_entry.insert(0, str(self.config["alpha"]))
+    def change_button_status(self, on_off: bool):
+        self.start_display['state'] = 'enabled' if on_off else 'disabled'
 
-        elif(origin == "gamma"):
-            self.gamma_entry.delete(0,END)          
-            self.gamma_entry.insert(0, str(self.config["gamma"]))
-        
-        elif(origin == "lr"):
-            self.lr_entry.delete(0,END)          
-            self.lr_entry.insert(0, str(self.config["learning_rate"]))
-
-        elif(origin == "cpu"):
-            self.cores_entry.delete(0,END)          
-            self.cores_entry.insert(0, str(self.config["available_cores"]))
-
-        else:         
-            self.errors["text"] = "an unexpected error ocurred"
-
-    def
     ##############################
     # PYGAME GRAPH VISUALIZATION #
     ##############################
@@ -170,7 +151,7 @@ class menu():
     def launch_visualizer(self):
         i = self.testselect_listbox.curselection()
         if(i == ()):
-            print("please select a test to visualize.")
+            self.errors["text"] = "please select a test to visualize."
             return
 
         active = self.testselect_listbox.get(i)
@@ -250,7 +231,6 @@ class menu():
 
     def pygame_display(self, agent:Model, G: nx.Graph, 
     pathdicts:list, relations_embs:dict, entities_embs:dict):
-        
         self.path_length = len(pathdicts[0]["path"])
 
         current_dir = pathlib.Path(__file__).parent.resolve()
@@ -261,27 +241,28 @@ class menu():
             if layer.name == "Advantage" or layer.name == "Old_Prediction":
                 is_ppo = True
         
-        print("=== Actor Network ===")
-        print(agent.summary())
+        # print("=== Actor Network ===")
+        # print(agent.summary())
 
         # setup variables
-        size = self.width, self.height = 1280, 720
+        size = self.width, self.height = 1824, 1026
         white = 255, 255, 255
         requested_exit = False
 
+        # Calculate informaton about all the paths that are going to be represented and the participant nodes.
         paths_with_neighbors = self.get_weighted_paths_with_neighbors(G, agent, is_ppo, pathdicts, entities_embs, relations_embs)
         self.processed_pathdicts = self.keep_valuable_nodes_and_recalculate_positions(paths_with_neighbors, self.width, self.height)
 
         pg.init()
         pg.display.set_caption("Path Visualization")
-        self.font = pg.font.SysFont("dejavuserif", 13)
+        self.font = pg.font.SysFont("dejavuserif", 16)
 
         screen = pg.display.set_mode(size)
         node_surface = pg.Surface(size, pg.SRCALPHA)
 
         # Objects
-        prev_button = Button(30, 360, f"{assests_dir}/leftarrow.png", 0.8, lambda: self.change_visualized_path(-1))
-        next_button = Button(1180, 360, f"{assests_dir}/rightarrow.png", 0.8, lambda: self.change_visualized_path(1))
+        prev_button = Button(30, int(self.height/2), f"{assests_dir}/leftarrow.png", 0.8, lambda: self.change_visualized_path(-1))
+        next_button = Button(self.width-90, int(self.height/2), f"{assests_dir}/rightarrow.png", 0.8, lambda: self.change_visualized_path(1))
 
         # get initial path.
         self.current_visualized_path_idx, self.total_path_count = 0, len(self.processed_pathdicts)
@@ -292,6 +273,9 @@ class menu():
         self.init_visualized_path()
         self.cycle, self.ticks = -1, 0
         
+        self.arrow_keys_text = SimpleText(f"Use the arrow keys ◀ ▶ to move through the nodes and the arrow buttons to either side of the screen to jump top the next path", self.width/2, self.height-20, (0,0,0))
+
+        # THIS IS THE UPDATE METHOD, MEANING IT RUNS FOR EVERY FRAME.
         while not requested_exit:
             screen.fill(white)
             node_surface.fill(pg.Color(0,0,0,0)) 
@@ -304,6 +288,7 @@ class menu():
             self.numpath_displayed.run(screen)
             self.literal_path.run(screen)
             self.path_step_text.run(screen)
+            self.arrow_keys_text.run(screen)
 
             # nodes must run first as adges rely on them.
             # but we need to redraw them later as they have to be on top
@@ -336,7 +321,7 @@ class menu():
                         if (self.cycle > self.path_length):
                             self.cycle = -1
                     
-                    self.path_step_text = SimpleText(f"{self.cycle + 1}/{self.path_length}", self.width/2, self.height-40, (0,0,0))
+                    self.path_step_text = SimpleText(f"{self.cycle + 1}/{self.path_length+1}", self.width/2, self.height-40, (0,0,0))
                     self.ticks = 0
             
             screen.blit(node_surface, (0,0))
@@ -345,14 +330,6 @@ class menu():
 
             self.clock.tick(120)
             self.ticks += 1
-
-            # Auto scroll of nodes:
-            # if self.ticks == 240:
-            #     self.ticks = 0
-            #     self.cycle +=1
-
-            # if(self.cycle == self.path_length):
-            #     self.cycle = 0
 
         pg.quit()
 
@@ -376,7 +353,7 @@ class menu():
         self.nodes, self.neighbor_edges, self.path_edges = [], [], []
 
         # Text objects init
-        self.path_step_text = SimpleText(f"1/{self.path_length}", self.width/2, self.height-40, (0,0,0))
+        self.path_step_text = SimpleText(f"1/{self.path_length+1}", self.width/2, self.height-40, (0,0,0))
         self.numpath_displayed = SimpleText(f"{self.current_visualized_path_idx+1}/{self.total_path_count}", self.width/2, 40, (0,0,0))
         textual_path = ""
         
@@ -719,7 +696,7 @@ class Button:
             pos = pg.mouse.get_pos()
             if self.rect.collidepoint(pos) and not self.clicked:
                 self.clicked = True
-                print(f"clicked {self.rect}")
+                # print(f"clicked {self.rect}")
                 self.command()
         
         if pg.mouse.get_pressed()[0] == 0:
@@ -943,10 +920,10 @@ class SimpleText:
     def __init__(self, text:str, x:int, y:int, color: tuple):
         # Tophead text.
         self.x, self.y = x, y
-        self.text, self.local_font = text, pg.font.SysFont("dejavuserif", 14)
+        self.text, self.local_font = text, pg.font.SysFont("dejavuserif", 16)
         self.color = color
         
     def run(self, screen:pg.surface.Surface):
         txt_obj = self.local_font.render(self.text, True, self.color)
-        screen.blit(txt_obj, (self.x, self.y))
-    
+        w, h = txt_obj.get_width(), txt_obj.get_height()
+        screen.blit(txt_obj, (self.x-(w/2), self.y-(h/2)) )
