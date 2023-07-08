@@ -364,7 +364,7 @@ def remove_prefix(text:str, prefix):
 
 def remove_suffix(text:str, suffix):
     if text.endswith(suffix):
-        return text[:len(suffix)]
+        return text[:-len(suffix)]
     return text
 
 def remove_prefix_suffix(text:str, prefix, suffix):

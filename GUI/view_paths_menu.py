@@ -729,7 +729,7 @@ class Node:
 
     def get_state(self, cycle):
         borderopacity = 1
-        write_text = True
+        write_text = False
 
         if(len(self.main_in_step) != 0): # part of main path
             if(cycle in self.main_in_step): # current node
@@ -738,15 +738,16 @@ class Node:
 
             else: # not current node.
                 maincolor = (100, 149, 237, 255) # blue
-                if(cycle not in self.active_in_step):
-                    write_text = False
 
         else:
             if(cycle in self.active_in_step):
                 maincolor = (62, 195, 39, 190) # green
+                write_text = True
             else:
                 maincolor = (62, 195, 39, 75) # veeery clear green
-                write_text = False
+        
+        if cycle in self.main_in_step:
+            write_text = True
 
         return maincolor, borderopacity, write_text
 
@@ -798,7 +799,7 @@ class Edge:
     def __init__(self, font:pg.font.Font, relation:str, value:float, a:Node, b:Node):
         self.active_in_step, self.main_in_step = set(), set()
         self.is_active, self.is_main = False, False
-        self.active_color, self.base_color = (136, 8, 8), (0, 0, 0)
+        self.active_color, self.base_color = (136, 8, 8), (0, 0, 0) # red for active edges and black for the rest of the edges
 
         self.font, self.rel, self.value, = font, relation, value
 
@@ -813,9 +814,9 @@ class Edge:
         linewidth, color = self.get_state(cycle)
 
         if(origin == dest):
-            self.draw_self(screen, color, linewidth)
+            self.draw_self(screen, color, linewidth) # draws lines to itself for the NO_OP action.
         else:
-           self.draw_straight(screen, color, linewidth, origin, dest)
+           self.draw_straight(screen, color, linewidth, origin, dest) # draws a straight line to another edge.
 
     def get_state(self, cycle: int):
         self.is_main, self.is_active = False, False
@@ -831,7 +832,6 @@ class Edge:
             else:
                 return 1, self.base_color
 
-
     def draw_straight(self, screen:pg.surface.Surface, color, linewidth, origin, dest):
         dx = dest[0] - origin[0]
         dy = dest[1] - origin[1]
@@ -839,17 +839,25 @@ class Edge:
 
         o, d = self.calculate_external_node_point(origin, dest, dx, dy, dl)       
         line = pg.draw.line(screen, color, o, d, linewidth)
-        # pg.draw.line(screen, color, origin, dest, linewidth)
+        x, y, z = self.calculate_triangle(20, 30, o, d)
+        direction_tip = pg.draw.polygon(screen, color, (x,y,z))
 
-        if self.is_active or self.is_main:
-            self.render_text_rotated(screen, line, origin, dest, dy, dx, dl)
+        if(self.is_main):
+            self.render_text_rotated(screen, line, origin, True, dest, dy, dx, dl)
+        elif(self.is_active):
+            self.render_text_rotated(screen, line, origin, False, dest, dy, dx, dl)
     
-    def render_text_rotated(self, screen, line, origin, dest, dy, dx, dl):
+    def render_text_rotated(self, screen, line, origin, fullinfo, dest, dy, dx, dl):
         alpha = -math.degrees(math.asin(dy/dl))
         if dest[0] < origin[0]:
             alpha = -alpha
 
-        text_img = self.font.render(f"{self.rel}-({self.value:.2f})", True, (0,0,0))
+        if(fullinfo):
+            txt = f"{self.rel}-({self.value:.2f})"
+        else:
+            txt = f"({self.value:.2f})"
+
+        text_img = self.font.render(txt, True, (0,0,0))
         text_img = pg.transform.rotate(text_img, alpha)
 
         x, y = line.center
@@ -915,6 +923,23 @@ class Edge:
             y = b-y/2
 
             screen.blit(text_img, (x, y))
+
+    def calculate_triangle(self, height, base, line_origin, line_dest):
+        #calculate inverse vector:
+        reverse_line_vector = np.array(line_origin) - np.array(line_dest)
+        unit_line_vector = reverse_line_vector/np.linalg.norm(reverse_line_vector)
+
+
+        # add to the origin the unit vector times the arrow tip distance:
+        triangle_base_midpoint = line_dest + unit_line_vector*height
+        unit_perp_vector = np.empty_like(unit_line_vector)
+        unit_perp_vector[0] = -unit_line_vector[1]
+        unit_perp_vector[1] = unit_line_vector[0]
+
+        triangle_base_top = triangle_base_midpoint + unit_perp_vector*(base/2)
+        triangle_base_bottom = triangle_base_midpoint - unit_perp_vector*(base/2)
+
+        return line_dest, triangle_base_top.tolist(), triangle_base_bottom.tolist()
 
 class SimpleText:
     def __init__(self, text:str, x:int, y:int, color: tuple):
