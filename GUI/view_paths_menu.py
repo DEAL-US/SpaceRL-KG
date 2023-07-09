@@ -445,7 +445,7 @@ class menu():
 
                 self.neighbor_edges.extend((e1,e2))
 
-        self.literal_path = SimpleText(textual_path[:-3], 10, 10, (0,0,0))
+        self.literal_path = SimpleText(textual_path[:-3], self.width/2, self.height-10, (0,0,0))
 
     def get_node_absolute_pos_pygame(self, pos:dict, w:int, h:int):
         res = dict()
@@ -507,7 +507,7 @@ class menu():
     pathdicts:list, entities_embs:dict, relations_embs:dict):
         res = []
 
-        for t in tqdm(pathdicts):
+        for t in tqdm(pathdicts, "Recalculating paths..."):
             path = t["path"]
 
             e_0 = path[0][0]
@@ -516,33 +516,43 @@ class menu():
 
             inputs, neighbors = [], []
 
-            for p in path:
-                if[p[1] == "NO_OP"]:
-                    re = list(np.zeros(len(entities_embs[e_0])))
-                else:
-                    re = relations_embs[p[1]]
+            initial_q_entity = entities_embs[e_0]
+            initial_q_relation = relations_embs[r]
 
-                observation = [*entities_embs[e_0], *relations_embs[r],
-                *entities_embs[p[0]], *re, *entities_embs[p[2]]]
+            for p in path:
+                if str(p[1]) == "NO_OP":
+                    re = list(np.zeros(len(entities_embs[e_0]))) # Zeros if NO_OP
+                else:
+                    re = relations_embs[p[1]] # values for relation if exists.
+                                
+                current_status_node = entities_embs[p[0]]
+                connective_rel = re
+                destination_node = entities_embs[p[2]]
+
+                observation = [*initial_q_entity, *initial_q_relation, *current_status_node, *connective_rel, *destination_node]
 
                 inputs.append(observation)
 
+                # get adjacent to current node and remove main path entity.
                 adjacents = G.adj[p[0]].copy()
                 del adjacents[p[2]]
-                # print(f"adjacency in node {p[0]}->{p[2]} is:\n {adjacents}\n")
-
+                
+                # get current node neighbors observations
                 current_node_neighbors = []
                 for node, v in adjacents.items():
                     for relpair in v.values():
                         rel = relpair["name"]
 
-                        if[rel == "NO_OP"]:
+                        if rel == "NO_OP":
                             re = list(np.zeros(len(entities_embs[e_0])))
                         else:
                             re = relations_embs[rel]
                         
-                        observation = [*entities_embs[e_0], *relations_embs[r],
-                        *entities_embs[p[0]], *re, *entities_embs[node]]
+                        current_status_node = entities_embs[p[0]]
+                        connective_rel = re
+                        destination_node = entities_embs[node]
+
+                        observation = [*initial_q_entity, *initial_q_relation, *current_status_node, *connective_rel, *destination_node]
 
                         inputs.append(observation)
                         current_node_neighbors.append((rel, node))
@@ -602,7 +612,7 @@ class menu():
 
             return res
 
-        for p in tqdm(path_with_neighbors, ""):
+        for p in tqdm(path_with_neighbors, "Recalculating paths..."):
             all_nodes_in_path = set()
             path_with_processed_neighbors = []
 
@@ -833,12 +843,12 @@ class Edge:
 
         if(len(self.main_in_step) != 0): # is in main path:
             self.is_main = True
-            return 8, self.active_color
+            return 4, self.active_color
 
         else: # not in main path
             if(cycle in self.active_in_step):
                 self.is_active = True
-                return 3, self.base_color
+                return 2, self.base_color
             else:
                 return 1, self.base_color
 
@@ -849,7 +859,7 @@ class Edge:
 
         o, d = self.calculate_external_node_point(origin, dest, dx, dy, dl)       
         line = pg.draw.line(screen, color, o, d, linewidth)
-        x, y, z = self.calculate_triangle(20, 30, o, d)
+        x, y, z = self.calculate_triangle(20, 20, o, d)
         direction_tip = pg.draw.polygon(screen, color, (x,y,z))
 
         if(self.is_main):
