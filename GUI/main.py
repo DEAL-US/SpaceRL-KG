@@ -63,7 +63,6 @@ class mainmenu(object):
         self.tst_conn = TesterGUIconnector(self.config, self.tests)
 
     # MAIN ELEMENTS
-
     def add_elements(self):
         """
         Adds all tkinter elements to the main window.

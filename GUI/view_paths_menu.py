@@ -231,6 +231,7 @@ class menu():
 
     def pygame_display(self, agent:Model, G: nx.Graph, 
     pathdicts:list, relations_embs:dict, entities_embs:dict):
+
         self.path_length = len(pathdicts[0]["path"])
 
         current_dir = pathlib.Path(__file__).parent.resolve()
@@ -365,9 +366,11 @@ class menu():
 
         # add edges to edge list.
         is_first = True
+        # TODO, BUGFIX: as nodes are added to a list then the direction of the triple gets lost, it needs to be respected.
         for i, step in enumerate(self.currently_visualized_path['path']):
             o_step_dict = dict()
 
+            # HANDLING MAIN PATH...(VALID)
             valid = step['valid']
             if(is_first):
                 textual_path += f" Inferred Path: {valid[0]} -> {valid[1][0]} -> {valid[2]} -> "
@@ -391,7 +394,8 @@ class menu():
                         except:pass
 
             try:
-                e = Edge(self.font, valid[1][0], valid[1][1], nodes_in_rel[0], nodes_in_rel[1])
+                a,b = (nodes_in_rel[0], nodes_in_rel[1]) if nodes_in_rel[0].text == valid[0] else (nodes_in_rel[1], nodes_in_rel[0])
+                e = Edge(self.font, valid[1][0], valid[1][1], a, b)
             except:
                 # node to itself.
                 e = Edge(self.font, valid[1][0], valid[1][1], nodes_in_rel[0], nodes_in_rel[0])
@@ -422,15 +426,21 @@ class menu():
 
             for j in range(len(worst)):
                 nodes_in_rel = [n for n in self.nodes if n.text == worst[j][0] or n.text == worst[j][2]]
-                i1, i2 = (0,0)  if len(nodes_in_rel) == 1 else (0,1)
-                e1 = Edge(self.font, worst[j][1][0], worst[j][1][1], nodes_in_rel[i1], nodes_in_rel[i2])
-                
+                if len(nodes_in_rel) != 1: #straight path
+                    a,b = (nodes_in_rel[0], nodes_in_rel[1]) if nodes_in_rel[0].text == worst[j][0] else (nodes_in_rel[1], nodes_in_rel[0])
+                else:
+                    a,b = nodes_in_rel[0], nodes_in_rel[0]
+
+                e1 = Edge(self.font, worst[j][1][0], worst[j][1][1], a, b)
                 e1.active_in_step.add(i)
                 
                 nodes_in_rel = [n for n in self.nodes if n.text == best[j][0] or n.text == best[j][2]]
-                i1, i2 = (0,0)  if len(nodes_in_rel) == 1 else (0,1)
-                e2 = Edge(self.font, best[j][1][0], best[j][1][1], nodes_in_rel[i1], nodes_in_rel[i2])
+                if len(nodes_in_rel) != 1: #straight path
+                    a,b = (nodes_in_rel[0], nodes_in_rel[1]) if nodes_in_rel[0].text == best[j][0] else (nodes_in_rel[1], nodes_in_rel[0])
+                else:
+                    a,b = nodes_in_rel[0], nodes_in_rel[0]
 
+                e2 = Edge(self.font, best[j][1][0], best[j][1][1], a, b)
                 e2.active_in_step.add(i)
 
                 self.neighbor_edges.extend((e1,e2))
