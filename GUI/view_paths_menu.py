@@ -9,6 +9,7 @@ from keras.models import load_model
 from keras import Model
 from tqdm import tqdm
 from itertools import chain
+from copy import deepcopy
 
 import numpy as np
 import tensorflow as tf
@@ -242,8 +243,8 @@ class menu():
             if layer.name == "Advantage" or layer.name == "Old_Prediction":
                 is_ppo = True
         
-        # print("=== Actor Network ===")
-        # print(agent.summary())
+        print("=== Actor Network ===")
+        print(agent.summary())
 
         # setup variables
         size = self.width, self.height = 1824, 1026
@@ -506,7 +507,7 @@ class menu():
         return res
     
     def get_weighted_paths_with_neighbors(self, G:nx.Graph, agent:Model, is_ppo: bool,
-    pathdicts:list, entities_embs:dict, relations_embs:dict):
+        pathdicts:list, entities_embs:dict, relations_embs:dict):
         res = []
 
         for t in tqdm(pathdicts, "Recalculating paths..."):
@@ -531,7 +532,7 @@ class menu():
                 connective_rel = re
                 destination_node = entities_embs[p[2]]
 
-                observation = [*initial_q_entity, *initial_q_relation, *current_status_node, *connective_rel, *destination_node]
+                observation = deepcopy([*initial_q_entity, *initial_q_relation, *current_status_node, *connective_rel, *destination_node])
 
                 inputs.append(observation)
 
@@ -554,7 +555,7 @@ class menu():
                         connective_rel = re
                         destination_node = entities_embs[node]
 
-                        observation = [*initial_q_entity, *initial_q_relation, *current_status_node, *connective_rel, *destination_node]
+                        observation = deepcopy([*initial_q_entity, *initial_q_relation, *current_status_node, *connective_rel, *destination_node])
 
                         inputs.append(observation)
                         current_node_neighbors.append((rel, node))
