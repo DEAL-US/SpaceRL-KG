@@ -366,7 +366,6 @@ class menu():
 
         # add edges to edge list.
         is_first = True
-        # TODO, BUGFIX: as nodes are added to a list then the direction of the triple gets lost, it needs to be respected.
         for i, step in enumerate(self.currently_visualized_path['path']):
             o_step_dict = dict()
 
@@ -408,15 +407,15 @@ class menu():
             
             o_step_dict["curr_node"] = nodes_in_rel[0]
             worst = step['worst']
-            best = step['best']
+            # best = step['best']
 
             active = set()
             for x in range(len(worst)):
                 w = [n for n in self.nodes if n.text == worst[x][0] or n.text == worst[x][2]]
-                b = [n for n in self.nodes if n.text == best[x][0] or n.text == best[x][2]]
+                # b = [n for n in self.nodes if n.text == best[x][0] or n.text == best[x][2]]
 
-                for a in b:
-                    active.add(a)
+                # for a in b:
+                #     active.add(a)
                 
                 for a in w:
                     active.add(a)
@@ -425,6 +424,7 @@ class menu():
                     a.active_in_step.add(i)
 
             for j in range(len(worst)):
+                # add worst nodes.
                 nodes_in_rel = [n for n in self.nodes if n.text == worst[j][0] or n.text == worst[j][2]]
                 if len(nodes_in_rel) != 1: #straight path
                     a,b = (nodes_in_rel[0], nodes_in_rel[1]) if nodes_in_rel[0].text == worst[j][0] else (nodes_in_rel[1], nodes_in_rel[0])
@@ -434,18 +434,20 @@ class menu():
                 e1 = Edge(self.font, worst[j][1][0], worst[j][1][1], a, b)
                 e1.active_in_step.add(i)
                 
-                nodes_in_rel = [n for n in self.nodes if n.text == best[j][0] or n.text == best[j][2]]
-                if len(nodes_in_rel) != 1: #straight path
-                    a,b = (nodes_in_rel[0], nodes_in_rel[1]) if nodes_in_rel[0].text == best[j][0] else (nodes_in_rel[1], nodes_in_rel[0])
-                else:
-                    a,b = nodes_in_rel[0], nodes_in_rel[0]
+                # add best nodes.
+                # nodes_in_rel = [n for n in self.nodes if n.text == best[j][0] or n.text == best[j][2]]
+                # if len(nodes_in_rel) != 1: #straight path
+                #     a,b = (nodes_in_rel[0], nodes_in_rel[1]) if nodes_in_rel[0].text == best[j][0] else (nodes_in_rel[1], nodes_in_rel[0])
+                # else:
+                #     a,b = nodes_in_rel[0], nodes_in_rel[0]
 
-                e2 = Edge(self.font, best[j][1][0], best[j][1][1], a, b)
-                e2.active_in_step.add(i)
+                # e2 = Edge(self.font, best[j][1][0], best[j][1][1], a, b)
+                # e2.active_in_step.add(i)
 
-                self.neighbor_edges.extend((e1,e2))
+                self.neighbor_edges.append(e1) # self.neighbor_edges.extend((e1,e2))
+                
 
-        self.literal_path = SimpleText(textual_path[:-3], self.width/2, self.height-10, (0,0,0))
+        self.literal_path = SimpleText(textual_path[:-3], self.width/2, 20, (0,0,0))
 
     def get_node_absolute_pos_pygame(self, pos:dict, w:int, h:int):
         res = dict()
@@ -624,16 +626,18 @@ class menu():
 
                 # print(f"\n{step}\n")
                 # Calculate the best and worst neighbors for the path step.
-                worst, best = [], []
-                worst_weakest_idx, best_weakest_idx = 0, 0
-                for n in step['neighbors']:
+                worst = []
+                # best = []
+                worst_weakest_idx = 0
+                # best_weakest_idx = 0
 
-                    if len(worst) < maxnodes or len(best) < maxnodes:
+                for n in step['neighbors']:
+                    if len(worst) < maxnodes: # or len(best) < maxnodes:
                         worst.append(n)
-                        best.append(n)
-                        if(len(worst) == maxnodes or len(best) == maxnodes):
+                        # best.append(n)
+                        if len(worst) == maxnodes: #or len(best) == maxnodes):
                             worst_weakest_idx = get_weakest_idx(worst, 'max')
-                            best_weakest_idx = get_weakest_idx(best, 'min')
+                            # best_weakest_idx = get_weakest_idx(best, 'min')
 
                     else:
                         # print(f"\nevaluating node {n}\n before:\nworst:{worst}\nbest:\n{best}\n")
@@ -642,20 +646,20 @@ class menu():
                             worst.append(n)
                             worst_weakest_idx = get_weakest_idx(worst, 'max')
                         
-                        if(n[1][1] > best[best_weakest_idx][1][1]):
-                            best.pop(best_weakest_idx)
-                            best.append(n)
-                            best_weakest_idx = get_weakest_idx(best, 'min')
+                        # if(n[1][1] > best[best_weakest_idx][1][1]):
+                        #     best.pop(best_weakest_idx)
+                        #     best.append(n)
+                        #     best_weakest_idx = get_weakest_idx(best, 'min')
 
                 step_dict["worst"] = worst
-                step_dict["best"] = best
+                # step_dict["best"] = best
 
                 all_n = set()
                 for i in range(len(worst)):
                     all_n.add(worst[i][0])
                     all_n.add(worst[i][2])
-                    all_n.add(best[i][0])
-                    all_n.add(best[i][2])
+                    # all_n.add(best[i][0])
+                    # all_n.add(best[i][2])
 
                 all_nodes_in_path.update(all_n)
 
@@ -671,15 +675,15 @@ class menu():
             for aux in p["path"]:
                 v_t = aux['valid']
                 worst = aux['worst']
-                best = aux['best']
+                # best = aux['best']
 
                 localG.add_edge(v_t[0], v_t[2], name = v_t[1][0])
 
                 for wrst in worst:
                     localG.add_edge(wrst[0], wrst[2], name = wrst[1][0])
 
-                for bst in best:
-                    localG.add_edge(bst[0], bst[2], name = bst[1][0])
+                # for bst in best:
+                #     localG.add_edge(bst[0], bst[2], name = bst[1][0])
 
 
             # NetworkX direct drawing config, hardcoded values.
