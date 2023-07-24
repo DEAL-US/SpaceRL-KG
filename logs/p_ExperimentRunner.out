@@ -1,0 +1,78 @@
+running integrity checks
+datafolder is: /home/migberbay/RL-KG/datasets/NELL-995
+generating embeddings for dataset NELL-995 and models ['TransE_l2']
+Selected embedding TransE_l2 is already generated for NELL-995 dataset, if you want to regenerate use the regenerate boolean option
+calculating embedding minimums and maximums...
+triples: 149411, nodes:74296, edges:373118
+=== Build Actor Network ===
+Model: "model"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ state (InputLayer)             [(5, 1000)]          0           []                               
+                                                                                                  
+ dense (Dense)                  (5, 400)             400400      ['state[0][0]']                  
+                                                                                                  
+ reshape (Reshape)              (5, 1, 400)          0           ['dense[0][0]']                  
+                                                                                                  
+ lstm (LSTM)                    (5, 1, 400)          1281600     ['reshape[0][0]']                
+                                                                                                  
+ lstm_1 (LSTM)                  (5, 1, 400)          1281600     ['lstm[0][0]']                   
+                                                                                                  
+ last_lstm (LSTM)               (5, 400)             1281600     ['lstm_1[0][0]']                 
+                                                                                                  
+ dense_1 (Dense)                (5, 400)             160400      ['last_lstm[0][0]']              
+                                                                                                  
+ dense_2 (Dense)                (5, 400)             160400      ['dense_1[0][0]']                
+                                                                                                  
+ Advantage (InputLayer)         [(5, 1)]             0           []                               
+                                                                                                  
+ Old_Prediction (InputLayer)    [(5, 1)]             0           []                               
+                                                                                                  
+ actor_output (Dense)           (5, 1)               401         ['dense_2[0][0]']                
+                                                                                                  
+==================================================================================================
+Total params: 4,566,401
+Trainable params: 4,566,401
+Non-trainable params: 0
+__________________________________________________________________________________________________
+None
+=== Build Critic Network ===
+Model: "model_1"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ state (InputLayer)             [(5, 1000)]          0           []                               
+                                                                                                  
+ dense_3 (Dense)                (5, 400)             400400      ['state[0][0]']                  
+                                                                                                  
+ reshape_1 (Reshape)            (5, 1, 400)          0           ['dense_3[0][0]']                
+                                                                                                  
+ lstm_2 (LSTM)                  (5, 1, 400)          1281600     ['reshape_1[0][0]']              
+                                                                                                  
+ lstm_3 (LSTM)                  (5, 1, 400)          1281600     ['lstm_2[0][0]']                 
+                                                                                                  
+ last_lstm (LSTM)               (5, 400)             1281600     ['lstm_3[0][0]']                 
+                                                                                                  
+ dense_4 (Dense)                (5, 400)             160400      ['last_lstm[0][0]']              
+                                                                                                  
+ dense_5 (Dense)                (5, 400)             160400      ['dense_4[0][0]']                
+                                                                                                  
+ Advantage (InputLayer)         [(5, 1)]             0           []                               
+                                                                                                  
+ Old_Prediction (InputLayer)    [(5, 1)]             0           []                               
+                                                                                                  
+ critic_output_layer (Dense)    (5, 1)               401         ['dense_5[0][0]']                
+                                                                                                  
+==================================================================================================
+Total params: 4,566,401
+Trainable params: 4,566,401
+Non-trainable params: 0
+__________________________________________________________________________________________________
+None
+running for 149411 iterations
+saving data...
+Saving cache for dataset
+Cache saved in 0.00011348724365234375
+Saving agent model
+Model saved in 0.14187097549438477

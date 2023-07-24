@@ -2,7 +2,7 @@
     "dataset": "NELL-995",
     "model": "ComplEx",
     "emb_size": 200,
-    "max_train_step": 6000,
+    "max_train_step": 24000,
     "batch_size": 1000,
     "neg_sample_size": 200,
     "lr": 0.25,
