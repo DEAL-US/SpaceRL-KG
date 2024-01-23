@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+   xmlns:ns1="http://www.w3.org/ns/oa#"
+   xmlns:ns2="http://www.w3.org/ns/prov#"
+   xmlns:ns3="http://purl.obolibrary.org/obo/sep/"
+   xmlns:ns4="http://pubannotation.org/ontology/tao.owl#"
+   xmlns:ns5="http://purl.org/dc/terms/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+>
+  <rdf:Description rdf:about="http://pubannotation.org/projects/sentences/PMC-1-0-sentence_7221214">
+    <ns4:contains rdf:resource="http://pubannotation.org/docs/sourcedb/PMC/sourceid/1/divs/0/spans/210-228"/>
+    <ns4:begins_at>165</ns4:begins_at>
+    <ns5:source>ti</ns5:source>
+    <ns4:ends_at>228</ns4:ends_at>
+    <ns4:contains rdf:resource="http://pubannotation.org/docs/sourcedb/PMC/sourceid/1/divs/0/spans/165-178"/>
+    <ns4:contains rdf:resource="http://pubannotation.org/docs/sourcedb/PMC/sourceid/1/divs/0/spans/165-172"/>
+    <ns4:contains rdf:resource="http://pubannotation.org/docs/sourcedb/PMC/sourceid/1/divs/0/spans/173-178"/>
+    <ns4:belongs_to rdf:resource="http://pubannotation.org/docs/sourcedb/PMC/sourceid/1/divs/0"/>
+    <ns4:has_text>Formate assay in body fluids: application in methanol poisoning.</ns4:has_text>
+    <ns4:contains rdf:resource="http://pubannotation.org/docs/sourcedb/PMC/sourceid/1/divs/0/spans/207-209"/>
+    <rdf:type rdf:resource="http://pubannotation.org/ontology/tao.owl#Text_span"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://pubannotation.org/projects/semrep/NWoZK3kTsExUV00Ywo1G5jlUKKs=">
+    <ns1:has_source rdf:resource="http://pubannotation.org/docs/sourcedb/PMC/sourceid/1/divs/0"/>
+    <rdf:type rdf:resource="http://www.w3.org/ns/prov#Activity"/>
+    <rdf:type rdf:resource="http://www.weneedaurl.now/OA_Concept_Annotation"/>
+    <ns2:atTime rdf:resource="2016/12/31"/>
+    <ns2:wasGeneratedBy rdf:resource="https://skr3.nlm.nih.gov/a737PioyNhU2u6SWCPCUTJxdsjw="/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://pubannotation.org/docs/sourcedb/PMC/sourceid/1/divs/0/spans/173-178">
+    <ns4:follows rdf:resource="http://pubannotation.org/docs/sourcedb/PMC/sourceid/1/divs/0/spans/207-209"/>
+    <ns4:follows rdf:resource="http://pubannotation.org/docs/sourcedb/PMC/sourceid/1/divs/0/spans/165-178"/>
+    <ns4:ends_at>178</ns4:ends_at>
+    <ns4:begins_at>173</ns4:begins_at>
+    <ns4:denotes rdf:resource="http://pubannotation.org/projects/sentences/PMC-1-0-T_C1510438"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://pubannotation.org/docs/sourcedb/PMC/sourceid/1/divs/0">
+    <ns5:published>1975</ns5:published>
+    <ns5:identifier>1</ns5:identifier>
+    <rdf:type rdf:resource="http://purl.obolibrary.org/obo/IAO_0000310"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://pubannotation.org/docs/sourcedb/PMC/sourceid/1/divs/0/spans/165-172">
+    <ns4:begins_at>165</ns4:begins_at>
+    <ns4:ends_at>172</ns4:ends_at>
+    <ns4:denotes rdf:resource="http://pubannotation.org/projects/sentences/PMC-1-0-T_C0220832"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://pubannotation.org/docs/sourcedb/PMC/sourceid/1/divs/0/spans/165-178">
+    <ns4:denotes rdf:resource="http://pubannotation.org/projects/sentences/PMC-1-0-T_C1510438"/>
+    <ns4:ends_at>178</ns4:ends_at>
+    <ns4:follows rdf:resource="http://pubannotation.org/docs/sourcedb/PMC/sourceid/1/divs/0/spans/165-172"/>
+    <ns4:begins_at>165</ns4:begins_at>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://pubannotation.org/docs/sourcedb/PMC/sourceid/1/divs/0/spans/207-209">
+    <ns4:follows rdf:resource="http://pubannotation.org/docs/sourcedb/PMC/sourceid/1/divs/0/spans/210-228"/>
+    <ns4:ends_at>209</ns4:ends_at>
+    <ns4:begins_at>207</ns4:begins_at>
+    <ns4:denotes rdf:resource="http://pubannotation.org/projects/sentences/PMC-1-0-T_C1510438"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="https://skr3.nlm.nih.gov/a737PioyNhU2u6SWCPCUTJxdsjw=">
+    <ns3:SEP_00065>1.7</ns3:SEP_00065>
+    <rdf:type rdf:resource="http://purl.obolibrary.org/obo/swo/SWO_0000001"/>
+    <rdfs:label>SemRep</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://pubannotation.org/projects/sentences/PMC-1-0-T_USES">
+    <rdf:type rdf:resource="http://pubannotation.org/ontology/tao.owl#Concept_entity"/>
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Predicate"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://www.w3.org/1999/02/22-rdf-syntax-ns#Object">
+    <ns5:identifier rdf:resource="http://uts-ws.nlm.nih.gov/rest/content/current/CUI/C0392621"/>
+    <rdfs:label>formate</rdfs:label>
+    <ns5:identifier rdf:resource="http://uts-ws.nlm.nih.gov/rest/content/current/CUI/C0220832"/>
+    <rdfs:label>Methyl alcohol poisoning</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://www.w3.org/1999/02/22-rdf-syntax-ns#Subject">
+    <ns5:identifier rdf:resource="http://uts-ws.nlm.nih.gov/rest/content/current/CUI/C1510438"/>
+    <rdfs:label>Assay</rdfs:label>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://pubannotation.org/projects/sentences/PMC-1-0-T_C0392621">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Object"/>
+    <rdf:type rdf:resource="http://pubannotation.org/ontology/tao.owl#Concept_entity"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://www.w3.org/1999/02/22-rdf-syntax-ns#Predicate">
+    <rdfs:label>USES</rdfs:label>
+    <ns5:identifier rdf:resource="http://uts-ws.nlm.nih.gov/rest/content/current/CUI/DIAGNOSES"/>
+    <rdfs:label>DIAGNOSES</rdfs:label>
+    <ns5:identifier rdf:resource="http://uts-ws.nlm.nih.gov/rest/content/current/CUI/USES"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://pubannotation.org/docs/sourcedb/PMC/sourceid/1/divs/0/spans/210-228">
+    <ns4:begins_at>210</ns4:begins_at>
+    <ns4:ends_at>228</ns4:ends_at>
+    <ns4:denotes rdf:resource="http://pubannotation.org/projects/sentences/PMC-1-0-T_C0392621"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://pubannotation.org/projects/sentences/PMC-1-0-T_DIAGNOSES">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Predicate"/>
+    <rdf:type rdf:resource="http://pubannotation.org/ontology/tao.owl#Concept_entity"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://pubannotation.org/projects/sentences/PMC-1-0-T_C0220832">
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Object"/>
+    <rdf:type rdf:resource="http://pubannotation.org/ontology/tao.owl#Concept_entity"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://pubannotation.org/projects/sentences/PMC-1-0-T_C1510438">
+    <rdf:type rdf:resource="http://pubannotation.org/ontology/tao.owl#Concept_entity"/>
+    <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Subject"/>
+  </rdf:Description>
+</rdf:RDF>
