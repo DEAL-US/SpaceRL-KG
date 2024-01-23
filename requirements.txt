@@ -8,6 +8,7 @@ torch==1.13.0
 tk==0.1.0
 pygame==2.1.2
 matplotlib==3.6.2
+rdflib
 # uncomment if python 3.8, OS is linux and if embedding generation is required.
 dgl==0.4.3
 dglke==0.1.2
