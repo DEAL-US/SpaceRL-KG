@@ -6,7 +6,7 @@ import os
 class LinkedDataReader():
 	"""Reads RDF datasets and provides a .txt file ready for the system."""
 
-	def __init__(self, file_path, prob, include_dataprop, input_format):
+	def __init__(self, file_path):
 		"""
 		Arguments:
 
@@ -16,9 +16,8 @@ class LinkedDataReader():
 		"""
 
 		self.file_path = file_path
-		self.prob = prob
-		self.include_dataprop = include_dataprop
-		self.input_format = input_format
+		self.input_format = rdflib.util.guess_format(file_path)
+		self.include_dataprop = True
 
 	def read(self):
 		"""
@@ -37,25 +36,25 @@ class LinkedDataReader():
 		edges = set()
 
 		graph = rdflib.Graph()
-		graph.parse(self.file_path, rdflib.util.guess_format(self.input_format))
-		
-		print("Processing statements")
-		for source, relation, target in tqdm(graph):
-			if(random() < self.prob):
-				if source not in entities:
-					entities[source] = dict(degree=0, out_degree=0, in_degree=0, data_properties={})
-				entities[source]["out_degree"] += 1
-				entities[source]["degree"] += 1
-				if type(target) is rdflib.term.URIRef:
-					if target not in entities:
-						entities[target] = dict(degree=0, out_degree=0, in_degree=0, data_properties={})
-					entities[target]["in_degree"] += 1
-					entities[target]["degree"] += 1
-					relations.add(relation)
-					edges.add((relation, source, target))
-				else:
-					if(self.include_dataprop):
-						entities[source]["data_properties"][relation] = target
+		graph.parse(self.file_path, self.input_format)
+
+		for source, relation, target in tqdm(graph, desc= 'Converting to SpaceRL format.'):
+
+			if source not in entities:
+				entities[source] = dict(degree=0, out_degree=0, in_degree=0, data_properties={})
+			entities[source]["out_degree"] += 1
+			entities[source]["degree"] += 1
+
+			if type(target) is rdflib.term.URIRef:
+				if target not in entities:
+					entities[target] = dict(degree=0, out_degree=0, in_degree=0, data_properties={})
+				entities[target]["in_degree"] += 1
+				entities[target]["degree"] += 1
+				relations.add(relation)
+				edges.add((relation, source, target))
+			else:
+				if(self.include_dataprop):
+					entities[source]["data_properties"][relation] = target
 
 		return (entities, relations, edges)
 
@@ -64,5 +63,22 @@ if __name__ == "__main__":
 	rdf_dataset_file = sys.argv[1]
 	assert os.path.isfile(rdf_dataset_file), 'The specified file does not exist, please try again'
 
-	ldr = LinkedDataReader(rdf_dataset_file, 1, include_dataprop, input_format)
+	ldr = LinkedDataReader(rdf_dataset_file)
+	entities, relations, edges = ldr.read()
+	print(list(entities.items())[0])
+	print()
+	print(list(relations)[0])
+	print()
+	print(list(edges)[0])
+
+
+	# with dataprop:
+	# 	(rdflib.term.URIRef('http://pubannotation.org/docs/sourcedb/PMC/sourceid/1/divs/0/spans/165-178'), {'degree': 6, 'out_degree': 4, 'in_degree': 2, 'data_properties': {rdflib.term.URIRef('http://pubannotation.org/ontology/tao.owl#ends_at'): rdflib.term.Literal('178'), rdflib.term.URIRef('http://pubannotation.org/ontology/tao.owl#begins_at'): rdflib.term.Literal('165')}})
+	# 	http://www.w3.org/ns/oa#has_source
+	# 	(rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), rdflib.term.URIRef('http://pubannotation.org/projects/sentences/PMC-1-0-T_USES'), rdflib.term.URIRef('http://pubannotation.org/ontology/tao.owl#Concept_entity'))
+
+	# without dataprop:
+	# 	(rdflib.term.URIRef('http://pubannotation.org/projects/sentences/PMC-1-0-sentence_7221214'), {'degree': 11, 'out_degree': 11, 'in_degree': 0, 'data_properties': {}})
+	# 	http://www.w3.org/ns/oa#has_source
+	# 	(rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), rdflib.term.URIRef('http://pubannotation.org/projects/sentences/PMC-1-0-sentence_7221214'), rdflib.term.URIRef('http://pubannotation.org/ontology/tao.owl#Text_span'))
 
