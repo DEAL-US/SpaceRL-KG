@@ -126,9 +126,9 @@ class menu():
 
 
         self.guided_rew_label = ttk.Label(self.selectors_frame, text='Active Rewards')
-        possible_rewards = ["distance","terminal","embedding"]
+        possible_rewards = ["distance", "terminal", "embedding", "shaping"]
         rewards = StringVar(value=possible_rewards)
-        self.rewards_listbox = Listbox(self.selectors_frame, listvariable=rewards, height=3, selectmode='multiple', exportselection=False)
+        self.rewards_listbox = Listbox(self.selectors_frame, listvariable=rewards, height=4, selectmode='multiple', exportselection=False)
         for r in self.config['guided_to_compute']:
             self.rewards_listbox.select_set(possible_rewards.index(r))
         CreateToolTip(self.guided_rew_label, text="which rewards to use:\n\

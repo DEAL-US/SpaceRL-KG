@@ -377,4 +377,4 @@ def start_server(host, port, MAXBYTES):
 
 def enough_free_resources():
     active = mp.active_children()
-    return active < 2
+    return len(active) < 2

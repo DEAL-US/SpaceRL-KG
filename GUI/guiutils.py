@@ -166,7 +166,7 @@ def GetAgents():
 
     :returns: a list of AgentInfo which contains all generated agents and information about them.
     """
-    res = []
+    res, errors = [], []
     agent_list = os.listdir(agents_folder)
     agent_list.remove('.gitkeep')
     agent_list.remove('TRAINED')
@@ -195,9 +195,15 @@ def GetAgents():
 
         
         # print("\n",embeddings, name, dataset, single_rel_pair, "\n")
+        
+        try:
+            res.append(AgentInfo(name, embeddings, dataset, single_rel_pair[0], single_rel_pair[1]))
+        except IndexError:
+            errors.append(name)
 
-        res.append(AgentInfo(name, embeddings, dataset, single_rel_pair[0], single_rel_pair[1]))
-    
+    if(len(errors) != 0):
+        print(f"These Agents are missing config information: {errors}")
+        
     return res
 
 def GetTestsPaths():
@@ -358,7 +364,7 @@ def remove_prefix(text:str, prefix):
 
 def remove_suffix(text:str, suffix):
     if text.endswith(suffix):
-        return text[:len(suffix)]
+        return text[:-len(suffix)]
     return text
 
 def remove_prefix_suffix(text:str, prefix, suffix):

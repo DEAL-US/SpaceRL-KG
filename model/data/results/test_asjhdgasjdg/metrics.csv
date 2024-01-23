@@ -1,0 +1,6 @@
+,,COUNTRIES
+hits@1,DistMult,0.42
+hits@3,DistMult,0.835
+hits@5,DistMult,0.935
+hits@10,DistMult,1.0
+MRR,DistMult,0.6351329365079363

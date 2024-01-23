@@ -338,10 +338,8 @@ def main(from_file:bool, api_connector = None, gui_connector : TrainerGUIconnect
         if(gui_connector is not None):
             print(gui_connector.experiments)
             config, EXPERIMENTS = gui_connector.config, gui_connector.experiments
-
         elif(api_connector is not None):
             config, EXPERIMENTS = api_connector["config"], api_connector["experiments"]
-        
         else:
             print("Trainer config is wrong, if not being run from file, either and API or a GUI connector should be provided.")
             quit()

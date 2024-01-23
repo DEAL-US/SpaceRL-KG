@@ -71,7 +71,7 @@ def root() ->str:
 
 
 Hi! you are in the API for the SpaceRL-KG Framework.
-try /redoc to check all the things I can do or docs, to try it out!
+try /redoc to check all the things I can do or /docs, to try it out!
 we are OpenAPI compliant, check /openapi.json.
 """
     return text
