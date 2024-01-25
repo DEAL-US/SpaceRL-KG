@@ -63,22 +63,13 @@ if __name__ == "__main__":
 	rdf_dataset_file = sys.argv[1]
 	assert os.path.isfile(rdf_dataset_file), 'The specified file does not exist, please try again'
 
+	resfile = f"{os.path.dirname(os.path.abspath(__file__))}/res/graph.txt"
+
 	ldr = LinkedDataReader(rdf_dataset_file)
-	entities, relations, edges = ldr.read()
-	print(list(entities.items())[0])
-	print()
-	print(list(relations)[0])
-	print()
-	print(list(edges)[0])
+	_, _, edges = ldr.read()
 
-
-	# with dataprop:
-	# 	(rdflib.term.URIRef('http://pubannotation.org/docs/sourcedb/PMC/sourceid/1/divs/0/spans/165-178'), {'degree': 6, 'out_degree': 4, 'in_degree': 2, 'data_properties': {rdflib.term.URIRef('http://pubannotation.org/ontology/tao.owl#ends_at'): rdflib.term.Literal('178'), rdflib.term.URIRef('http://pubannotation.org/ontology/tao.owl#begins_at'): rdflib.term.Literal('165')}})
-	# 	http://www.w3.org/ns/oa#has_source
-	# 	(rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), rdflib.term.URIRef('http://pubannotation.org/projects/sentences/PMC-1-0-T_USES'), rdflib.term.URIRef('http://pubannotation.org/ontology/tao.owl#Concept_entity'))
-
-	# without dataprop:
-	# 	(rdflib.term.URIRef('http://pubannotation.org/projects/sentences/PMC-1-0-sentence_7221214'), {'degree': 11, 'out_degree': 11, 'in_degree': 0, 'data_properties': {}})
-	# 	http://www.w3.org/ns/oa#has_source
-	# 	(rdflib.term.URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), rdflib.term.URIRef('http://pubannotation.org/projects/sentences/PMC-1-0-sentence_7221214'), rdflib.term.URIRef('http://pubannotation.org/ontology/tao.owl#Text_span'))
-
+	with open(resfile, "w") as file:
+		for triple in edges:
+			e1, r, e2 = triple
+			file.write(f"{e1}\t{r}\t{e2}{os.linesep}")
+			
