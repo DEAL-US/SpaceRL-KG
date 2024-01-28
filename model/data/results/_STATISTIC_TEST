@@ -1,0 +1,26 @@
+film_genre_FB_PPO_distance_22: =
+film-genre-FB-base-simple-distance-22-test: =
+film-genre-FB-base-simple-embedding-22-test: =
+film-genre-FB-PPO-simple-embedding-22-test: blank
+
+has-color-nell-base-emb-250: +
+has-color-nell-base-dist-250: +
+has-color-nell-ppo-dist-250: +
+has-color-nell-ppo-emb-250: blank
+
+is-taller-nell-base-dist-250: +
+is-taller-nell-base-emb-250: +
+is-taller-nell-ppo-dist-250: +
+is-taller-nell-ppo-emb-250: blank
+
+music_artist_genre-nell-base-dist-150: +
+music_artist_genre-nell-base-emb-150: +
+music_artist_genre-nell-ppo-dist-150: =
+music_artist_genre-nell-ppo-emb-150: blank
+
+similar-to-wn18-PPO-simple-emb-100: +
+verb-group-wn18-PPO-simple-emb-100: +
+also-see-wn18-PPO-simple-emb-100: +
+derivationally-related-from-wn18-PPO-simple-emb-100: +
+WN18_generic_PPO_simple_embedding_50: blank
+
